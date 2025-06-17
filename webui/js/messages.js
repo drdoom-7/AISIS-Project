@@ -291,6 +291,7 @@ export function drawMessageUser(
         img.src = attachment.url;
         img.alt = attachment.name;
         img.classList.add("attachment-preview");
+        img.classList.add("responsive-screenshot-img"); // Add new class here
 
         const fileInfo = document.createElement("div");
         fileInfo.classList.add("file-info");
@@ -528,6 +529,7 @@ function drawKvps(container, kvps, latex) {
         if (typeof value === "string" && value.startsWith("img://")) {
           const imgElement = document.createElement("img");
           imgElement.classList.add("kvps-img");
+          imgElement.classList.add("responsive-screenshot-img"); // Add new class here
           imgElement.src = value.replace("img://", "/image_get?path=");
           imgElement.alt = "Image Attachment";
           td.appendChild(imgElement);
@@ -595,7 +597,7 @@ function convertImageTags(content) {
   const updatedContent = content.replace(
     imageTagRegex,
     (match, base64Content) => {
-      return `<img src="data:image/jpeg;base64,${base64Content}" alt="Image Attachment" style="max-width: 250px !important;"/>`;
+      return `<img src="data:image/jpeg;base64,${base64Content}" alt="Image Attachment" class="responsive-screenshot-img"/>`; // Removed inline style
     }
   );
 
