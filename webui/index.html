@@ -371,75 +371,82 @@
                 </h4>
             </div>
             <div id="input-section" x-data="{
-                paused: false,
-                attachments: [],
-                hasAttachments: false,
-                showButtons: false, // New state for toggling button visibility
-                startY: 0,
-                deltaY: 0,
+            paused: false,
+            attachments: [],
+            hasAttachments: false,
+            showButtons: window.innerWidth > 768, // Initialize based on window width
+            startY: 0,
+            deltaY: 0,
 
-                handleTouchStart(event) {
-                    this.startY = event.touches[0].clientY;
-                },
-                handleTouchMove(event) {
-                    this.deltaY = this.startY - event.touches[0].clientY;
-                },
-                handleTouchEnd() {
-                    // Only trigger if a significant swipe occurred
-                    if (Math.abs(this.deltaY) > 50) { // Swipe up/down threshold
-                        this.showButtons = this.deltaY > 0; // If swipe up (deltaY positive), show buttons
+            init() {
+            // Add a listener for window resize to update showButtons
+                const mediaQuery = window.matchMedia('(min-width: 769px)');
+                const handleMediaQueryChange = (e) => {
+                this.showButtons = e.matches;
+                    // Ensure swipe handle visibility is correct after resize
+                    this.$nextTick(() => {
+                    const swipeHandle = document.querySelector('.swipe-handle');
+                    if (swipeHandle) {
+                    swipeHandle.style.display = (!this.showButtons && window.innerWidth <= 768) ? 'flex' : 'none';
                     }
-                    this.deltaY = 0; // Reset delta
-                },
-                showButtons: false, // New state for toggling button visibility
-                startY: 0,
-                deltaY: 0,
+                });
+                };
+                mediaQuery.addEventListener('change', handleMediaQueryChange);
 
-                handleTouchStart(event) {
-                    this.startY = event.touches[0].clientY;
-                },
-                handleTouchMove(event) {
-                    this.deltaY = this.startY - event.touches[0].clientY;
-                },
-                handleTouchEnd() {
-                    // Only trigger if a significant swipe occurred
-                    if (Math.abs(this.deltaY) > 50) { // Swipe up/down threshold
-                        this.showButtons = this.deltaY > 0; // If swipe up (deltaY positive), show buttons
+                // Initial call to set swipe handle visibility correctly on load
+                    this.$nextTick(() => {
+                    const swipeHandle = document.querySelector('.swipe-handle');
+                if (swipeHandle) {
+                        swipeHandle.style.display = (!this.showButtons && window.innerWidth <= 768) ? 'flex' : 'none';
                     }
-                    this.deltaY = 0; // Reset delta
-                },
-                handleFileUpload(event) {
-                    const files = event.fromEvent(event.target.files);
+            });
+            },
 
-                    Array.from(files).forEach(file => {
-                        const ext = file.name.split('.').pop().toLowerCase();
-
-                            const isImage = ['jpg', 'jpeg', 'png', 'bmp'].includes(ext);
-
-                            if (isImage) {
-                                // Handle image preview
-                                const reader = new FileReader();
-                                reader.onload = e => {
-                                    this.attachments.push({
-                                        file: file,
-                                        url: e.target.result,
-                                        type: 'image',
-                                        name: file.name,
-                                        extension: ext
-                                    });
-                                    this.hasAttachments = true;
-                                };
-                                reader.readAsDataURL(file);
-                            } else {
-                                // Handle other file types
-                                this.attachments.push({
-                                    file: file,
-                                    type: 'file',
-                                    name: file.name,
-                                    extension: ext
-                                });
-                                this.hasAttachments = true;
-                            }
+            handleTouchStart(event) {
+            if (window.innerWidth <= 768) { // Only enable touch swipe on mobile
+            this.startY = event.touches[0].clientY;
+            }
+            },
+            handleTouchMove(event) {
+                if (window.innerWidth <= 768) { // Only enable touch swipe on mobile
+                this.deltaY = this.startY - event.touches[0].clientY;
+                    }
+            },
+            handleTouchEnd() {
+                    if (window.innerWidth <= 768) { // Only enable touch swipe on mobile
+            if (Math.abs(this.deltaY) > 50) {
+                            this.showButtons = this.deltaY > 0;
+            }
+            this.deltaY = 0;
+            }
+            },
+            handleFileUpload(event) {
+            const files = event.fromEvent(event.target.files);
+            Array.from(files).forEach(file => {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const isImage = ['jpg', 'jpeg', 'png', 'bmp'].includes(ext);
+            if (isImage) {
+            const reader = new FileReader();
+            reader.onload = e => {
+            this.attachments.push({
+                file: file,
+                    url: e.target.result,
+                type: 'image',
+                name: file.name,
+            extension: ext
+            });
+            this.hasAttachments = true;
+            };
+            reader.readAsDataURL(file);
+            } else {
+            this.attachments.push({
+                        file: file,
+                            type: 'file',
+                                name: file.name,
+                                extension: ext
+                            });
+                            this.hasAttachments = true;
+                        }
                     });
                 }
             }"
@@ -601,7 +608,7 @@
                 </div>
 
                 <!-- Swipe handle / indicator -->
-                <div class="swipe-handle" @click="showButtons = !showButtons" x-show="!showButtons" x-transition.opacity>
+                <div class="swipe-handle" @click="showButtons = !showButtons" x-show="!showButtons && window.innerWidth <= 768" x-transition.opacity>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M7 14l5-5 5 5z"/>
                     </svg>
