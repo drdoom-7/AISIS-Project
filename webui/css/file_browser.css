@@ -4,7 +4,7 @@
 .file-header,
 .file-item {
   width: 100%;
-  border-radius: 4px;
+  border-radius: 8px; /* Slightly more rounded corners */
   overflow: hidden;
 }
 
@@ -12,18 +12,19 @@
 .file-header {
   display: grid;
   grid-template-columns: 2fr 0.6fr 1fr 80px;
-  background: var(--secondary-bg);
-  padding: 8px 0;
+  background: var(--color-panel-header); /* Use header background color */
+  padding: 10px 0; /* More vertical padding */
   font-weight: bold;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border); /* Consistent border */
+  color: var(--color-accent); /* Neon accent for headers */
+  box-shadow: inset 0 -2px 8px rgba(0, 229, 255, 0.1); /* Inner glow */
 }
 
 .file-cell,
 .file-cell-size,
 .file-cell-date {
-  color: var(--color-primary);
-  padding: 4px;
+  color: var(--color-primary); /* Consistent primary color for cell text */
+  padding: 8px; /* More padding */
   cursor: pointer;
 }
 
@@ -32,26 +33,31 @@
   display: grid;
   grid-template-columns: 2fr 0.6fr 1fr 80px;
   align-items: center;
-  padding: 8px 0;
-  font-size: 0.875rem;
-  border-top: 1px solid var(--color-border);
-  transition: background-color 0.2s;
+  padding: 10px 0; /* More vertical padding */
+  font-size: 0.9rem; /* Slightly larger font */
+  border-top: 1px solid var(--color-border); /* Consistent border */
+  transition: all 0.3s ease; /* Smooth transitions */
   white-space: nowrap;
   overflow: hidden;
-  color: var(--color-text);
+  color: var(--color-text); /* Consistent text color */
+  background-color: rgba(0, 229, 255, 0.02); /* Very subtle background */
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle inner shadow */
 }
 
 .file-item:hover {
-  background-color: var(--color-secondary);
+  background-color: rgba(0, 229, 255, 0.05); /* Subtle neon background on hover */
+  box-shadow: inset 0 1px 5px rgba(0, 229, 255, 0.1), var(--neon-glow-primary-hover-sm); /* Subtle neon glow on hover */
+  transform: translateY(-1px); /* Slight lift on hover */
 }
 
 /* File Icon and Name */
 .file-icon {
-  width: 1.8rem;
-  height: 1.8rem;
-  margin: 0 1rem 0 0.7rem;
+  width: 2.2rem; /* Larger icons */
+  height: 2.2rem;
+  margin: 0 1rem 0 0.8rem; /* Adjusted margin */
   vertical-align: middle;
   font-size: var(--font-size-sm);
+  filter: invert(73%) sepia(17%) saturate(700%) hue-rotate(150deg) brightness(120%) contrast(100%); /* Cyan filter */
 }
 
 .file-name {
@@ -70,14 +76,15 @@
 
 .file-size,
 .file-date {
-  color: var(--text-secondary);
+  color: var(--color-text-muted); /* Muted text for size and date */
 }
 
 /* No Files Message */
 .no-files {
   padding: 32px;
   text-align: center;
-  color: var(--text-secondary);
+  color: var(--color-text-muted); /* Muted text */
+  font-style: italic;
 }
 
 /* Light Mode Adjustments */
@@ -89,39 +96,57 @@
 .path-navigator {
   display: flex;
   align-items: center;
-  gap: 24px;
-  background-color: var(--color-message-bg);
-  padding: 0.5rem var(--spacing-sm);
-  margin-bottom: 0.3rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  gap: 15px; /* Adjusted gap */
+  background-color: var(--color-panel); /* Glassmorphism background */
+  padding: 0.8rem 1rem; /* More padding */
+  margin-bottom: 0.8rem; /* More margin */
+  border: var(--glass-border-width) solid var(--glass-border-color); /* Glassmorphism border */
+  border-radius: var(--border-radius); /* Match panel border radius */
+  box-shadow: var(--glass-shadow); /* Glassmorphism shadow */
+  backdrop-filter: blur(calc(var(--glass-blur) / 2)); /* Subtle blur */
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) / 2));
+  transition: all 0.3s ease; /* Smooth transitions */
+}
+
+.path-navigator:hover {
+  box-shadow: var(--neon-glow-primary-hover-sm); /* Subtle neon glow on hover */
+  transform: translateY(-2px); /* Slight lift */
 }
 
 .nav-button {
-  padding: 4px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  background: var(--color-background);
-  color: var(--color-text);
+  padding: 6px 14px; /* More padding */
+  border: 1px solid var(--color-border); /* Consistent border */
+  border-radius: 6px; /* More rounded */
+  background: var(--color-input); /* Input-like background */
+  color: var(--color-text); /* Consistent text color */
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Inner shadow */
 }
 
 .nav-button:hover {
-  background: var(--hover-bg);
+  background: rgba(0, 229, 255, 0.08); /* Subtle neon background */
+  border-color: var(--color-accent); /* Neon accent border */
+  box-shadow: 0 0 5px var(--color-accent); /* Subtle neon glow */
 }
 
 .nav-button.back-button {
-  background-color: var(--color-secondary);
-  color: var(--color-text);
+  background-color: var(--color-primary); /* Primary color for back button */
+  color: var(--color-background-dark); /* Dark text */
+  box-shadow: var(--neon-glow-primary); /* Neon glow */
+  border: none; /* No border for primary button */
 }
 
 .nav-button.back-button:hover {
-  background-color: var(--color-secondary-dark);
+  background-color: var(--color-accent); /* Neon accent on hover */
+  box-shadow: 0 0 10px var(--color-accent), 0 0 25px var(--color-primary); /* Stronger neon glow */
+  transform: translateY(-2px); /* Subtle lift */
 }
 
 #current-path {
   opacity: 0.9;
+  color: var(--color-primary); /* Highlight current path */
+  font-weight: 500;
 }
 
 #path-text {
@@ -129,6 +154,7 @@
   font-optical-sizing: auto;
   -webkit-font-optical-sizing: auto;
   opacity: 0.9;
+  color: var(--color-text-muted); /* Muted path text */
 }
 
 /* Folder Specific Styles */
@@ -136,8 +162,12 @@
   cursor: pointer;
 }
 
+.file-item[data-is-dir="true"] .file-icon {
+  filter: invert(73%) sepia(17%) saturate(700%) hue-rotate(150deg) brightness(120%) contrast(100%); /* Consistent cyan filter for folders */
+}
+
 .file-item[data-is-dir="true"]:hover {
-  background-color: var(--color-secondary);
+  background-color: rgba(0, 229, 255, 0.05); /* Subtle neon background on hover */
 }
 
 /* Upload Button Styles */
@@ -145,76 +175,96 @@
 .btn-upload {
   display: inline-flex;
   align-items: center;
-  padding: 8px 16px;
-  background-color: var(--color-primary);
-  color: white;
-  border-radius: 4px;
+  padding: 10px 20px; /* More padding */
+  background-color: var(--color-primary); /* Primary color */
+  color: var(--color-background-dark); /* Dark text */
+  border-radius: 8px; /* More rounded */
   cursor: pointer;
-  transition: background-color 0.3s ease-in-out;
+  transition: all 0.3s ease; /* Smooth transitions */
+  box-shadow: var(--neon-glow-primary); /* Neon glow */
 }
 
 .btn-upload {
-  background: #4248f1;
-  gap: 0.5rem;
-  margin: 0 auto;
+  gap: 0.6rem; /* Slightly more gap */
+  margin: 0 auto; /* Center button */
 }
 
 .btn-upload > svg {
-  width: 20px;
+  width: 22px; /* Larger icon */
+  height: 22px;
 }
 
 .upload-button:hover,
 .btn-upload:hover {
-  background-color: #353bc5;
+  background-color: var(--color-accent); /* Neon accent on hover */
+  box-shadow: 0 0 10px var(--color-accent), 0 0 25px var(--color-primary); /* Stronger neon glow */
+  transform: translateY(-2px); /* Subtle lift */
 }
 
 .upload-button:active,
 .btn-upload:active {
-  background-color: #2b309c;
+  transform: scale(0.95); /* Scale down on active */
+  opacity: 0.8;
 }
 
 /* Delete Button Styles */
 .delete-button {
-  background: none;
+  background: transparent;
   border: none;
-  color: var(--color-primary);
+  color: var(--color-red-neon); /* Neon red for delete */
   cursor: pointer;
-  width: 32px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: opacity 0.2s, background-color 0.2s;
+  width: 36px; /* Larger button */
+  height: 36px;
+  padding: 6px; /* Adjusted padding */
+  border-radius: 50%; /* Circular button */
+  transition: all 0.2s;
+  font-size: 1.5rem; /* Larger 'X' if text */
 }
 
 .delete-button:hover {
-  color: #ff7878;
+  background-color: rgba(255, 7, 58, 0.1); /* Subtle red background */
+  color: var(--color-red-neon); /* Stronger red */
+  box-shadow: var(--neon-glow-red); /* Red neon glow */
+  transform: scale(1.1); /* Enlarge on hover */
 }
 
 .delete-button:active {
   opacity: 0.6;
+  transform: scale(0.95);
 }
 
 /* File Actions */
 .file-actions {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: 8px; /* Consistent gap */
 }
 
 .action-button {
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid var(--color-border); /* Subtle border */
   cursor: pointer;
-  width: 32px;
-  padding: 6px 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  width: 36px; /* Larger button */
+  height: 36px;
+  padding: 6px; /* Adjusted padding */
+  border-radius: 8px; /* More rounded */
+  transition: all 0.2s;
+  color: var(--color-text); /* Consistent text color */
+}
+
+.action-button svg {
+  width: 20px; /* Larger icons */
+  height: 20px;
 }
 
 .download-button {
-  color: var(--color-primary);
+  color: var(--color-primary); /* Primary color for download icon */
 }
 
-.download-button:hover {
-  background-color: var(--color-border);
+.action-button:hover {
+  background-color: rgba(0, 229, 255, 0.1); /* Subtle neon background */
+  border-color: var(--color-accent); /* Neon accent border */
+  box-shadow: 0 0 5px var(--color-accent); /* Subtle neon glow */
+  transform: translateY(-2px); /* Slight lift */
 }
 
 .light-mode .download-button:hover {

@@ -883,17 +883,6 @@ pre {
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* Styling for kvps-img (screenshots) */
-.kvps-img {
-  max-width: 100%;
-  height: auto;
-  max-height: 400px; /* Max height for desktop */
-  border-radius: 8px;
-  object-fit: contain;
-  display: block; /* Ensures it respects max-width properly */
-  margin-top: 5px; /* Add some space above the image */
-}
-
 /* Message Actions */
 .message-actions {
   color: var(--color-text);
@@ -1556,11 +1545,6 @@ color: var(--color-text); /* Ensure text color */
 
 /* Styles for screens up to 768px (tablets and smaller desktops/laptops) */
 @media (max-width: 768px) {
-  /* Styling for kvps-img (screenshots) on tablets/smaller desktops */
-  .kvps-img {
-    max-height: 300px; /* Adjust max height for smaller screens */
-  }
-
   .container {
     flex-direction: column; /* Stack panels vertically */
     padding: var(--spacing-sm);
@@ -1714,11 +1698,6 @@ color: var(--color-text); /* Ensure text color */
 
 /* Styles for screens up to 640px (smartphones) */
 @media (max-width: 640px) {
-  /* Styling for kvps-img (screenshots) on smartphones */
-  .kvps-img {
-    max-height: 200px; /* Even smaller max height for mobile */
-  }
-
   #chat-input {
     min-height: 4.5rem !important; /* Adjusted min-height for smartphone */
     height: auto !important;
@@ -1879,18 +1858,6 @@ color: var(--color-text); /* Ensure text color */
 @media (min-width: 768px) {
   #chat-buttons-wrapper {
     flex-wrap: nowrap;
-  }
-}
-
-/* Force text buttons to always be visible on desktop */
-@media (min-width: 769px) {
-  .text-buttons-row {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    height: auto !important;
-    min-height: auto !important;
-    overflow: visible !important;
-
   }
 }
 

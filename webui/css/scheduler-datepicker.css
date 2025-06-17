@@ -10,118 +10,153 @@
 /* Input styling */
 .scheduler-flatpickr-input {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--color-border, #ccc);
-  border-radius: 4px;
-  background-color: var(--color-input, #fff);
-  color: var(--color-text, #333);
-  font-size: 14px;
+  padding: 0.8rem 1rem; /* More padding for a bolder look */
+  border: 1px solid var(--color-border); /* Use consistent border color */
+  border-radius: 8px; /* Slightly more rounded */
+  background-color: var(--color-input); /* Use consistent input background */
+  color: var(--color-text); /* Use consistent text color */
+  font-size: 1rem; /* Slightly larger font */
   cursor: pointer;
+  outline: none;
+  transition: all 0.3s ease; /* Smooth transitions */
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2); /* Inner shadow for depth */
+}
+
+.scheduler-flatpickr-input:focus {
+  border-color: var(--color-accent); /* Neon accent on focus */
+  box-shadow: 0 0 0 2px var(--color-accent), inset 0 2px 5px rgba(0, 0, 0, 0.3); /* Outer neon glow on focus */
+  background-color: var(--color-input-focus); /* Slightly lighter on focus */
 }
 
 /* Calendar container customization */
 .flatpickr-calendar.scheduler-theme {
-  background: var(--color-panel, #fff);
-  border: 1px solid var(--color-border, #ccc);
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  color: var(--color-text, #333);
-  font-size: 14px;
-  max-width: 320px;
+  background-color: var(--color-panel); /* Use glassmorphism panel background */
+  border: var(--glass-border-width) solid var(--glass-border-color); /* Glassmorphism border */
+  border-radius: var(--border-radius); /* Match panel border radius */
+  box-shadow: var(--glass-shadow); /* Glassmorphism shadow */
+  backdrop-filter: blur(var(--glass-blur)); /* Apply full glass blur */
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  color: var(--color-text); /* Consistent text color */
+  font-size: 1rem; /* Slightly larger font */
+  max-width: 340px; /* Slightly wider calendar */
   padding: 0;
-  z-index: 9999 !important; /* Ensure it's above other elements */
+  z-index: 9999 !important;
   position: absolute !important;
   visibility: visible !important;
   opacity: 1 !important;
+  animation: fadeIn 0.3s ease-out; /* Fade-in animation */
 }
 
 /* Month navigation */
 .flatpickr-calendar.scheduler-theme .flatpickr-months {
-  background-color: var(--color-primary, #4a90e2);
-  border-radius: 4px 4px 0 0;
-  color: var(--color-text, #333);
-  padding: 8px 0;
+  background-color: rgba(0, 0, 0, 0.3); /* Darker, more transparent background */
+  border-radius: var(--border-radius) var(--border-radius) 0 0; /* Match panel radius */
+  color: var(--color-primary); /* Primary color for text */
+  padding: 10px 0; /* More padding */
+  border-bottom: 1px solid var(--color-border); /* Subtle border */
+}
+
+.flatpickr-calendar.scheduler-theme .flatpickr-month {
+  color: var(--color-accent); /* Neon accent for month/year */
+  font-weight: bold;
 }
 
 .flatpickr-calendar.scheduler-theme .flatpickr-prev-month,
 .flatpickr-calendar.scheduler-theme .flatpickr-next-month {
-  color: var(--color-text, #333);
+  color: var(--color-primary); /* Primary color for arrows */
+  transition: all 0.2s ease;
 }
 
 .flatpickr-calendar.scheduler-theme .flatpickr-prev-month:hover,
 .flatpickr-calendar.scheduler-theme .flatpickr-next-month:hover {
-  color: var(--color-text, #333);
+  color: var(--color-accent); /* Neon accent on hover */
+  transform: scale(1.1); /* Slight enlarge */
 }
 
 /* Days of week */
 .flatpickr-calendar.scheduler-theme .flatpickr-weekdays {
-  background-color: var(--color-panel, #fff);
-  border-bottom: 1px solid var(--color-border, #eee);
+  background-color: rgba(0, 0, 0, 0.1); /* Subtle darker background */
+  border-bottom: 1px solid var(--color-border); /* Consistent border */
 }
 
 .flatpickr-calendar.scheduler-theme .flatpickr-weekday {
-  color: var(--color-text, #333);
+  color: var(--color-primary); /* Primary color for weekdays */
   font-weight: bold;
 }
 
 /* Day cells */
 .flatpickr-calendar.scheduler-theme .flatpickr-day {
-  border-radius: 4px;
-  color: var(--color-text, #333);
-  transition: background-color 0.2s, color 0.2s;
+  border-radius: 6px; /* Slightly more rounded */
+  color: var(--color-text); /* Consistent text color */
+  transition: all 0.2s ease; /* Smooth transitions */
 }
 
 .flatpickr-calendar.scheduler-theme .flatpickr-day:hover {
-  background-color: var(--color-panel, #f0f0f0);
+  background-color: rgba(0, 229, 255, 0.08); /* Subtle neon background on hover */
+  color: var(--color-accent); /* Neon text on hover */
 }
 
 .flatpickr-calendar.scheduler-theme .flatpickr-day.selected {
-  background-color: var(--color-primary, #4a90e2);
-  border-color: var(--color-border, #ccc);
-  color: var(--color-text, #333);
+  background-color: var(--color-primary); /* Primary color for selected */
+  border-color: var(--color-primary); /* Primary border for selected */
+  color: var(--color-background-dark); /* Dark text on primary */
+  box-shadow: var(--neon-glow-primary-sm); /* Subtle neon glow */
 }
 
 .flatpickr-calendar.scheduler-theme .flatpickr-day.today {
-  border-color: var(--color-border, #ccc);
-  color: var(--color-text, #333);
+  border: 1px solid var(--color-accent); /* Neon accent border for today */
+  color: var(--color-accent); /* Neon text for today */
+  font-weight: bold;
 }
 
 /* Time picker */
 .flatpickr-calendar.scheduler-theme .flatpickr-time {
-  border-top: 1px solid var(--color-border, #eee);
-  background-color: var(--color-panel, #fff);
+  border-top: 1px solid var(--color-border); /* Consistent border */
+  background-color: rgba(0, 0, 0, 0.2); /* Darker, more transparent background */
+  padding-top: 10px;
 }
 
 .flatpickr-calendar.scheduler-theme .numInputWrapper span {
-  border-color: var(--color-border, #eee);
+  border-color: var(--color-border); /* Consistent border */
+  color: var(--color-primary); /* Primary color for arrows */
 }
 
 .flatpickr-calendar.scheduler-theme .numInputWrapper span:hover {
-  background-color: var(--color-panel, #f0f0f0);
+  background-color: rgba(0, 229, 255, 0.05); /* Subtle neon background on hover */
 }
 
 .flatpickr-calendar.scheduler-theme input.flatpickr-hour,
 .flatpickr-calendar.scheduler-theme input.flatpickr-minute,
 .flatpickr-calendar.scheduler-theme input.flatpickr-second {
-  color: var(--color-text, #333);
-  background-color: transparent;
+  color: var(--color-text); /* Consistent text color */
+  background-color: var(--color-input); /* Input background color */
+  border: 1px solid var(--color-border); /* Consistent border */
+  border-radius: 6px; /* Rounded corners */
+  padding: 6px 8px; /* More padding */
 }
 
 /* Clear button in the input field */
 .scheduler-flatpickr-clear {
   position: absolute;
-  right: 8px;
+  right: 12px; /* Adjusted position */
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  padding: 4px;
+  padding: 6px; /* More padding */
   display: none;
-  color: var(--color-text-light, #999);
+  color: var(--color-red-neon); /* Neon red for clear button */
   background: transparent;
   border: none;
   z-index: 1;
+  font-size: 1.2rem; /* Larger icon/text */
+  transition: all 0.2s ease;
 }
 
 .scheduler-flatpickr-wrapper:hover .scheduler-flatpickr-clear {
   display: block;
+}
+
+.scheduler-flatpickr-clear:hover {
+  text-shadow: var(--neon-glow-red-sm); /* Subtle red neon glow on hover */
+  transform: translateY(-50%) scale(1.1); /* Enlarge on hover */
 }

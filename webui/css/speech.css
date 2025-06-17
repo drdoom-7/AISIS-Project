@@ -1,69 +1,79 @@
 /* MIC BUTTON */
-#microphone-button {  
+#microphone-button {
+  /* Base styles handled by main CSS or button component */
+  transition: all 0.3s ease; /* Ensure smooth transitions for all states */
 }
 
 /* Only apply hover effects on devices that support hover */
 @media (hover: hover) {
   #microphone-button:hover {
-    background-color: #636363;
-    transform: scale(1.05);
-    -webkit-transform: scale(1.05);
+    background-color: var(--color-accent); /* Neon accent on hover */
+    transform: scale(1.08); /* Slightly larger scale on hover */
+    -webkit-transform: scale(1.08);
     transform-origin: center;
+    box-shadow: var(--neon-glow-primary-sm); /* Subtle neon glow on hover */
   }
 }
 
 #microphone-button:active {
-  background-color: #444444;
-  transform: scale(1);
-  -webkit-transform: scale(1);
+  background-color: var(--color-primary); /* Primary color on active */
+  transform: scale(0.95); /* Scale down on active for tactile feedback */
+  -webkit-transform: scale(0.95);
   transform-origin: center;
+  box-shadow: none; /* Remove glow on active */
 }
 
-#microphone-button.recording {
-  background-color: #ff4136; /* Red color for recording */
-  transition: background-color 0.3s ease;
+/* States for microphone button */
+#microphone-button.mic-inactive {
+    background-color: var(--color-secondary); /* Muted secondary color */
+    color: var(--color-text-muted); /* Muted text/icon color */
+    box-shadow: none;
+}
+
+#microphone-button.mic-activating {
+    background-color: var(--color-primary); /* Primary color for activating */
+    animation: pulse 0.8s infinite; /* Keep pulse animation */
+    box-shadow: var(--neon-glow-primary); /* Neon glow during activation */
+}
+
+#microphone-button.mic-listening {
+    background-color: var(--color-accent); /* Neon accent for listening */
+    box-shadow: var(--neon-glow-accent); /* Stronger neon glow for listening */
+}
+
+#microphone-button.mic-recording {
+    background-color: var(--color-green-neon); /* Green neon for recording */
+    box-shadow: var(--neon-glow-green); /* Green neon glow for recording */
+    transition: background-color 0.3s ease; /* Smooth transition to recording color */
+}
+
+#microphone-button.mic-waiting {
+    background-color: var(--color-info-neon); /* Info neon color for waiting */
+    box-shadow: var(--neon-glow-info); /* Info neon glow for waiting */
+}
+
+#microphone-button.mic-processing {
+    background-color: var(--color-purple-neon); /* Purple neon for processing */
+    animation: pulse 0.8s infinite; /* Keep pulse animation */
+    transform-origin: center;
+    box-shadow: var(--neon-glow-purple); /* Purple neon glow for processing */
 }
 
 @keyframes pulse {
     0% {
       transform: scale(1);
+      box-shadow: 0 0 5px var(--color-primary-light); /* Subtle glow at start */
     }
     50% {
       transform: scale(1.1);
+      box-shadow: 0 0 15px var(--color-accent), 0 0 30px var(--color-primary); /* Stronger neon glow at peak */
     }
     100% {
       transform: scale(1);
+      box-shadow: 0 0 5px var(--color-primary-light); /* Return to subtle glow */
     }
-  }
+}
 
 .mic-pulse {
   animation: pulse 1.5s infinite;
-}
-
-
-.mic-inactive{
-    background-color: grey;
-}
-
-.mic-activating{
-    background-color: silver;
-    animation: pulse 0.8s infinite;
-}
-
-.mic-listening {
-  background-color: red;
-}
-
-.mic-recording {
-  background-color: green;
-}
-
-.mic-waiting {
-  background-color: teal;
-}
-
-.mic-processing {
-  background-color: darkcyan;
-  animation: pulse 0.8s infinite;
-  transform-origin: center;
 }

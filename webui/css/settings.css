@@ -22,13 +22,12 @@
 
 .field-title {
   font-weight: bold;
-  color: var(--color-primary);
+  color: var(--color-primary); /* Highlight with primary color */
 }
 
 .field-description {
-  color: var(--color-text);
+  color: var(--color-text-muted); /* More subtle description text */
   font-size: 0.875rem;
-  opacity: 0.8;
   margin: 0.25rem 0 0.5rem 0;
 }
 
@@ -46,48 +45,53 @@ input[type="number"],
 textarea,
 select {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid var(--color-secondary);
-  border-radius: 0.25rem;
-  background-color: var(--color-background);
-  color: var(--color-text);
+  padding: 0.8rem 1rem; /* More padding for a bolder look */
+  border: 1px solid var(--color-border); /* Use consistent border color */
+  border-radius: 8px; /* Slightly more rounded */
+  background-color: var(--color-input); /* Use consistent input background */
+  color: var(--color-text); /* Use consistent text color */
   font-family: "Rubik", Arial, Helvetica, sans-serif;
   outline: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease; /* Smooth transitions */
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2); /* Inner shadow for depth */
 }
 
 input[type="text"]:focus,
-input[type="password"]:focus {
-  opacity: 1;
+input[type="password"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-accent); /* Neon accent on focus */
+  box-shadow: 0 0 0 2px var(--color-accent), inset 0 2px 5px rgba(0, 0, 0, 0.3); /* Outer neon glow on focus */
+  background-color: var(--color-input-focus); /* Slightly lighter on focus */
 }
 
 textarea {
-  min-height: 100px;
-  font-family: 'Roboto Mono', monospace;
+  min-height: 120px; /* Slightly taller */
+  font-family: 'Roboto Mono', monospace; /* Monospaced font for code/text areas */
   scroll-behavior: smooth;
-  resize: none;
+  resize: vertical; /* Allow vertical resizing */
   background-clip: border-box;
-  border: 6px solid transparent;
-}
-
-textarea:focus {
-  background-color: #151515;
+  border: 1px solid var(--color-border); /* Single border for consistency */
 }
 
 /* Button Disabled State */
 .btn-disabled,
 .btn-ok.btn-disabled {
-  opacity: 0.5;
+  opacity: 0.4; /* More subtle disabled state */
   cursor: not-allowed;
   pointer-events: none;
+  box-shadow: none; /* No shadow when disabled */
+  background-color: var(--color-secondary); /* Greyed out background */
+  color: var(--color-text-muted); /* Greyed out text */
 }
 
 /* Toggle Switch Styles */
 .toggle {
   position: relative;
   display: inline-block;
-  width: 60px;
-  height: 34px;
+  width: 50px; /* Smaller width */
+  height: 28px; /* Smaller height */
 }
 
 .toggle input {
@@ -102,54 +106,106 @@ textarea:focus {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
-  border-radius: 34px;
+  background-color: var(--color-secondary); /* Darker base for toggle */
+  border-radius: 28px; /* Fully rounded */
   cursor: pointer;
   transition: 0.4s;
+  border: 1px solid var(--color-border); /* Subtle border */
 }
 
 .toggler:before {
   content: "";
   position: absolute;
-  height: 26px;
-  width: 26px;
+  height: 20px; /* Smaller circle */
+  width: 20px;
   left: 4px;
   bottom: 4px;
-  background-color: white;
+  background-color: var(--color-primary); /* Primary color for toggle dot */
   border-radius: 50%;
   transition: 0.4s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow for the dot */
 }
 
 input:checked + .toggler {
-  background-color: #2196f3;
+  background-color: var(--color-accent); /* Neon accent when checked */
+  box-shadow: 0 0 8px var(--color-accent); /* Glow effect when checked */
 }
 
 input:checked + .toggler:before {
-  transform: translateX(26px);
+  transform: translateX(22px); /* Adjusted translation for smaller switch */
+  background-color: var(--color-background-dark); /* Dark dot when checked */
 }
 
 /* Range Input Styles */
 input[type="range"] {
   width: 100%;
   cursor: grab;
+  -webkit-appearance: none; /* Remove default styling for cross-browser consistency */
+  height: 8px; /* Thinner track */
+  background: var(--color-secondary); /* Darker track */
+  border-radius: 4px;
+  outline: none;
+  transition: background 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px; /* Larger thumb */
+  height: 20px;
+  background: var(--color-primary); /* Primary color for thumb */
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: var(--neon-glow-primary); /* Neon glow on thumb */
+  margin-top: -6px; /* Align thumb vertically */
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: var(--neon-glow-primary);
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  background: var(--color-accent); /* Brighter on hover */
+  box-shadow: 0 0 12px var(--color-accent); /* More intense glow */
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  transform: scale(1.1); /* Slight enlarge on active */
 }
 
 .range-value {
   min-width: 3em;
   text-align: right;
+  color: var(--color-text); /* Consistent text color */
+  font-weight: bold;
+  margin-left: 0.8rem; /* Space between slider and value */
 }
 
 /* Select Styles */
 select {
   cursor: pointer;
+  appearance: none; /* Remove default arrow */
+  -webkit-appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%2300E5FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Position arrow */
+  padding-right: 30px; /* Space for arrow */
 }
 
 select:disabled {
-  background-color: var(--color-background);
+  background-color: var(--color-secondary); /* Greyed out when disabled */
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
-/* Navigation Links */
+/* Navigation Links (Settings sections) */
 #settings-sections {
   padding-bottom: 1rem;
 }
@@ -174,27 +230,35 @@ nav ul li a {
   align-items: center;
   text-align: center;
   text-decoration: none;
-  color: var(--color-text);
-  opacity: 0.8;
-  background-color: var(--color-panel);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 1rem;
+  color: var(--color-text); /* Consistent text color */
+  background-color: var(--color-panel); /* Glassmorphism background */
+  border: var(--glass-border-width) solid var(--glass-border-color); /* Glassmorphism border */
+  border-radius: var(--border-radius); /* Match panel border radius */
+  padding: 1.2rem 1rem; /* More padding */
   width: 100%;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s ease-in-out; /* Smooth transitions */
+  box-shadow: var(--glass-shadow); /* Glassmorphism shadow */
+  backdrop-filter: blur(calc(var(--glass-blur) / 2)); /* Subtle blur */
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) / 2));
 }
 
 nav ul li a:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: var(--color-secondary);
+  transform: translateY(var(--float-offset)); /* Floating effect on hover */
+  box-shadow: var(--neon-glow-primary); /* Neon glow on hover */
+  background-color: rgba(0, 229, 255, 0.08); /* Subtle highlight */
+  border-color: var(--color-accent); /* Brighter border */
 }
 
 nav ul li a img {
-  width: 50px;
-  height: 50px;
-  margin-bottom: 0.5rem;
-  filter: var(--svg-filter);
+  width: 48px; /* Slightly smaller icons */
+  height: 48px;
+  margin-bottom: 0.8rem; /* More space below icon */
+  filter: var(--svg-filter); /* Apply cyan filter */
+  transition: filter 0.3s ease;
+}
+
+nav ul li a:hover img {
+  filter: invert(73%) sepia(17%) saturate(700%) hue-rotate(150deg) brightness(120%) contrast(100%); /* Brighter filter on hover */
 }
 
 .light-mode nav ul li a {
@@ -262,7 +326,7 @@ nav ul li a img {
   width: 100%;
   position: relative;
   gap: 5px;
-  border-bottom: 3px solid var(--color-border);
+  border-bottom: 3px solid var(--color-border); /* Consistent border */
   justify-content: flex-start;
   padding-left: 20px;
   padding-top: 8px;
@@ -301,40 +365,46 @@ nav ul li a img {
 }
 
 .settings-tab {
-  padding: 8px 16px;
+  padding: 10px 18px; /* More padding */
   cursor: pointer;
   position: relative;
-  color: var(--color-text);
-  border: 2px solid var(--color-border);
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
-  transition: all 0.3s ease;
-  background-color: var(--color-panel);
-  margin-bottom: -3px;
+  color: var(--color-text); /* Consistent text color */
+  border: var(--glass-border-width) solid var(--glass-border-color); /* Glassmorphism border */
+  border-bottom: none; /* No bottom border for tab */
+  border-radius: 12px 12px 0 0; /* More rounded top corners */
+  transition: all 0.3s ease; /* Smooth transitions */
+  background-color: var(--color-panel); /* Glassmorphism background */
+  margin-bottom: -3px; /* Overlap border */
   z-index: 1;
   min-width: min-content;
   width: auto;
-  max-width: 100px;
+  max-width: 120px; /* Slightly wider max width */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex-shrink: 0;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.1); /* Inner shadow for depth */
 }
 
 .settings-tab:not(.active) {
-  opacity: 0.8;
-  border-bottom: 3px solid var(--color-border);
-  background-color: var(--color-background);
+  opacity: 0.7; /* Slightly transparent when not active */
+  border-bottom: 3px solid var(--color-border); /* Show bottom border of container when not active */
+  background-color: rgba(0, 0, 0, 0.1); /* More transparent background */
+  box-shadow: none;
 }
 
 .settings-tab.active {
-  border-color: var(--color-border);
-  /* box-shadow:
-    0 -4px 8px -2px var(--color-border),
-    4px 0 8px -2px var(--color-border),
-    -4px 0 8px -2px var(--color-border); */
+  border-color: var(--color-accent); /* Neon accent for active tab */
   font-weight: bold;
-  background-color: var(--color-panel);
+  background-color: var(--color-panel); /* Use panel color */
+  box-shadow: var(--neon-glow-primary); /* Neon glow for active tab */
+  color: var(--color-accent); /* Highlight active tab text */
+}
+
+.settings-tab:hover:not(.active) {
+  opacity: 1;
+  background-color: rgba(0, 229, 255, 0.05); /* Subtle hover effect */
+  border-color: rgba(0, 229, 255, 0.3); /* Lighter border on hover */
 }
 
 /* Light mode overrides */
@@ -398,39 +468,51 @@ nav ul li a img {
 
 .scheduler-task-list th,
 .scheduler-task-list td {
-  padding: 8px 12px;
+  padding: 10px 15px; /* More padding */
   text-align: left;
   vertical-align: middle;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border); /* Subtle border */
+  color: var(--color-text); /* Consistent text color */
+}
+
+.scheduler-task-list th {
+  color: var(--color-primary); /* Highlight headers */
+  font-weight: bold;
+  background-color: rgba(0, 229, 255, 0.05); /* Subtle background for headers */
+  border-top: 1px solid var(--color-border); /* Top border for header row */
+}
+
+.scheduler-task-list tr:hover td {
+  background-color: rgba(0, 229, 255, 0.03); /* Subtle hover for rows */
 }
 
 /* Ensure columns have proper min-width */
 .scheduler-task-list th:nth-child(1),
 .scheduler-task-list td:nth-child(1) {
-  min-width: 150px;
-  max-width: 200px;
+  min-width: 180px; /* Wider for task name */
+  max-width: 250px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .scheduler-task-list th:nth-child(2),
 .scheduler-task-list td:nth-child(2) {
-  min-width: 100px;
+  min-width: 120px; /* For type */
 }
 
 .scheduler-task-list th:nth-child(3),
 .scheduler-task-list td:nth-child(3) {
-  min-width: 100px;
+  min-width: 120px; /* For state */
 }
 
 .scheduler-task-list th:nth-child(4),
 .scheduler-task-list td:nth-child(4) {
-  min-width: 150px;
+  min-width: 160px; /* For schedule */
 }
 
 .scheduler-task-list th:nth-child(5),
 .scheduler-task-list td:nth-child(5) {
-  min-width: 180px;
+  min-width: 180px; /* For next run */
 }
 
 .scheduler-task-list th:nth-child(6),
@@ -443,7 +525,7 @@ nav ul li a img {
 .scheduler-task-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px; /* Smaller gap */
   flex-wrap: nowrap;
 }
 
@@ -451,8 +533,8 @@ nav ul li a img {
 .scheduler-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 1rem 0;
+  gap: 1.8rem; /* Increased gap for more breathing room */
+  padding: 1.5rem 0; /* More padding */
 }
 
 .scheduler-form-header {
@@ -463,9 +545,9 @@ nav ul li a img {
 }
 
 .scheduler-form-title {
-  font-size: 1.25rem;
+  font-size: 1.4rem; /* Larger title */
   font-weight: bold;
-  color: var(--color-primary);
+  color: var(--color-accent); /* Neon accent color for titles */
   margin: 0;
 }
 
@@ -478,15 +560,15 @@ nav ul li a img {
 
 .scheduler-form-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr; /* Single column layout for better flow */
   gap: 1.5rem;
   overflow-x: auto;
 }
 
 .scheduler-form-field {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 1rem;
+  grid-template-columns: 1fr 2fr; /* Label and control columns */
+  gap: 1.2rem; /* Consistent gap */
   align-items: flex-start;
 }
 
@@ -502,35 +584,43 @@ nav ul li a img {
   }
 
   .scheduler-form-field {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
+    grid-template-columns: 1fr; /* Stack elements on small screens */
+    gap: 0.8rem;
   }
 }
 
 /* Section Styles */
 .section {
   margin-bottom: 2rem;
-  padding: 1rem;
-  padding-bottom: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  overflow-x: visible; /* Desktop: No horizontal scroll */
-  width: 100%; /* Fill available width */
+  padding: 1.5rem; /* More padding for content */
+  border: var(--glass-border-width) solid var(--glass-border-color); /* Glassmorphism border */
+  border-radius: var(--border-radius); /* Match panel border radius */
+  box-shadow: var(--glass-shadow); /* Glassmorphism shadow */
+  backdrop-filter: blur(calc(var(--glass-blur) / 2)); /* Subtle blur */
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) / 2));
+  overflow-x: visible;
+  width: 100%;
   min-width: min-content;
   display: block;
   box-sizing: border-box;
+  transition: all 0.3s ease; /* Smooth transitions */
+}
+
+.section:hover {
+  box-shadow: var(--neon-glow-primary); /* Neon glow on hover */
+  transform: translateY(-3px); /* Subtle lift */
 }
 
 .section-title {
-  font-size: 1.25rem;
+  font-size: 1.3rem; /* Slightly larger title */
   font-weight: bold;
-  color: var(--color-primary);
-  margin-bottom: 0.5rem;
+  color: var(--color-primary); /* Highlight with primary color */
+  margin-bottom: 0.8rem; /* More space below title */
 }
 
 .section-description {
-  color: var(--color-text);
-  margin-bottom: 1rem;
+  color: var(--color-text-muted); /* Muted description text */
+  margin-bottom: 1.2rem; /* More space below description */
 }
 
 /* Scheduler container - updated with guaranteed width handling */
@@ -546,30 +636,43 @@ nav ul li a img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
-  padding: 4px;
-  border-radius: 4px;
+  background-color: rgba(0, 229, 255, 0.08); /* Themed background */
+  border: 1px solid rgba(0, 229, 255, 0.2); /* Themed border */
+  color: var(--color-text); /* Themed text */
+  padding: 6px; /* More padding */
+  border-radius: 8px; /* More rounded */
   cursor: pointer;
-  transition: all 0.2s ease;
-  width: 28px;
-  height: 28px;
+  transition: all 0.3s ease;
+  width: 32px; /* Larger icon buttons */
+  height: 32px;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+}
+
+.scheduler-task-action svg {
+  width: 18px; /* Consistent icon size */
+  height: 18px;
 }
 
 .scheduler-task-action:hover {
-  background-color: var(--color-secondary);
+  background-color: rgba(0, 229, 255, 0.15); /* Brighter on hover */
+  box-shadow: var(--neon-glow-primary); /* Neon glow on hover */
+  transform: translateY(-2px); /* Slight lift */
+}
+
+.scheduler-task-action:active {
+  transform: scale(0.95); /* Scale down on active */
+  opacity: 0.8;
 }
 
 /* Adjust media queries to handle small screens */
 @media (max-width: 768px) {
   .scheduler-task-list {
-    min-width: 700px;
+    min-width: 700px; /* Ensure table is wide enough */
   }
 
   .scheduler-detail-view {
-    min-width: 650px;
+    min-width: 650px; /* Ensure detail view is wide enough */
   }
 }
 
@@ -580,12 +683,12 @@ nav ul li a img {
 }
 
 .section::-webkit-scrollbar-thumb {
-  background-color: rgba(155, 155, 155, 0.7);
+  background-color: rgba(0, 229, 255, 0.3); /* Neon-like scrollbar thumb */
   border-radius: 5px;
 }
 
 .section::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(155, 155, 155, 0.9);
+  background-color: rgba(0, 229, 255, 0.6); /* Brighter on hover */
 }
 
 /* Mobile styles for scheduler sections */
@@ -605,24 +708,24 @@ nav ul li a img {
   }
 
   .section::-webkit-scrollbar-thumb {
-    background-color: rgba(155, 155, 155, 0.7);
+    background-color: rgba(0, 229, 255, 0.3);
     border-radius: 5px;
   }
 
   .section::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(155, 155, 155, 0.9);
+    background-color: rgba(0, 229, 255, 0.6);
   }
 }
 
 /* Scheduler form field styling to match standard field styling */
 .scheduler-form-label {
   font-weight: bold;
-  color: var(--color-primary);
+  color: var(--color-primary); /* Highlight with primary color */
   margin-bottom: 0.25rem; /* Add consistent spacing between label and help text */
 }
 
 .scheduler-form-help {
-  color: var(--color-text);
+  color: var(--color-text-muted); /* Muted help text */
   font-size: 0.875rem;
   opacity: 0.8;
   margin: 0.25rem 0 0.5rem 0; /* Match the spacing of field-description */
@@ -648,12 +751,17 @@ nav ul li a img {
   justify-content: flex-start;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 15px; /* More spacing */
   width: 100%;
+  padding-bottom: 10px; /* Space above content */
+  border-bottom: 1px solid var(--color-border); /* Separator */
+  margin-bottom: 15px;
 }
 
 .scheduler-detail-header .scheduler-detail-title {
   margin-right: auto;
+  color: var(--color-accent); /* Neon accent for title */
+  font-size: 1.5rem; /* Larger title */
 }
 
 /* Responsive adjustments for headers */
@@ -669,14 +777,14 @@ nav ul li a img {
   }
 
   .scheduler-detail-header {
-    flex-direction: row; /* Keep in row even on mobile */
+    flex-direction: row;
     align-items: center;
     flex-wrap: wrap;
     gap: 0.5rem;
   }
 
   .scheduler-detail-header .btn {
-    margin-left: auto; /* Push to right edge */
+    margin-left: auto;
   }
 
   .scheduler-form-field {
@@ -694,22 +802,25 @@ nav ul li a img {
 
 .input-group input[type="text"] {
   flex: 1;
-  min-width: 0; /* Allows the input to shrink below its content size */
+  min-width: 0;
 }
 
 /* Specific styling for the Generate button in token field */
 .input-group .scheduler-task-action {
   white-space: nowrap;
-  padding: 4px 10px;
-  width: auto;
-  height: auto;
-  background-color: var(--color-secondary);
+  padding: 6px 12px; /* More padding */
+  width: auto; /* Auto width */
+  height: auto; /* Auto height */
+  background-color: var(--color-primary); /* Primary color for generate button */
+  color: var(--color-background-dark); /* Dark text on primary background */
   font-size: 0.9rem;
+  border: none; /* No border */
 }
 
 .input-group .scheduler-task-action:hover {
-  background-color: var(--color-accent);
-  color: var(--color-bg);
+  background-color: var(--color-accent); /* Neon accent on hover */
+  color: var(--color-background-dark); /* Dark text */
+  box-shadow: var(--neon-glow-primary); /* Neon glow */
 }
 
 /* Ensure parent container allows proper flow */
@@ -748,18 +859,20 @@ nav ul li a img {
   transition: all 0.2s ease;
   opacity: 0.7;
   border: 1px solid transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for all badges */
 }
 
 .scheduler-state-selector .scheduler-status-badge:hover {
   opacity: 0.9;
-  transform: scale(1.05);
+  transform: scale(1.05); /* Slight enlarge */
+  box-shadow: var(--neon-glow-primary); /* Neon glow on hover */
 }
 
 .scheduler-status-selected {
   opacity: 1 !important;
-  transform: scale(1.05);
-  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-border);
-  border: 2px solid var(--color-border) !important;
+  transform: scale(1.05); /* Enlarge selected badge */
+  box-shadow: 0 0 0 2px var(--color-background-dark), 0 0 0 4px var(--color-accent), var(--neon-glow-primary); /* Multi-layered glow for selected */
+  border: 2px solid var(--color-accent) !important; /* Stronger accent border */
   outline: none;
 }
 
@@ -769,29 +882,32 @@ nav ul li a img {
 .scheduler-state-selector .scheduler-status-disabled,
 .scheduler-state-selector .scheduler-status-error {
   font-weight: 600;
-  padding: 6px 12px;
+  padding: 8px 15px; /* More padding */
+  border-radius: 8px; /* More rounded */
 }
 
 .light-mode .scheduler-status-selected {
-  box-shadow: 0 0 0 2px var(--color-bg-light), 0 0 0 4px var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-background-light), 0 0 0 4px var(--color-accent);
 }
 
 /* State explanation styling */
 .scheduler-state-explanation {
   margin-top: 10px;
   font-size: 0.85rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted); /* Muted text */
   line-height: 1.4;
-  min-height: 1.4em; /* Ensure consistent height even when changing descriptions */
+  min-height: 1.4em;
   transition: all 0.2s ease;
 }
 
 .scheduler-state-explanation span {
   display: block;
-  padding: 4px 8px;
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
+  padding: 8px 12px; /* More padding */
+  background-color: rgba(0, 0, 0, 0.15); /* Slightly darker background */
+  border-radius: 6px; /* More rounded */
   margin-top: 8px;
+  border: 1px solid rgba(0, 229, 255, 0.1); /* Subtle border */
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .light-mode .scheduler-state-explanation span {
@@ -801,10 +917,10 @@ nav ul li a img {
 /* Schedule Builder (for scheduled tasks) */
 .scheduler-schedule-builder {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(5, 1fr); /* 5 columns for cron fields */
+    gap: 15px; /* More space between fields */
     width: 100%;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .scheduler-schedule-field {
@@ -813,20 +929,29 @@ nav ul li a img {
 }
 
 .scheduler-schedule-label {
-    font-size: 0.8rem;
-    margin-bottom: 5px;
-    color: var(--color-text);
-    opacity: 0.8;
+    font-size: 0.85rem; /* Slightly larger label */
+    margin-bottom: 8px; /* More space below label */
+    color: var(--color-primary); /* Highlight label */
+    font-weight: 600;
 }
 
 /* Plan Builder (for planned tasks) */
 .scheduler-plan-builder {
     width: 100%;
-    margin-bottom: 10px;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.2);
+    margin-bottom: 15px; /* More space below */
+    border: var(--glass-border-width) solid var(--glass-border-color); /* Glassmorphism border */
+    border-radius: var(--border-radius); /* Match panel border radius */
+    padding: 15px; /* More padding */
+    background-color: var(--color-panel); /* Glassmorphism background */
+    box-shadow: var(--glass-shadow); /* Glassmorphism shadow */
+    backdrop-filter: blur(calc(var(--glass-blur) / 2));
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) / 2));
+    transition: all 0.3s ease; /* Smooth transitions */
+}
+
+.scheduler-plan-builder:hover {
+    box-shadow: var(--neon-glow-primary); /* Neon glow on hover */
+    transform: translateY(-3px); /* Subtle lift */
 }
 
 .scheduler-plan-todo {
@@ -835,9 +960,9 @@ nav ul li a img {
 }
 
 .scheduler-plan-label {
-    font-size: 0.9rem;
-    margin-bottom: 10px;
-    color: var(--color-text);
+    font-size: 1rem; /* Consistent font size */
+    margin-bottom: 12px; /* More space */
+    color: var(--color-primary); /* Highlight label */
     font-weight: bold;
 }
 
@@ -845,41 +970,56 @@ nav ul li a img {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-top: 8px;
-    max-height: 200px;
+    margin-top: 10px;
+    max-height: 250px; /* Taller list */
     overflow-y: auto;
+    padding-right: 8px; /* Space for scrollbar */
+}
+
+.scheduler-todo-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scheduler-todo-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scheduler-todo-list::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 229, 255, 0.2); /* Neon scrollbar */
+  border-radius: 3px;
 }
 
 .scheduler-todo-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--color-background);
-    border-radius: 6px;
-    padding: 8px 12px;
-    border: 1px solid var(--color-border);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: var(--color-input); /* Input-like background */
+    border-radius: 8px; /* More rounded */
+    padding: 10px 15px; /* More padding */
+    border: 1px solid var(--color-border); /* Subtle border */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Inner shadow */
+    color: var(--color-text);
 }
 
 .scheduler-todo-item span {
     flex: 1;
-    font-size: 14px;
+    font-size: 0.95rem; /* Slightly larger text */
 }
 
 .scheduler-add-todo {
-    margin-top: 12px;
+    margin-top: 15px; /* More space */
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
 }
 
 .scheduler-add-todo input[type="datetime-local"] {
     flex: 1;
     min-width: 0;
-    padding: 8px 12px;
-    border-radius: 6px;
+    padding: 10px 12px; /* More padding */
+    border-radius: 8px;
     border: 1px solid var(--color-border);
-    background-color: var(--color-background);
+    background-color: var(--color-input);
     color: var(--color-text);
 }
 
@@ -887,18 +1027,26 @@ nav ul li a img {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-accent);
-    color: white;
+    background-color: var(--color-primary); /* Primary color */
+    color: var(--color-background-dark); /* Dark text on primary background */
     border: none;
-    border-radius: 6px;
-    padding: 8px 12px;
+    border-radius: 8px;
+    padding: 10px 18px; /* More padding */
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.3s ease;
     font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .scheduler-add-todo-button:hover {
-    background-color: var(--color-accent-dark);
+    background-color: var(--color-accent); /* Neon accent on hover */
+    box-shadow: var(--neon-glow-primary); /* Neon glow */
+    transform: translateY(-2px); /* Subtle lift */
+}
+
+.scheduler-add-todo-button:active {
+  transform: scale(0.95);
+  opacity: 0.8;
 }
 
 .scheduler-todo-remove {
@@ -906,19 +1054,22 @@ nav ul li a img {
     align-items: center;
     justify-content: center;
     background-color: transparent;
-    color: var(--color-text);
-    border: none;
-    border-radius: 4px;
-    width: 24px;
-    height: 24px;
+    color: var(--color-red-neon); /* Red neon for remove button */
+    border: 1px solid transparent; /* Subtle border */
+    border-radius: 50%; /* Circular button */
+    width: 28px; /* Larger */
+    height: 28px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
-    margin-left: 8px;
+    transition: all 0.2s ease;
+    margin-left: 10px;
+    font-size: 1.2rem; /* Larger 'X' */
 }
 
 .scheduler-todo-remove:hover {
-    background-color: var(--color-accent-light);
-    color: var(--color-accent-dark);
+    background-color: rgba(255, 7, 58, 0.1); /* Subtle red background */
+    color: var(--color-red-neon); /* Stronger red */
+    border-color: var(--color-red-neon); /* Red neon border */
+    box-shadow: var(--neon-glow-red); /* Red neon glow */
 }
 
 .light-mode .scheduler-todo-item {
@@ -932,13 +1083,14 @@ nav ul li a img {
 }
 
 .scheduler-empty-plan {
-    padding: 12px;
-    color: var(--color-text-muted);
+    padding: 15px; /* More padding */
+    color: var(--color-text-muted); /* Muted text */
     font-style: italic;
     text-align: center;
-    border: 1px dashed var(--color-border);
-    border-radius: 6px;
-    margin-top: 8px;
+    border: 1px dashed var(--color-border); /* Dashed border */
+    border-radius: 8px; /* More rounded */
+    margin-top: 10px;
+    background-color: rgba(0, 0, 0, 0.1); /* Subtle background */
 }
 
 /* Responsive design for plan builder */

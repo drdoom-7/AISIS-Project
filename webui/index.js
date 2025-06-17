@@ -21,65 +21,72 @@ let context = "";
 let connectionStatus = false
 
 
-// Initialize the toggle button
-setupSidebarToggle();
-// Initialize tabs
-setupTabs();
+// Initial setup for mobile devices: hide sidebar and expand right panel.
+// This is now done inside DOMContentLoaded for proper element loading.
+// setupSidebarToggle(); // This call is now redundant and moved below
+// setupTabs(); // This call is now redundant and moved below
 
 function isMobile() {
     return window.innerWidth <= 768;
 }
 
 function toggleSidebar(show) {
+    console.log('toggleSidebar called with show:', show);
+    console.log('Current leftPanel hidden class before toggle:', leftPanel.classList.contains('hidden'));
     const overlay = document.getElementById('sidebar-overlay');
+
+    let shouldShow;
     if (typeof show === 'boolean') {
-        leftPanel.classList.toggle('hidden', !show);
-        rightPanel.classList.toggle('expanded', !show);
-        overlay.classList.toggle('visible', show);
+        shouldShow = show;
     } else {
-        leftPanel.classList.toggle('hidden');
-        rightPanel.classList.toggle('expanded');
-        overlay.classList.toggle('visible', !leftPanel.classList.contains('hidden'));
+        // If 'show' is undefined (from event listener), toggle based on current 'hidden' state
+        shouldShow = leftPanel.classList.contains('hidden'); // If hidden, shouldShow is true (toggle to show)
     }
+
+    leftPanel.classList.toggle('hidden', !shouldShow); // Toggle 'hidden' class on leftPanel (true = hidden, false = visible)
+    rightPanel.classList.toggle('expanded', !shouldShow); // Right panel is expanded when sidebar is hidden
+    overlay.classList.toggle('visible', shouldShow); // Overlay is visible when sidebar IS visible
+
+    console.log('leftPanel hidden class AFTER toggle:', leftPanel.classList.contains('hidden'));
 }
 
 function handleResize() {
     const overlay = document.getElementById('sidebar-overlay');
     if (isMobile()) {
-        leftPanel.classList.add('hidden');
-        rightPanel.classList.add('expanded');
-        overlay.classList.remove('visible');
-    } else {
-        leftPanel.classList.remove('hidden');
-        rightPanel.classList.remove('expanded');
-        overlay.classList.remove('visible');
+        // On mobile resize, ensure rightPanel and overlay states are consistent with leftPanel's *current* hidden state.
+        // If sidebar is NOT hidden (i.e., visible), expand right panel and show overlay.
+        if (!leftPanel.classList.contains('hidden')) {
+            rightPanel.classList.remove('expanded');
+            overlay.classList.add('visible');
+        } else {
+            // If sidebar IS hidden, ensure right panel is expanded and overlay is hidden.
+            rightPanel.classList.add('expanded');
+            overlay.classList.remove('visible');
+        }
+    } else { // Desktop view
+        leftPanel.classList.remove('hidden'); // Ensure sidebar is always visible on desktop (remove hidden class)
+        rightPanel.classList.remove('expanded'); // Right panel is not expanded on desktop
+        overlay.classList.remove('visible'); // Overlay is not visible on desktop
     }
 }
 
 window.addEventListener('load', handleResize);
 window.addEventListener('resize', handleResize);
 
-document.addEventListener('DOMContentLoaded', () => {
-    const overlay = document.getElementById('sidebar-overlay');
-    overlay.addEventListener('click', () => {
-        if (isMobile()) {
-            toggleSidebar(false);
-        }
-    });
-});
+// This DOMContentLoaded listener is merged with the main one below to ensure order.
 
 function setupSidebarToggle() {
     const leftPanel = document.getElementById('left-panel');
     const rightPanel = document.getElementById('right-panel');
     const toggleSidebarButton = document.getElementById('toggle-sidebar');
     if (toggleSidebarButton) {
-        toggleSidebarButton.addEventListener('click', toggleSidebar);
+        toggleSidebarButton.addEventListener('click', () => toggleSidebar());
     } else {
         console.error('Toggle sidebar button not found');
         setTimeout(setupSidebarToggle, 100);
     }
 }
-document.addEventListener('DOMContentLoaded', setupSidebarToggle);
+// document.addEventListener('DOMContentLoaded', setupSidebarToggle);
 
 export async function sendMessage() {
     try {
@@ -1161,9 +1168,36 @@ window.handleFileUpload = function(event) {
 
 // Setup event handlers once the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Initial setup for mobile devices: hide sidebar and expand right panel.
+    // This runs only once on initial page load.
+    console.log('isMobile() on DOMContentLoaded:', isMobile());
+    if (isMobile()) {
+        // On initial load for mobile, ensure leftPanel is hidden
+        leftPanel.classList.add('hidden');
+        rightPanel.classList.add('expanded'); // Right panel starts expanded on mobile
+        console.log('Initial mobile setup: leftPanel.hidden after add:', leftPanel.classList.contains('hidden'));
+    } else {
+        // On initial load for desktop, ensure leftPanel is visible and rightPanel is not expanded
+        leftPanel.classList.remove('hidden'); // Ensure left panel is visible on desktop
+        rightPanel.classList.remove('expanded'); // Right panel is not expanded on desktop
+        console.log('Initial desktop setup: leftPanel.hidden after remove:', leftPanel.classList.contains('hidden'));
+    }
+
+    // Setup the sidebar toggle button
     setupSidebarToggle();
+    // Setup the tab switching functionality
     setupTabs();
+    // Initialize the active tab and selection states
     initializeActiveTab();
+
+    const overlay = document.getElementById('sidebar-overlay');
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            if (isMobile()) {
+                toggleSidebar(false); // Hide sidebar if overlay is clicked
+            }
+        });
+    }
 });
 
 // Setup tabs functionality

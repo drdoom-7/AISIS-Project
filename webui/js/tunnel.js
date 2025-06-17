@@ -140,9 +140,9 @@ document.addEventListener('alpine:init', () => {
                 // If no authentication is set, warn the user
                 if (!hasAuth) {
                     const proceed = confirm(
-                        "WARNING: No authentication is configured for your Agent Zero instance.\n\n" +
+                        "WARNING: No authentication is configured for your A.I.S.I.S. (An Impressive, Super, Intelligent, System) instance.\n\n" +
                         "Creating a public tunnel without authentication means anyone with the URL " +
-                        "can access your Agent Zero instance.\n\n" +
+                        "can access your A.I.S.I.S. (An Impressive, Super, Intelligent, System) instance.\n\n" +
                         "It is recommended to set up authentication in the Settings > Authentication section " +
                         "before creating a public tunnel.\n\n" +
                         "Do you want to proceed anyway?"
@@ -159,11 +159,6 @@ document.addEventListener('alpine:init', () => {
             
             this.isLoading = true;
             this.loadingText = 'Creating tunnel...';
-
-            // Get provider from the parent settings modal scope
-            const modalEl = document.getElementById('settingsModal');
-            const modalAD = Alpine.$data(modalEl);
-            const provider = modalAD.provider || 'serveo'; // Default to serveo if not set
             
             // Change create button appearance
             const createButton = document.querySelector('.tunnel-actions .btn-ok');
@@ -182,7 +177,6 @@ document.addEventListener('alpine:init', () => {
                     },
                     body: JSON.stringify({ 
                         action: 'create',
-                        provider: provider
                         // port: window.location.port || (window.location.protocol === 'https:' ? 443 : 80)
                     }),
                 });

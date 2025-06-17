@@ -7,24 +7,30 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7); /* Darker, more immersive overlay */
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2001;
+  backdrop-filter: blur(5px); /* Slight blur on overlay */
+  -webkit-backdrop-filter: blur(5px);
 }
 
 /* Modal Container */
 .modal-container {
-  background-color: var(--color-panel);
-  border-radius: 12px;
-  width: 1100px; /* Reduced from 1200px to 1100px */
+  background-color: var(--color-panel); /* Use glassmorphism panel background */
+  border-radius: var(--border-radius); /* Match panel border radius */
+  border: var(--glass-border-width) solid var(--glass-border-color); /* Glassmorphism border */
+  box-shadow: var(--glass-shadow); /* Glassmorphism shadow */
+  backdrop-filter: blur(var(--glass-blur)); /* Apply full glass blur */
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  width: 900px; /* Adjusted width for a more streamlined look */
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 4px 23px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
+  animation: fadeIn 0.3s ease-out; /* Fade-in animation for modals */
 }
 
 .light-mode .modal-container {
@@ -48,56 +54,63 @@
 /* Modal Header */
 .modal-header {
   display: grid;
-  grid-template-columns: 40fr 0.5fr;
+  grid-template-columns: 1fr auto; /* Title on left, close button on right */
   align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1.5rem 0.5rem 2rem;
-  background-color: var(--color-background);
-  color: var(--color-primary);
-  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 1.5rem; /* More padding */
+  background-color: rgba(0, 0, 0, 0.2); /* Slightly darker, more transparent header */
+  color: var(--color-accent); /* Neon accent for header text */
+  border-bottom: 1px solid var(--color-border); /* Subtle border */
+  box-shadow: inset 0 -1px 5px rgba(0, 229, 255, 0.1); /* Inner glow for header */
 }
 
 .modal-header h2 {
-  font-size: var(--font-size-large);
+  font-size: 1.4rem; /* Larger, bolder title */
   margin: 0;
+  font-weight: bold;
 }
 
 /* Modal Subheader */
 .modal-subheader {
-  display: inline;
+  display: flex; /* Changed to flex for better alignment */
   justify-content: space-between;
   align-items: center;
   padding: 0.7rem 1.5rem;
+  color: var(--color-text-muted); /* Muted subheader text */
+  border-bottom: 1px dashed rgba(0, 229, 255, 0.1); /* Dashed separator */
 }
 
 /* Modal Close Button */
 .modal-close {
   background: none;
   border: none;
-  font-size: xx-large;
-  color: var(--color-text);
-  opacity: 0.7;
+  font-size: 2rem; /* Larger 'X' */
+  color: var(--color-red-neon); /* Neon red for close button */
+  opacity: 0.8; /* Slightly transparent */
   cursor: pointer;
-  padding: 0;
-  transition: opacity 0.2s;
+  padding: 0 0.5rem;
+  line-height: 1;
+  transition: all 0.2s ease;
 }
 
 .modal-close:hover {
   opacity: 1;
+  transform: scale(1.1); /* Enlarge on hover */
+  text-shadow: var(--neon-glow-red); /* Red neon glow */
 }
 
 /* Modal Description */
 .modal-description {
-  padding: 0.8rem 1rem 0 1rem;
+  padding: 0.8rem 1.5rem 0 1.5rem; /* Consistent padding */
+  color: var(--color-text-muted); /* Muted text */
   flex-grow: 1;
 }
 
 /* Modal Content */
 .modal-content {
-  padding: 0.5rem 1.5rem 0 1.5rem;
+  padding: 1rem 1.5rem 0 1.5rem; /* Increased padding */
   overflow-y: auto;
   overflow-x: hidden;
-  height: calc(90vh);
+  height: calc(100% - 120px); /* Adjust height based on dynamic header/footer */
   flex-grow: 1;
   background-clip: border-box;
   border: 6px solid transparent;
@@ -107,108 +120,112 @@
 }
 
 .modal-content::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px; /* Wider scrollbar */
+  height: 8px;
 }
 
 .modal-content::-webkit-scrollbar-track {
   background: transparent;
   margin: 4px 0;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
 .modal-content::-webkit-scrollbar-thumb {
-  background-color: rgba(155, 155, 155, 0.5);
-  border-radius: 6px;
+  background-color: rgba(0, 229, 255, 0.3); /* Neon-like scrollbar thumb */
+  border-radius: 4px;
   transition: background-color 0.2s ease;
 }
 
 .modal-content::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(155, 155, 155, 0.7);
+  background-color: rgba(0, 229, 255, 0.6); /* Brighter on hover */
 }
 
 /* Full Screen Input Modal Styles */
 .full-screen-input-modal {
   width: 90%;
-  max-width: 800px;
-  max-height: 80vh;
+  max-width: 900px; /* Slightly wider */
+  max-height: 90vh; /* Taller */
   position: relative;
   padding: 0;
-  background-color: rgb(20, 20, 20, 0.96);
-  border: 1.5px solid var(--color-border);
+  background-color: rgba(20, 20, 25, 0.96); /* Darker, more opaque background */
+  border: 1.5px solid var(--color-accent); /* Neon accent border */
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); /* Stronger neon glow */
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .full-screen-input-modal h2 {
   margin: 0;
   padding: 0;
-  font-size: 1.1rem;
-  color: var(--color-text);
-  opacity: 0.8;
+  font-size: 1.2rem; /* Slightly larger title */
+  color: var(--color-primary); /* Primary color for title */
+  opacity: 0.9; /* Less transparent */
 }
 
 .full-screen-input-modal .modal-close {
   position: absolute;
-  top: 1.2rem;
+  top: 1rem;
   right: 1rem;
-  font-size: 1.5rem;
+  font-size: 1.8rem; /* Larger close button */
   padding: 0 0.5rem;
   line-height: 0.8;
+  color: var(--color-red-neon); /* Consistent red neon */
 }
 
 .full-screen-input-modal .btn-ok {
-  margin-right: 1rem;
+  margin-right: 1.5rem; /* More spacing */
 }
 
 .full-screen-input-modal .modal-content {
-  height: calc(80vh);
+  height: calc(100% - 100px); /* Adjust height for toolbar and footer */
   padding: 0;
   margin: 0;
   overflow: hidden;
 }
 
 .full-screen-input-modal .modal-footer {
-  background: transparent;
-  max-height: 50px;
+  background: rgba(0, 0, 0, 0.2); /* Match header background */
+  border-top: 1px solid var(--color-border); /* Consistent border */
 }
 
 #full-screen-input {
   width: 100%;
-  height: calc(100% - 50px);
+  height: 100%; /* Fill remaining height */
   border: none;
   background-color: transparent;
-  color: var(--color-text);
+  color: var(--color-text); /* Consistent text color */
   font-family: "Roboto Mono", monospace;
   font-optical-sizing: auto;
-  font-size: 0.955rem;
-  padding: 1.2rem 1rem;
+  font-size: 1rem; /* Slightly larger font */
+  padding: 1.5rem 1.2rem; /* More padding */
   resize: none;
   outline: none;
 }
 
 #full-screen-input::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px; /* Wider scrollbar */
+  height: 8px;
 }
 
 #full-screen-input::-webkit-scrollbar-track {
   background: transparent;
   margin: 14px;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
 #full-screen-input::-webkit-scrollbar-thumb {
-  background-color: rgba(155, 155, 155, 0.5);
-  border-radius: 6px;
+  background-color: rgba(0, 229, 255, 0.3); /* Neon scrollbar */
+  border-radius: 4px;
   -webkit-transition: background-color 0.2s ease;
   transition: background-color 0.2s ease;
 }
 
 #full-screen-input::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(155, 155, 155, 0.7);
+  background-color: rgba(0, 229, 255, 0.6); /* Brighter on hover */
 }
 
 .light-mode .full-screen-input-modal {
-  background-color: rgb(220, 220, 220, 0.86);
+  background-color: rgba(220, 220, 220, 0.92);
 }
 
 .full-screen-input-modal .modal-footer {
@@ -220,20 +237,21 @@
 /* Buttons Container */
 #buttons-container {
   display: flex;
-  gap: 0.875rem !important;
+  gap: 1rem !important; /* Consistent gap for buttons */
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 0.6rem 2rem 0.6rem 0;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-background);
+  padding: 1rem 1.5rem; /* Increased padding */
+  border-top: 1px solid var(--color-border); /* Consistent border */
+  background: rgba(0, 0, 0, 0.2); /* Slightly darker, more transparent footer */
   gap: 1rem;
+  box-shadow: inset 0 1px 5px rgba(0, 229, 255, 0.1); /* Inner glow for footer */
 }
 
-/* Section Styles */
+/* Section Styles (retained for consistency with settings.css if used directly) */
 .section {
   margin-bottom: 2rem;
   padding: 1rem;
@@ -257,36 +275,44 @@
 /* Button Styles */
 .btn {
   font-weight: 500;
-  padding: 0.5rem 1.5rem;
-  border-radius: 0.25rem;
+  padding: 0.8rem 1.8rem; /* More generous padding */
+  border-radius: 8px; /* More rounded */
   cursor: pointer;
   border: none;
-  font-size: 0.875rem;
+  font-size: 0.95rem; /* Slightly larger font */
   font-family: "Rubik", Arial, Helvetica, sans-serif;
+  transition: all 0.3s ease; /* Smooth transitions */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Default shadow for all buttons */
 }
 
 .btn.slim {
-  padding: 0.2em 0.4em;
+  padding: 0.4em 0.8em; /* Adjusted padding for slim buttons */
+  font-size: 0.85rem;
 }
 
 .btn.primary {
-  background: #2196f3;
-  color: white;
+  background: var(--color-primary); /* Use primary color variable */
+  color: var(--color-background-dark); /* Dark text on primary */
   width: fit-content;
+  box-shadow: var(--neon-glow-primary); /* Primary neon glow */
 }
 
 .btn:disabled {
-  background: #ccc;
+  opacity: 0.4;
   cursor: not-allowed;
+  pointer-events: none;
+  background: var(--color-secondary); /* Greyed out background */
+  color: var(--color-text-muted); /* Greyed out text */
+  box-shadow: none;
 }
 
 .btn-ok {
-  background: #4248f1;
-  color: white;
+  background: var(--color-primary); /* Use primary color */
+  color: var(--color-background-dark); /* Dark text */
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  transition: background 0.3s ease-in-out;
+  gap: 0.6rem; /* Slightly more gap */
+  box-shadow: var(--neon-glow-primary); /* Primary neon glow */
 }
 
 .btn-ok > svg {
@@ -294,32 +320,38 @@
 }
 
 .btn-ok:hover {
-  background: #353bc5;
+  background: var(--color-accent); /* Neon accent on hover */
+  box-shadow: 0 0 10px var(--color-accent), 0 0 25px var(--color-primary); /* Stronger neon glow */
+  transform: translateY(-2px); /* Subtle lift */
 }
 
 .btn-ok:active {
-  background: #2b309c;
+  transform: scale(0.95); /* Scale down on active */
+  opacity: 0.8;
 }
 
 .btn-cancel {
   background: transparent;
-  color: var(--color-accent);
-  border: 0.15rem solid var(--color-accent);
-  transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
+  color: var(--color-red-neon); /* Neon red for cancel */
+  border: 1.5px solid var(--color-red-neon); /* Neon red border */
+  box-shadow: 0 0 8px rgba(255, 7, 58, 0.3); /* Subtle red glow */
 }
 
 .btn-cancel:hover {
-  background: var(--color-accent);
-  color: var(--color-text);
+  background: rgba(255, 7, 58, 0.1); /* Subtle red background */
+  color: var(--color-red-neon); /* Stronger red */
+  border-color: var(--color-red-neon); /* Stronger red border */
+  box-shadow: var(--neon-glow-red); /* Red neon glow */
+  transform: translateY(-2px); /* Subtle lift */
 }
 
 .btn-cancel:active {
-  background: #a94658;
-  color: var(--color-text);
+  transform: scale(0.95);
+  opacity: 0.8;
 }
 
 .light-mode .btn-cancel:hover {
-  background: var(--color-accent);
+  background: var(--color-accent); /* Adjusted for light mode */
   color: var(--color-background);
 }
 
@@ -329,7 +361,7 @@
 }
 
 .btn-field {
-  background: #2196f3;
+  background: var(--color-primary);
   color: white;
   width: fit-content;
 }
@@ -408,11 +440,12 @@ h2 {
 .editor-toolbar {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  background-color: rgba(30, 30, 30, 0.95);
-  border-bottom: 1px solid var(--color-border);
+  gap: 1.2rem; /* Increased gap */
+  padding: 0.8rem 1.2rem; /* More padding */
+  border-radius: 8px; /* More rounded */
+  background-color: rgba(30, 30, 35, 0.95); /* Darker, more opaque */
+  border-bottom: 1px solid var(--color-border); /* Consistent border */
+  box-shadow: inset 0 -2px 8px rgba(0, 229, 255, 0.1); /* Inner glow */
 }
 
 .light-mode .editor-toolbar {
@@ -422,9 +455,9 @@ h2 {
 .toolbar-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0 0.5rem;
-  border-right: 1px solid var(--color-border);
+  gap: 0.6rem; /* Slightly more gap */
+  padding: 0 0.6rem;
+  border-right: 1px solid rgba(0, 229, 255, 0.1); /* Subtle, neon-like divider */
 }
 
 .toolbar-group:last-child {
@@ -435,26 +468,28 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0.4rem;
+  width: 36px; /* Larger buttons */
+  height: 36px;
+  padding: 0.5rem; /* More padding */
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 4px;
-  color: var(--color-text);
-  opacity: 0.7;
+  border-radius: 6px; /* More rounded */
+  color: var(--color-text); /* Consistent text color */
+  opacity: 0.7; /* Slightly transparent */
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .toolbar-button svg {
-  width: 18px;
-  height: 18px;
+  width: 20px; /* Larger icons */
+  height: 20px;
 }
 
 .toolbar-button:hover {
   opacity: 1;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 229, 255, 0.1); /* Subtle neon background */
+  border-color: rgba(0, 229, 255, 0.3); /* Neon border */
+  box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); /* Subtle neon glow */
 }
 
 .toolbar-button:active {
@@ -462,14 +497,18 @@ h2 {
 }
 
 .toolbar-button.active {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-color: var(--color-border);
+  background-color: rgba(0, 229, 255, 0.15); /* More pronounced active state */
+  border-color: var(--color-accent); /* Neon accent border */
   opacity: 1;
+  box-shadow: var(--neon-glow-primary); /* Neon glow for active button */
 }
 
 .toolbar-button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+  background-color: transparent; /* No background when disabled */
+  border-color: transparent; /* No border when disabled */
+  box-shadow: none;
 }
 
 .toolbar-button:disabled:hover {

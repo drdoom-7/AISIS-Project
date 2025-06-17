@@ -257,8 +257,6 @@
                         </div>
                     </div>
                 </div>
-
-
             </div>
             <!--Sidebar lower elements-->
             <div class="left-panel-bottom">
@@ -374,42 +372,9 @@
                 paused: false,
                 attachments: [],
                 hasAttachments: false,
-                showButtons: false, // New state for toggling button visibility
-                startY: 0,
-                deltaY: 0,
 
-                handleTouchStart(event) {
-                    this.startY = event.touches[0].clientY;
-                },
-                handleTouchMove(event) {
-                    this.deltaY = this.startY - event.touches[0].clientY;
-                },
-                handleTouchEnd() {
-                    // Only trigger if a significant swipe occurred
-                    if (Math.abs(this.deltaY) > 50) { // Swipe up/down threshold
-                        this.showButtons = this.deltaY > 0; // If swipe up (deltaY positive), show buttons
-                    }
-                    this.deltaY = 0; // Reset delta
-                },
-                showButtons: false, // New state for toggling button visibility
-                startY: 0,
-                deltaY: 0,
-
-                handleTouchStart(event) {
-                    this.startY = event.touches[0].clientY;
-                },
-                handleTouchMove(event) {
-                    this.deltaY = this.startY - event.touches[0].clientY;
-                },
-                handleTouchEnd() {
-                    // Only trigger if a significant swipe occurred
-                    if (Math.abs(this.deltaY) > 50) { // Swipe up/down threshold
-                        this.showButtons = this.deltaY > 0; // If swipe up (deltaY positive), show buttons
-                    }
-                    this.deltaY = 0; // Reset delta
-                },
                 handleFileUpload(event) {
-                    const files = event.fromEvent(event.target.files);
+                    const files = event.target.files;
 
                     Array.from(files).forEach(file => {
                         const ext = file.name.split('.').pop().toLowerCase();
@@ -442,10 +407,7 @@
                             }
                     });
                 }
-            }"
-            @touchstart.passive="handleTouchStart($event)"
-            @touchmove.passive="handleTouchMove($event)"
-            @touchend.passive="handleTouchEnd($event)">
+            }">
 
                 <!-- Preview section -->
                 <div x-show="hasAttachments" class="preview-section">
@@ -520,8 +482,8 @@
                     </div>
                 </div>
 
-                <!-- The actual buttons that will be hidden/shown -->
-                <div x-show="showButtons" x-collapse.duration.300ms class="text-buttons-row">
+                <!-- Bottom row with text buttons -->
+                <div class="text-buttons-row">
 
                     <button class="text-button" @click="pauseAgent(!paused)">
                         <!-- Dynamic path that switches between pause and play icons -->
@@ -598,13 +560,6 @@
                         <p>Nudge</p>
                     </button>
 
-                </div>
-
-                <!-- Swipe handle / indicator -->
-                <div class="swipe-handle" @click="showButtons = !showButtons" x-show="!showButtons" x-transition.opacity>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M7 14l5-5 5 5z"/>
-                    </svg>
                 </div>
             </div>
         </div>
