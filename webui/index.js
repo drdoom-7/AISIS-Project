@@ -18,7 +18,8 @@ const timeDate = document.getElementById('time-date-container');
 
 let autoScroll = true;
 let context = "";
-let connectionStatus = false
+let connectionStatus = false;
+let pinnedChats = []; // To store pinned chat IDs and their pinnedAt timestamps
 
 
 // Initial setup for mobile devices: hide sidebar and expand right panel.
@@ -399,9 +400,19 @@ async function poll() {
         // Update chats list and sort by created_at time (newer first)
         const chatsAD = Alpine.$data(chatsSection);
         const contexts = response.contexts || [];
-        chatsAD.contexts = contexts.sort((a, b) =>
-            (b.created_at || 0) - (a.created_at || 0)
-        );
+        // Initialize isPinned and pinnedAt for each context based on localStorage
+        const loadedPinnedChats = loadPinnedChatsFromLocalStorage();
+        chatsAD.contexts = contexts.map(ctx => {
+            const pinnedInfo = loadedPinnedChats.find(p => p.id === ctx.id);
+            return {
+                ...ctx,
+                isPinned: !!pinnedInfo,
+                pinnedAt: pinnedInfo ? pinnedInfo.pinnedAt : null
+            };
+        });
+
+        // Sort chats: Pinned chats first (by pinnedAt ascending), then unpinned chats (by created_at descending)
+        sortAndRenderChats(chatsAD);
 
         // Update tasks list and sort by creation time (newer first)
         const tasksSection = document.getElementById('tasks-section');
@@ -651,6 +662,12 @@ function ensureProperTabSelection(contextId) {
 }
 
 window.selectChat = async function (id) {
+    // If long press is active, do not select chat
+    if (window.longPressTimer) {
+        clearTimeout(window.longPressTimer);
+        window.longPressTimer = null;
+        return;
+    }
     if (id === context) return //already selected
 
     // Check if we need to switch tabs based on the context type
@@ -796,9 +813,12 @@ window.restart = async function () {
 
 // Modify this part
 document.addEventListener('DOMContentLoaded', () => {
-    const isDarkMode = localStorage.getItem('darkMode') !== 'false';
-    toggleDarkMode(isDarkMode);
-});
+const isDarkMode = localStorage.getItem('darkMode') !== 'false';
+toggleDarkMode(isDarkMode);
+
+        // Load pinned chats from local storage on startup
+        pinnedChats = loadPinnedChatsFromLocalStorage();
+    });
 
 
 function toggleCssProperty(selector, property, value) {
@@ -1372,3 +1392,59 @@ function openTaskDetail(taskId) {
 
 // Make the function available globally
 window.openTaskDetail = openTaskDetail;
+
+// --- Pin Chat Feature Functions ---
+
+function savePinnedChatsToLocalStorage() {
+    localStorage.setItem('pinnedChats', JSON.stringify(pinnedChats));
+}
+
+function loadPinnedChatsFromLocalStorage() {
+    try {
+        const stored = localStorage.getItem('pinnedChats');
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        console.error('Error loading pinned chats from localStorage:', e);
+        return [];
+    }
+}
+
+// Function to sort chats based on pin status and creation/pinning time
+function sortAndRenderChats(chatsAD) {
+    chatsAD.contexts.sort((a, b) => {
+        // Pinned chats come before unpinned chats
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+
+        // If both are pinned, sort by pinnedAt (oldest pinned first)
+        if (a.isPinned && b.isPinned) {
+            return (a.pinnedAt || 0) - (b.pinnedAt || 0);
+        }
+
+        // If both are unpinned, sort by created_at (newest created first)
+        return (b.created_at || 0) - (a.created_at || 0);
+    });
+    // Force Alpine.js to re-render by creating a new array instance
+    chatsAD.contexts = [...chatsAD.contexts];
+}
+
+window.togglePinChat = function (id) {
+    const chatsAD = Alpine.$data(chatsSection);
+    const chatIndex = chatsAD.contexts.findIndex(ctx => ctx.id === id);
+
+    if (chatIndex !== -1) {
+        const chat = chatsAD.contexts[chatIndex];
+        chat.isPinned = !chat.isPinned;
+
+        if (chat.isPinned) {
+            chat.pinnedAt = Date.now(); // Timestamp for ordering pinned chats
+            pinnedChats.push({ id: chat.id, pinnedAt: chat.pinnedAt });
+        } else {
+            chat.pinnedAt = null;
+            pinnedChats = pinnedChats.filter(p => p.id !== id);
+        }
+
+        savePinnedChatsToLocalStorage();
+        sortAndRenderChats(chatsAD);
+    }
+};

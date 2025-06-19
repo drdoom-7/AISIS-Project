@@ -1,0 +1,20 @@
+.pinned-chat {
+    background-color: var(--color-background-highlight);
+    border-left: 3px solid var(--color-accent);
+    padding-left: 7px; /* Adjust padding to make space for the border */
+}
+
+.pinned-chat .chat-list-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.pin-icon {
+    font-size: 0.8em;
+    color: var(--color-accent);
+    margin-right: 5px;
+    line-height: 1;
+    display: inline-block;
+    transform: rotate(25deg);
+}

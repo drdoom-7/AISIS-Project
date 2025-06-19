@@ -7,6 +7,7 @@
     <title>A.I.S.I.S.</title>
     <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
     <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="css/chat-pin.css">
     <link rel="stylesheet" href="css/toast.css">
     <link rel="stylesheet" href="css/settings.css">
     <link rel="stylesheet" href="css/file_browser.css">
@@ -184,10 +185,37 @@
                     x-show="contexts.length > 0 || true">
                     <div class="chats-list-container">
                         <ul class="config-list" x-show="contexts.length > 0">
-                            <template x-for="context in contexts">
-                                <li>
+                            <template x-for="context in contexts" :key="context.id">
+                                <li :class="{'pinned-chat': context.isPinned}"
+                                    x-data="{ longPressTimer: null, isPressing: false }">
                                     <div :class="{'chat-list-button': true, 'font-bold': context.id === selected}"
-                                        @click="selected = context.id; selectChat(context.id)">
+                                        @click="selected = context.id; selectChat(context.id)"
+                                        @mousedown.prevent="
+                                            isPressing = true;
+                                            longPressTimer = setTimeout(() => {
+                                                if (isPressing) {
+                                                    window.togglePinChat(context.id);
+                                                    isPressing = false;
+                                                    longPressTimer = null;
+                                                }
+                                            }, 300);
+                                        "
+                                        @mouseup.outside="clearTimeout(longPressTimer); isPressing = false; longPressTimer = null;"
+                                        @mouseleave.outside="clearTimeout(longPressTimer); isPressing = false; longPressTimer = null;"
+                                        @touchstart.prevent="
+                                            isPressing = true;
+                                            longPressTimer = setTimeout(() => {
+                                                if (isPressing) {
+                                                    window.togglePinChat(context.id);
+                                                    isPressing = false;
+                                                    longPressTimer = null;
+                                                }
+                                            }, 300);
+                                        "
+                                        @touchend.outside="clearTimeout(longPressTimer); isPressing = false; longPressTimer = null;"
+                                        @touchcancel.outside="clearTimeout(longPressTimer); isPressing = false; longPressTimer = null;"
+                                    >
+                                        <span class="pin-icon" x-show="context.isPinned" title="Pinned Chat">&#128204;</span>
                                         <span class="chat-name" style="font-size: 0.85rem;" :title="context.name ? context.name : 'Chat #' + context.no"
                                             x-text="context.name ? context.name : 'Chat #' + context.no"></span>
                                     </div>
