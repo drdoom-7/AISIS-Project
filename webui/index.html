@@ -187,33 +187,41 @@
                         <ul class="config-list" x-show="contexts.length > 0">
                             <template x-for="context in contexts" :key="context.id">
                                 <li :class="{'pinned-chat': context.isPinned}"
-                                    x-data="{ longPressTimer: null, isPressing: false }">
+                                    x-data="{ clickCount: 0, doubleClickTimer: null }">
                                     <div :class="{'chat-list-button': true, 'font-bold': context.id === selected}"
-                                        @click="selected = context.id; selectChat(context.id)"
                                         @mousedown.prevent="
-                                            isPressing = true;
-                                            longPressTimer = setTimeout(() => {
-                                                if (isPressing) {
-                                                    window.togglePinChat(context.id);
-                                                    isPressing = false;
-                                                    longPressTimer = null;
-                                                }
-                                            }, 300);
+                                            clearTimeout(doubleClickTimer);
+                                            clickCount++;
+                                            if (clickCount === 1) {
+                                                doubleClickTimer = setTimeout(() => {
+                                                    selected = context.id;
+                                                    selectChat(context.id);
+                                                    clickCount = 0;
+                                                    doubleClickTimer = null;
+                                                }, 400); // Increased interval for double-click
+                                            } else if (clickCount === 2) {
+                                                window.togglePinChat(context.id);
+                                                event.stopPropagation(); // Prevent event bubbling for pin action
+                                                clickCount = 0;
+                                                doubleClickTimer = null;
+                                            }
                                         "
-                                        @mouseup.outside="clearTimeout(longPressTimer); isPressing = false; longPressTimer = null;"
-                                        @mouseleave.outside="clearTimeout(longPressTimer); isPressing = false; longPressTimer = null;"
                                         @touchstart.prevent="
-                                            isPressing = true;
-                                            longPressTimer = setTimeout(() => {
-                                                if (isPressing) {
-                                                    window.togglePinChat(context.id);
-                                                    isPressing = false;
-                                                    longPressTimer = null;
-                                                }
-                                            }, 300);
+                                            clearTimeout(doubleClickTimer);
+                                            clickCount++;
+                                            if (clickCount === 1) {
+                                                doubleClickTimer = setTimeout(() => {
+                                                    selected = context.id;
+                                                    selectChat(context.id);
+                                                    clickCount = 0;
+                                                    doubleClickTimer = null;
+                                                }, 400); // Increased interval for double-tap
+                                            } else if (clickCount === 2) {
+                                                window.togglePinChat(context.id);
+                                                clickCount = 0;
+                                                doubleClickTimer = null;
+                                            }
                                         "
-                                        @touchend.outside="clearTimeout(longPressTimer); isPressing = false; longPressTimer = null;"
-                                        @touchcancel.outside="clearTimeout(longPressTimer); isPressing = false; longPressTimer = null;"
                                     >
                                         <span class="pin-icon" x-show="context.isPinned" title="Pinned Chat">&#128204;</span>
                                         <span class="chat-name" style="font-size: 0.85rem;" :title="context.name ? context.name : 'Chat #' + context.no"
