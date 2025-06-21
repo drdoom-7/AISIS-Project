@@ -533,8 +533,10 @@ function updateProgress(progress, active) {
 
     if (!active) {
         removeClassFromElement(progressBar, "shiny-text")
+        removeClassFromElement(rightPanel, "panel-active-glow") // Remove glow from right panel
     } else {
         addClassToElement(progressBar, "shiny-text")
+        addClassToElement(rightPanel, "panel-active-glow") // Add glow to right panel
     }
 
     if (progressBar.innerHTML != progress) {

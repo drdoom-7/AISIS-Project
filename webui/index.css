@@ -191,8 +191,12 @@ body {
 }
 
 .panel:hover {
-  box-shadow: var(--neon-glow-primary); /* Neon glow on hover */
+
   transform: translateY(var(--float-offset)); /* Subtle float on hover */
+}
+
+.panel-active-glow {
+  box-shadow: var(--neon-glow-primary);
 }
 
 /* Custom Scrollbars for Panels */
@@ -1049,7 +1053,7 @@ pre {
   font-size: 0.955rem;
   padding-top: 0.45rem;
   background-color: var(--color-input-focus);
-  box-shadow: var(--neon-glow-primary); /* Neon glow on focus */
+
 }
 
 #chat-input::placeholder {
