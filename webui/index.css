@@ -92,6 +92,18 @@
   100% { box-shadow: var(--neon-glow-primary); }
 }
 
+@keyframes logo-active-glow {
+    0% { transform: scale(1); box-shadow: 0 0 8px rgba(0, 229, 255, 0.3), 0 0 15px rgba(0, 229, 255, 0.1); }
+    50% { transform: scale(1.02); box-shadow: 0 0 12px rgba(0, 229, 255, 0.6), 0 0 25px rgba(0, 229, 255, 0.3); }
+    100% { transform: scale(1); box-shadow: 0 0 8px rgba(0, 229, 255, 0.3), 0 0 15px rgba(0, 229, 255, 0.1); }
+}
+
+@keyframes status-pulse-glow {
+    0% { border-color: rgba(0, 229, 255, 0.3); box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); }
+    50% { border-color: rgba(0, 229, 255, 0.7); box-shadow: 0 0 15px rgba(0, 229, 255, 0.5); }
+    100% { border-color: rgba(0, 229, 255, 0.3); box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); }
+}
+
 @keyframes float {
   0% { transform: translateY(0); }
   50% { transform: translateY(var(--float-offset)); }
@@ -565,7 +577,7 @@ pre {
   top: var(--spacing-sm);
   left: var(--spacing-sm);
   z-index: 1004;
-  transition: all var(--transition-speed) ease-in-out; /* Adjusted for better transition */
+  transition: all var(--transition-speed) ease-in-out, box-shadow 0.5s ease; /* Adjusted for better transition */
   background-color: rgba(26, 26, 34, 0.4); /* Glassmorphism effect */
   backdrop-filter: blur(calc(var(--glass-blur) / 2));
   -webkit-backdrop-filter: blur(calc(var(--glass-blur) / 2));
@@ -573,6 +585,11 @@ pre {
   border-radius: var(--border-radius);
   padding: 0.6rem 1rem;
 }
+
+#logo-container.logo-active {
+    animation: logo-active-glow 1.5s infinite alternate ease-in-out;
+}
+
 
 .logo-text {
   color: var(--color-primary);
@@ -615,7 +632,13 @@ pre {
   border-top: var(--glass-border-width) solid var(--glass-border-color);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
+  transition: all var(--transition-speed) ease-in-out, border-color 0.5s ease, box-shadow 0.5s ease;
 }
+
+#progress-bar-box.status-active-glow {
+    animation: status-pulse-glow 1.5s infinite alternate ease-in-out;
+}
+
 
 #progress-bar-h {
   color: var(--color-primary);
@@ -633,6 +656,22 @@ pre {
   font-weight: bold;
   padding-right: 0.5em;
   color: var(--color-secondary);
+  transition: color 0.3s ease;
+}
+
+#progress-bar-h.shiny-text #progress-bar-i {
+  background: linear-gradient(
+      to right,
+      var(--color-primary-dark) 20%,
+      var(--color-accent-dark) 40%,
+      var(--color-accent-dark) 60%,
+      var(--color-primary-dark) 80%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shiny 1s linear infinite;
 }
 
 .progress-bar h4 {
@@ -640,20 +679,7 @@ pre {
   margin-right: 1.2em;
 }
 
-.shiny-text {
-  background: linear-gradient(
-      to right,
-      var(--color-primary-dark) 20%,
-      var(--color-text) 40%,
-      var(--color-text) 60%,
-      var(--color-primary-dark) 60%
-  );
-  background-size: 200% auto;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shine 1s linear infinite;
-}
+
 
 #right-panel.expanded #logo-container {
   margin-left: 0; /* No special margin for expanded */

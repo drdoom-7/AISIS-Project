@@ -12,6 +12,7 @@ const statusSection = document.getElementById('status-section');
 const chatsSection = document.getElementById('chats-section');
 const tasksSection = document.getElementById('tasks-section');
 const progressBar = document.getElementById('progress-bar');
+const logoContainer = document.getElementById('logo-container');
 const autoScrollSwitch = document.getElementById('auto-scroll-switch');
 const timeDate = document.getElementById('time-date-container');
 
@@ -532,11 +533,15 @@ function updateProgress(progress, active) {
     if (!progress) progress = ""
 
     if (!active) {
-        removeClassFromElement(progressBar, "shiny-text")
+        removeClassFromElement(progressBar.parentElement, "shiny-text") // Apply to parent h4 for text effect
         removeClassFromElement(rightPanel, "panel-active-glow") // Remove glow from right panel
+        removeClassFromElement(logoContainer, "logo-active") // Remove glow from logo
+        removeClassFromElement(progressBar.closest('#progress-bar-box'), "status-active-glow") // Remove glow from progress bar box
     } else {
-        addClassToElement(progressBar, "shiny-text")
+        addClassToElement(progressBar.parentElement, "shiny-text") // Apply to parent h4 for text effect
         addClassToElement(rightPanel, "panel-active-glow") // Add glow to right panel
+        addClassToElement(logoContainer, "logo-active") // Add glow to logo
+        addClassToElement(progressBar.closest('#progress-bar-box'), "status-active-glow") // Add glow to progress bar box
     }
 
     if (progressBar.innerHTML != progress) {
