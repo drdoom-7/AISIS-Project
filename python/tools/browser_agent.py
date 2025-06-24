@@ -1,21 +1,25 @@
 import asyncio
 import json
 import time
-from typing import Optional
+from typing import Optional, List, Dict # Added Dict
 from agent import Agent, InterventionException
 from pathlib import Path
-
+import os
 
 import models
 from python.helpers.tool import Tool, Response
 from python.helpers import files, defer, persist_chat, strings
 from python.helpers.browser_use import browser_use
 from python.helpers.print_style import PrintStyle
-from python.helpers.playwright import ensure_playwright_binary
+from python.helpers.playwright import ensure_playwright_binary # Keep this
+from playwright.async_api import Download as PlaywrightDownload, Page as PlaywrightPage, Response as PlaywrightResponse # CORRECT IMPORT FOR ALL
 from python.extensions.message_loop_start._10_iteration_no import get_iter_no
 from pydantic import BaseModel
 import uuid
 from python.helpers.dirty_json import DirtyJson
+
+# --- Configuration for duplicate download prevention ---
+MAX_DUPLICATE_PREVENTION_WINDOW_SEC = 5  # Time window (seconds) to consider a URL as "recently downloaded"
 
 
 class State:
@@ -30,16 +34,174 @@ class State:
         self.task: Optional[defer.DeferredTask] = None
         self.use_agent: Optional[browser_use.Agent] = None
         self.iter_no = 0
+        self.auto_download_extensions: List[str] = [".jpg", ".jpeg", ".png", ".pdf"]
+        self.downloads_path: Optional[str] = None
+        self.recently_handled_urls: Dict[str, float] = {} # URL -> timestamp of handling
 
     def __del__(self):
         self.kill_task()
+
+    async def _is_recently_handled(self, url: str) -> bool:
+        """Checks if a URL has been handled (downloaded or attempted) recently."""
+        now = time.time()
+        # Clean up old entries from the cache
+        self.recently_handled_urls = {
+            u: ts for u, ts in self.recently_handled_urls.items()
+            if now - ts < MAX_DUPLICATE_PREVENTION_WINDOW_SEC
+        }
+        if url in self.recently_handled_urls:
+            PrintStyle().info(f"URL {url} was recently handled. Skipping duplicate download attempt.")
+            return True
+        return False
+
+    async def _mark_as_handled(self, url: str):
+        """Marks a URL as handled."""
+        self.recently_handled_urls[url] = time.time()
+
+    async def _save_file(self, filename_suggestion: str, content_bytes: Optional[bytes] = None, download_obj: Optional[PlaywrightDownload] = None, source_url: str = "Unknown"):
+        """Helper to save file content or a Playwright Download object."""
+        if not self.downloads_path:
+            PrintStyle().warning("Downloads path not configured. Cannot save file.")
+            return None
+
+        # Sanitize filename
+        safe_filename = "".join(c if c.isalnum() or c in ['.', '-', '_'] else '_' for c in filename_suggestion)
+        if not safe_filename: # Handle empty filename after sanitization
+            file_extension = Path(filename_suggestion).suffix.lower() or Path(source_url).suffix.lower()
+            safe_filename = f"downloaded_file_{uuid.uuid4().hex}{file_extension or '.unknown'}"
+
+        save_path = os.path.join(self.downloads_path, safe_filename)
+        
+        # Ensure unique filename
+        counter = 1
+        original_save_path_stem, original_save_path_ext = os.path.splitext(save_path)
+        while os.path.exists(save_path):
+            save_path = f"{original_save_path_stem}_{counter}{original_save_path_ext}"
+            counter += 1
+        
+        try:
+            if download_obj:
+                await download_obj.save_as(save_path)
+            elif content_bytes is not None:
+                with open(save_path, "wb") as f:
+                    f.write(content_bytes)
+            else:
+                PrintStyle().error("No content or download object provided to _save_file.")
+                return None
+
+            PrintStyle().success(f"Successfully saved: {Path(save_path).name} to {self.downloads_path} (from URL: {source_url})")
+            if self.agent and self.agent.context and self.agent.context.log:
+                self.agent.context.log.info(f"Saved '{Path(save_path).name}' from URL '{source_url}'. Location: agent downloads.")
+            return save_path
+        except Exception as e:
+            PrintStyle().error(f"Error saving file {safe_filename} (from {source_url}): {e}")
+            # If download_obj and save_as failed, Playwright might have deleted the temp file.
+            # If content_bytes, ensure we don't leave partial files if not desired.
+            if os.path.exists(save_path) and content_bytes is not None: # only delete if we created it
+                try:
+                    os.remove(save_path)
+                except Exception as del_e:
+                    PrintStyle().error(f"Error cleaning up partially saved file {save_path}: {del_e}")
+            return None
+
+
+    async def _handle_automatic_download_event(self, download: PlaywrightDownload, page_url_of_trigger: Optional[str]):
+        """Handles downloads initiated by Playwright's 'download' event."""
+        if not page_url_of_trigger: # page_url_of_trigger can be the actual file URL or the page that triggered download
+             # Try to get URL from download object if possible, though not always reliable or available
+            page_url_of_trigger = getattr(download, 'url', None) or download.suggested_filename # Fallback
+            if not page_url_of_trigger.startswith(('http://', 'https://', 'file://')): # if it's just a filename
+                PrintStyle().warning(f"Download event triggered with no clear source URL, using suggested filename: {download.suggested_filename}")
+                # We need a unique key for duplicate check, filename might be it here
+                # Or generate a unique ID if truly no URL context.
+                # For now, let it pass and rely on filename for logic if URL is bad.
+
+
+        # Use a consistent key for duplicate checking; the download object's page might have a different URL
+        # than the actual file URL if it was, e.g., a form submission leading to download.
+        # The most reliable key here is often the suggested filename combined with some page context if URL is messy.
+        # However, for direct file links, page_url_of_trigger *should* be the file URL.
+        # Let's assume page_url_of_trigger is the best guess for the "source" for now.
+        if page_url_of_trigger and await self._is_recently_handled(page_url_of_trigger):
+            # If page_url_of_trigger was the actual file URL, this prevents double download
+            # If it was the *triggering page* URL, and the actual file URL is different, this might not catch it perfectly.
+            # This is a known complexity in correlating download events to specific file URLs.
+            try: # Try to cancel it to free up resources if we are skipping
+                await download.delete() # Or download.cancel() - delete removes temp file
+                PrintStyle().info(f"Download for {download.suggested_filename} (from {page_url_of_trigger}) cancelled as it was recently handled.")
+            except Exception as e:
+                PrintStyle().warning(f"Could not cancel/delete duplicate download {download.suggested_filename}: {e}")
+            return
+
+        suggested_filename = download.suggested_filename
+        file_extension = Path(suggested_filename).suffix.lower()
+
+        if file_extension in self.auto_download_extensions:
+            PrintStyle().info(f"'download' event: Handling {suggested_filename} from {page_url_of_trigger or 'unknown URL'}")
+            saved_path = await self._save_file(
+                filename_suggestion=suggested_filename,
+                download_obj=download,
+                source_url=page_url_of_trigger or suggested_filename # Best effort source URL
+            )
+            if saved_path and page_url_of_trigger:
+                await self._mark_as_handled(page_url_of_trigger) # Mark the trigger URL
+                # If download.url() was reliable and different, could mark that too.
+
+
+    async def _handle_direct_file_response(self, response: PlaywrightResponse):
+        """Handles direct navigation to or responses for .jpg, .png, .pdf URLs."""
+        url = response.url
+        file_extension = Path(url).suffix.lower()
+
+        if file_extension not in self.auto_download_extensions:
+            return # Not a target file type based on URL
+
+        if not response.ok:
+            PrintStyle().info(f"Response for {url} not OK (status: {response.status}). Skipping direct download.")
+            return
+
+        # Optional: More robust content type check
+        content_type = response.headers.get("content-type", "").lower()
+        if file_extension == ".pdf" and "application/pdf" not in content_type:
+            PrintStyle().info(f"URL {url} ends with .pdf but Content-Type is '{content_type}'. Skipping.")
+            return
+        if file_extension in [".jpg", ".jpeg"] and "image/jpeg" not in content_type and "image/jpg" not in content_type :
+            PrintStyle().info(f"URL {url} ends with {file_extension} but Content-Type is '{content_type}'. Skipping.")
+            return
+        if file_extension == ".png" and "image/png" not in content_type:
+            PrintStyle().info(f"URL {url} ends with .png but Content-Type is '{content_type}'. Skipping.")
+            return
+        
+        # Check if this URL was recently handled (e.g., by the 'download' event which might be more authoritative)
+        if await self._is_recently_handled(url):
+            return
+
+        PrintStyle().info(f"'response' event: Handling direct file URL: {url}")
+        try:
+            content_bytes = await response.body()
+            if not content_bytes:
+                PrintStyle().warning(f"No content bytes received for {url}. Skipping.")
+                return
+
+            filename = Path(url).name
+            saved_path = await self._save_file(
+                filename_suggestion=filename,
+                content_bytes=content_bytes,
+                source_url=url
+            )
+            if saved_path:
+                await self._mark_as_handled(url)
+
+        except Exception as e:
+            PrintStyle().error(f"Error processing direct file response for {url}: {e}")
 
     async def _initialize(self):
         if self.browser_session:
             return
 
-        # for some reason we need to provide exact path to headless shell, otherwise it looks for headed browser
         pw_binary = ensure_playwright_binary()
+        self.downloads_path = files.get_abs_path("tmp/downloads")
+        files.make_dirs(self.downloads_path)
 
         self.browser_session = browser_use.BrowserSession(
             browser_profile=browser_use.BrowserProfile(
@@ -47,8 +209,8 @@ class State:
                 disable_security=True,
                 chromium_sandbox=False,
                 accept_downloads=True,
-                downloads_dir=files.get_abs_path("tmp/downloads"),
-                downloads_path=files.get_abs_path("tmp/downloads"),
+                downloads_dir=self.downloads_path, 
+                downloads_path=self.downloads_path,
                 executable_path=pw_binary,
                 keep_alive=True,
                 minimum_wait_page_load_time=1.0,
@@ -61,13 +223,62 @@ class State:
         )
 
         await self.browser_session.start()
-        # self.override_hooks()
 
-        # Add init script to the browser session
         if self.browser_session.browser_context:
             js_override = files.get_abs_path("lib/browser/init_override.js")
             await self.browser_session.browser_context.add_init_script(path=js_override)
 
+            async def page_creation_handler(page: PlaywrightPage):
+                page_initial_url = page.url # URL at creation (often about:blank)
+                PrintStyle().info(f"New page created/navigated: {page_initial_url}. Attaching handlers.")
+                
+                # Wrapper for 'download' event to capture page URL at time of event more reliably
+                async def on_download_event_wrapper(download_item: PlaywrightDownload):
+                    # The page triggering the download is 'page'
+                    triggering_page_url = page.url # URL of the page when download event fires
+                    await self._handle_automatic_download_event(download_item, triggering_page_url)
+
+                if not page.is_closed():
+                    page.on("download", on_download_event_wrapper)
+                else:
+                    PrintStyle().warning(f"Page {page_initial_url} was closed before attaching handlers.")
+
+            async def route_force_download(route):
+                # Check if the URL path ends with a downloadable extension
+                if route.request.url.lower().endswith(tuple(self.auto_download_extensions)):
+                    try:
+                        response = await route.fetch()
+                        if response:
+                            # Get original headers and add/overwrite Content-Disposition
+                            headers = response.headers.copy()
+                            headers['content-disposition'] = 'attachment'
+                            PrintStyle().info(f"Forcing download for {route.request.url} with Content-Disposition: attachment")
+                            await route.fulfill(
+                                response=response,
+                                headers=headers,
+                                body=await response.body()
+                            )
+                        else:
+                            PrintStyle().warning(f"No response received for {route.request.url}. Continuing without modification.")
+                            await route.continue_()
+                    except Exception as e:
+                        PrintStyle().error(f"Error in route_force_download for {route.request.url}: {e}")
+                        await route.continue_()
+                else:
+                    await route.continue_()
+
+            self.browser_session.browser_context.on("page", page_creation_handler)
+            
+            # Register the route handler for the context
+            await self.browser_session.browser_context.route( 
+                lambda url_string: any(url_string.lower().endswith(ext) for ext in self.auto_download_extensions), 
+                route_force_download
+            )
+            
+            initial_page = await self.browser_session.get_current_page()
+            if initial_page and not initial_page.is_closed():
+                 await page_creation_handler(initial_page) # Apply to initial page
+    
     def start_task(self, task: str):
         if self.task and self.task.is_alive():
             self.kill_task()
@@ -77,7 +288,12 @@ class State:
         )
         if self.agent.context.task:
             self.agent.context.task.add_child_task(self.task, terminate_thread=True)
-        self.task.start_task(self._run_task, task)
+        
+        async def run_wrapper(task_str):
+            await self._initialize() 
+            return await self._run_task(task_str)
+
+        self.task.start_task(run_wrapper, task) 
         return self.task
 
     def kill_task(self):
@@ -86,31 +302,41 @@ class State:
             self.task = None
         if self.browser_session:
             try:
-                import asyncio
+                async def _close_session():
+                    if self.browser_session:
+                        # Ensure browser_session and context are still valid before trying to close
+                        if self.browser_session.browser_context and not self.browser_session.browser_context.is_closed():
+                             await self.browser_session.close()
+                        elif self.browser_session.browser and self.browser_session.browser.is_connected():
+                             await self.browser_session.browser.close() # Fallback if context is gone but browser is there
 
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(self.browser_session.close())
-                loop.close()
+                
+                try:
+                    current_loop = asyncio.get_running_loop()
+                    # Ensure the task is properly awaited or handled if kill_task is itself async
+                    if current_loop.is_running() and not current_loop.is_closed():
+                         asyncio.create_task(_close_session())
+                    else: # Fallback for non-running or new loop scenarios
+                         asyncio.run(_close_session())
+                except RuntimeError: # No running loop or other loop issues
+                     asyncio.run(_close_session())
+
+
             except Exception as e:
-                PrintStyle().error(f"Error closing browser session: {e}")
+                PrintStyle().error(f"Error closing browser session in kill_task: {e}")
             finally:
-                self.browser_session = None
+                self.browser_session = None # Ensure it's reset
         self.use_agent = None
         self.iter_no = 0
 
     async def _run_task(self, task: str):
-        await self._initialize()
-
         class DoneResult(BaseModel):
             title: str
             response: str
             page_summary: str
 
-        # Initialize controller
         controller = browser_use.Controller(output_model=DoneResult)
 
-        # Register custom completion action with proper ActionResult fields
         @controller.registry.action("Complete task", param_model=DoneResult)
         async def complete_task(params: DoneResult):
             result = browser_use.ActionResult(
@@ -125,6 +351,10 @@ class State:
             **self.agent.config.browser_model.kwargs,
         )
 
+        if not self.browser_session or not self.browser_session.browser_context:
+            PrintStyle().error("Browser session not properly initialized for _run_task.")
+            raise InterventionException("Browser session initialization failed.")
+
         self.use_agent = browser_use.Agent(
             task=task,
             browser_session=self.browser_session,
@@ -134,8 +364,7 @@ class State:
                 "prompts/browser_agent.system.md"
             ),
             controller=controller,
-            enable_memory=False,  # Disable memory to avoid state conflicts
-            # available_file_paths=[],
+            enable_memory=False,
         )
 
         self.iter_no = get_iter_no(self.agent)
@@ -145,52 +374,45 @@ class State:
             if self.iter_no != get_iter_no(self.agent):
                 raise InterventionException("Task cancelled")
 
-        # try:
         result = await self.use_agent.run(
             max_steps=50, on_step_start=hook, on_step_end=hook
         )
         return result
-        # finally:
-        #     # if self.browser_session:
-        #     #     try:
-        #     #         await self.browser_session.close()
-        #     #     except Exception as e:
-        #     #         PrintStyle().error(f"Error closing browser session in task cleanup: {e}")
-        #     #     finally:
-        #     #         self.browser_session = None
-        #     pass
-
-    # def override_hooks(self):
-    #     def override_hook(func):
-    #         async def wrapper(*args, **kwargs):
-    #             await self.agent.wait_if_paused()
-    #             if self.iter_no != get_iter_no(self.agent):
-    #                 raise InterventionException("Task cancelled")
-    #             return await func(*args, **kwargs)
-
-    #         return wrapper
-
-    #     if self.browser_session and hasattr(self.browser_session, "remove_highlights"):
-    #         self.browser_session.remove_highlights = override_hook(
-    #             self.browser_session.remove_highlights
-    #         )
-
+    
     async def get_page(self):
         if self.use_agent and self.browser_session:
             try:
-                return await self.use_agent.browser_session.get_current_page()
-            except Exception:
-                # Browser session might be closed or invalid
+                # Make sure self.use_agent.browser_session.page exists and is not closed
+                current_page = await self.use_agent.browser_session.get_current_page()
+                if current_page and not current_page.is_closed():
+                    return current_page
+                else:
+                    # Try to get a valid page from the context if the primary one is bad
+                    if self.browser_session.browser_context and self.browser_session.browser_context.pages:
+                        for p in reversed(self.browser_session.browser_context.pages): # Check most recent pages
+                            if not p.is_closed():
+
+                                return p
+                    PrintStyle().warning("Attempted to get page, but no valid page found or current page is closed.")
+                    return None
+            except Exception as e:
+                PrintStyle().error(f"Error getting current page: {e}")
                 return None
         return None
 
     async def get_selector_map(self):
-        """Get the selector map for the current page state."""
-        if self.use_agent:
-            await self.use_agent.browser_session.get_state_summary(
-                cache_clickable_elements_hashes=True
-            )
-            return await self.use_agent.browser_session.get_selector_map()
+        page = await self.get_page() # Use the robust get_page
+        if self.use_agent and page: # Check if page is valid
+            try:
+                # Ensure the page obtained is used for get_state_summary
+                # This assumes get_state_summary uses self.use_agent.browser_session.page which should be updated by get_page
+                await self.use_agent.browser_session.get_state_summary( 
+                    cache_clickable_elements_hashes=True
+                )
+                return await self.use_agent.browser_session.get_selector_map()
+            except Exception as e:
+                PrintStyle().error(f"Error getting selector map: {e}")
+                return {}
         return {}
 
 

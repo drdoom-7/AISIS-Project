@@ -19,6 +19,7 @@ When you have completed the assigned task OR are waiting for further instruction
 3. Do NOT continue taking actions after calling "Complete task"
 
 ## Important Notes
+- Files ending with .jpg, .png, or .pdf will be automatically downloaded to /a0/tmp/downloads. You do not need to interact with these URLs directly for download purposes.
 - Always call "Complete task" when your objective is achieved
 - If you navigate to a website and no further actions are requested, call "Complete task" immediately
 - If you complete any requested interaction (clicking, typing, etc.), call "Complete task"
