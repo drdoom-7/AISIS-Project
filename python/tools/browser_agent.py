@@ -38,6 +38,18 @@ class State:
         self.downloads_path: Optional[str] = None
         self.recently_handled_urls: Dict[str, float] = {} # URL -> timestamp of handling
 
+        # Initialize debug log path here for class-wide access
+        self._debug_log_path = "/tmp/browser_agent_debug.log"
+
+    async def _write_debug_log(self, message: str):
+        """Writes a debug message to the shared log file."""
+        # Ensure the log file is created/exists if not already
+        try:
+            with open(self._debug_log_path, "a") as f:
+                f.write(f"[{time.time()}] {message}\n")
+        except Exception as e:
+            PrintStyle().error(f"Failed to write to debug log file {self._debug_log_path}: {e}")
+
     def __del__(self):
         self.kill_task()
 
@@ -71,37 +83,46 @@ class State:
             safe_filename = f"downloaded_file_{uuid.uuid4().hex}{file_extension or '.unknown'}"
 
         save_path = os.path.join(self.downloads_path, safe_filename)
-        
+        await self._write_debug_log(f"DEBUG: _save_file: Initial save path: {save_path}")
+
         # Ensure unique filename
         counter = 1
         original_save_path_stem, original_save_path_ext = os.path.splitext(save_path)
         while os.path.exists(save_path):
             save_path = f"{original_save_path_stem}_{counter}{original_save_path_ext}"
             counter += 1
+        await self._write_debug_log(f"DEBUG: _save_file: Final save path after uniqueness check: {save_path}")
         
         try:
             if download_obj:
+                await self._write_debug_log(f"DEBUG: _save_file: Calling download_obj.save_as({save_path})")
                 await download_obj.save_as(save_path)
+                await self._write_debug_log(f"DEBUG: _save_file: download_obj.save_as completed.")
             elif content_bytes is not None:
+                await self._write_debug_log(f"DEBUG: _save_file: Opening {save_path} for writing content bytes.")
                 with open(save_path, "wb") as f:
                     f.write(content_bytes)
+                await self._write_debug_log(f"DEBUG: _save_file: Content bytes written to {save_path}.")
             else:
                 PrintStyle().error("No content or download object provided to _save_file.")
+                await self._write_debug_log("ERROR: _save_file: No content or download object provided.")
                 return None
 
             PrintStyle().success(f"Successfully saved: {Path(save_path).name} to {self.downloads_path} (from URL: {source_url})")
-            if self.agent and self.agent.context and self.agent.context.log:
-                self.agent.context.log.info(f"Saved '{Path(save_path).name}' from URL '{source_url}'. Location: agent downloads.")
+            # Removed problematic self.agent.context.log.info to prevent error and ensure file is not deleted
             return save_path
         except Exception as e:
             PrintStyle().error(f"Error saving file {safe_filename} (from {source_url}): {e}")
+            await self._write_debug_log(f"ERROR: _save_file: Exception during saving {safe_filename} (from {source_url}): {e}")
             # If download_obj and save_as failed, Playwright might have deleted the temp file.
             # If content_bytes, ensure we don't leave partial files if not desired.
             if os.path.exists(save_path) and content_bytes is not None: # only delete if we created it
                 try:
                     os.remove(save_path)
+                    await self._write_debug_log(f"DEBUG: _save_file: Cleaned up partial file: {save_path}")
                 except Exception as del_e:
                     PrintStyle().error(f"Error cleaning up partially saved file {save_path}: {del_e}")
+                    await self._write_debug_log(f"ERROR: _save_file: Error cleaning up partial file {save_path}: {del_e}")
             return None
 
 
@@ -153,11 +174,18 @@ class State:
         url = response.url
         file_extension = Path(url).suffix.lower()
 
+        PrintStyle().info(f"[DEBUG] _handle_direct_file_response called for URL: {url}")
+        await self._write_debug_log(f"DEBUG: _handle_direct_file_response called for URL: {url}")
+        await self._write_debug_log(f"DEBUG: File extension: {file_extension}")
+
         if file_extension not in self.auto_download_extensions:
+            PrintStyle().info(f"[DEBUG] File extension {file_extension} not in auto_download_extensions. Skipping.")
+            await self._write_debug_log(f"DEBUG: Skipping: File extension {file_extension} not in auto_download_extensions.")
             return # Not a target file type based on URL
 
         if not response.ok:
-            PrintStyle().info(f"Response for {url} not OK (status: {response.status}). Skipping direct download.")
+            PrintStyle().info(f"[DEBUG] Response for {url} not OK (status: {response.status}). Skipping direct download.")
+            await self._write_debug_log(f"DEBUG: Skipping: Response for {url} not OK (status: {response.status}).")
             return
 
         # Optional: More robust content type check
@@ -173,15 +201,28 @@ class State:
             return
         
         # Check if this URL was recently handled (e.g., by the 'download' event which might be more authoritative)
-        if await self._is_recently_handled(url):
+        PrintStyle().info(f"[DEBUG] Content-Type header: {content_type}")
+        await self._write_debug_log(f"DEBUG: Content-Type header: {content_type}")
+
+        # Check if this URL was recently handled (e.g., by the 'download' event which might be more authoritative)
+        is_handled = await self._is_recently_handled(url)
+        if is_handled:
+            PrintStyle().info(f"[DEBUG] URL {url} recently handled. Skipping duplicate saving.")
+            await self._write_debug_log(f"DEBUG: Skipping: URL {url} recently handled.")
             return
 
-        PrintStyle().info(f"'response' event: Handling direct file URL: {url}")
+        PrintStyle().info(f"'response' event: Handling direct file URL: {url} for saving.")
+        await self._write_debug_log(f"DEBUG: Processing direct file URL: {url} for saving.")
         try:
+            await self._write_debug_log(f"DEBUG: Attempting to get response body for {url}.")
             content_bytes = await response.body()
+            await self._write_debug_log(f"DEBUG: Received {len(content_bytes) if content_bytes else 0} bytes for {url}.")
             if not content_bytes:
                 PrintStyle().warning(f"No content bytes received for {url}. Skipping.")
+                await self._write_debug_log(f"DEBUG: Skipping: No content bytes received for {url}.")
                 return
+
+            await self._write_debug_log(f"DEBUG: Calling _save_file for {url}.")
 
             filename = Path(url).name
             saved_path = await self._save_file(
@@ -191,9 +232,11 @@ class State:
             )
             if saved_path:
                 await self._mark_as_handled(url)
+                await self._write_debug_log(f"DEBUG: Successfully saved {saved_path} and marked {url} as handled.")
 
         except Exception as e:
             PrintStyle().error(f"Error processing direct file response for {url}: {e}")
+            await self._write_debug_log(f"ERROR: Error processing direct file response for {url}: {e}")
 
     async def _initialize(self):
         if self.browser_session:
@@ -240,6 +283,14 @@ class State:
 
                 if not page.is_closed():
                     page.on("download", on_download_event_wrapper)
+                    
+                    # New handler for completed requests to save direct file links
+                    async def on_request_finished_wrapper(request):
+                        response = await request.response()
+                        if response:
+                            await self._handle_direct_file_response(response)
+                    
+                    page.on("requestfinished", on_request_finished_wrapper)
                 else:
                     PrintStyle().warning(f"Page {page_initial_url} was closed before attaching handlers.")
 
@@ -270,10 +321,11 @@ class State:
             self.browser_session.browser_context.on("page", page_creation_handler)
             
             # Register the route handler for the context
-            await self.browser_session.browser_context.route( 
-                lambda url_string: any(url_string.lower().endswith(ext) for ext in self.auto_download_extensions), 
-                route_force_download
-            )
+            # Commented out: This forces downloads and prevents inline display.
+            # await self.browser_session.browser_context.route( 
+            #     lambda url_string: any(url_string.lower().endswith(ext) for ext in self.auto_download_extensions), 
+            #     route_force_download
+            # )
             
             initial_page = await self.browser_session.get_current_page()
             if initial_page and not initial_page.is_closed():
