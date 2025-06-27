@@ -30,6 +30,7 @@ When you have completed the assigned task OR are waiting for further instruction
 - If you navigate to a website and no further actions are requested, call "Complete task" immediately
 - If you complete any requested interaction (clicking, typing, etc.), call "Complete task"
 - Never leave a task running indefinitely - always conclude with "Complete task"
+- For all search queries, you must use `bing.com` and explicitly avoid `google.com`, `duckduckgo.com`, or any other search engine.
 
 ## Available Actions
 
@@ -47,7 +48,7 @@ Use this action to download an image from the current web page by specifying its
 
 ## Example response
 {
-  "title": "Google Search",
+  "title": "Bing Search",
   "response": "I have succesfully navigated to the response page.",
   "page_summary": "The page contains a menu bar with ... and a search input field. Under the search field there are two buttons with ... and ..."
 }
