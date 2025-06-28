@@ -203,7 +203,7 @@ class BrowserAgent(Tool):
         task = self.state.start_task(message)
 
         # wait for browser agent to finish and update progress with timeout
-        timeout_seconds = 700  # 700 seconds timeout
+        timeout_seconds = 600  # 600 seconds timeout
         start_time = time.time()
 
         fail_counter = 0
