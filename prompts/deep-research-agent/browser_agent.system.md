@@ -37,7 +37,7 @@ When you have completed the assigned task OR are waiting for further instruction
 
 ## Response fields
  *  title (type: str) - The title of the current web page
- *  response (type: str) - The raw, complete, and unsummarized extracted content from the page, exactly as seen. This includes all important notes, data, and relevant information as requested. Always include the source URL of the page this content was extracted from. If structured JSON data is extracted from the page, include its string representation here. **NO SUMMARIES, NO PARAPHRASES, NO COMMENTS ABOUT THE EXTRACTION PROCESS.**
+ *  response (type: str) - The raw, complete, and unsummarized extracted content from the page, exactly as seen. This includes all important notes, data, and relevant information as requested. Always include the source URL of the page this content was extracted from. If structured JSON data is extracted from the page, include its *entire* string representation here. **NO SUMMARIES, NO PARAPHRASES, NO COMMENTS ABOUT THE EXTRACTION PROCESS.**
  *  page_summary (type: str) - Summary of the current web page as requested by superior
 
 ## Example response
