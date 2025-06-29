@@ -303,7 +303,13 @@ class BrowserAgent(Tool):
             path = self.log.kvps['screenshot'].split('//', 1)[-1].split('&', 1)[0]
             answer_text += f"\n\nScreenshot: {path}"
 
-        # respond (with screenshot path)
+        # Append the full browser agent log to the answer_text
+        if self.state.use_agent:
+            full_log = get_use_agent_log(self.state.use_agent)
+            if full_log:
+                answer_text += "\n\n--- Browser Agent Activity Log ---\n" + "\n".join(full_log)
+
+        # respond (with screenshot path and log)
         return Response(message=answer_text, break_loop=False)
 
     def get_log_object(self):
@@ -418,7 +424,6 @@ def get_use_agent_log(use_agent: browser_use.Agent | None):
             else:
                 text = item.extracted_content
                 if text:
-                    first_line = text.split("\n", 1)[0][:200]
-                    short_log.append(first_line)
+                    short_log.append(text)
         result.extend(short_log)
     return result
