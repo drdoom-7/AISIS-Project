@@ -1,51 +1,64 @@
-# Bing Image Downloader Instrument
+![GitHub top language](https://img.shields.io/github/languages/top/gurugaurav/bing_image_downloader)
+![GitHub](https://img.shields.io/github/license/gurugaurav/bing_image_downloader)
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fgurugaurav%2Fbing_image_downloader&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
+## Bing Image Downloader
+<hr>
 
-## Purpose
-Downloads multiple images from Bing.com using a specified search query.
+Python library to download bulk of images form Bing.com.
+This package uses async url, which makes it very fast while downloading.<br/>
 
-## Location
-Instrument is located in `/a0/instruments/default/bing_image_downloader/`.
--   Main script: `download_bing_images.py`
--   Entry point: `bing_image_downloader.sh`
 
-## Prerequisites
--   The `bing-image-downloader` Python library must be installed.
-    Install using pip: `pip install bing-image-downloader`
+### Disclaimer<br />
 
-## Usage
-Execute via the `code_execution_tool` using the `terminal` runtime.
+This program lets you download tons of images from Bing.
+Please do not download or use any image that violates its copyright terms. 
 
-**Command Structure:**
-`/a0/instruments/default/bing_image_downloader/bing_image_downloader.sh --query <search_term> [--limit <num>] [--output_dir <path>] [...]`
+### Installation <br />
+```sh
+pip install bing-image-downloader
+```
 
-**Arguments:**
--   `--query <string>`: **(Required)** Search term for images.
--   `--limit <integer>`: (Optional, default: 10) Number of images to download.
--   `--output_dir <path>`: (Optional, default: `./downloaded_images`) Directory to save images.
--   `--adult_filter_off <boolean>`: (Optional, default: `True`) Disable adult filter.
--   `--force_replace <boolean>`: (Optional, default: `False`) Overwrite existing output directory.
--   `--timeout <integer>`: (Optional, default: 60) Download timeout in seconds.
-
-## Example Execution
-To download 15 images of 'vintage cars' to `/data/vintage_cars/`:
-
+or 
 ```bash
-/a0/instruments/default/bing_image_downloader/bing_image_downloader.sh --query "vintage cars" --limit 15 --output_dir "/data/vintage_cars/"
+git clone https://github.com/gurugaurav/bing_image_downloader
+cd bing_image_downloader
+pip install .
 ```
 
-## Tool Invocation Example (for Agent)
 
-```json
-{
-    "thoughts": [
-        "I need to download images of vintage cars.",
-        "I will use the Bing Image Downloader instrument."
-    ],
-    "tool_name": "code_execution_tool",
-    "tool_args": {
-        "runtime": "terminal",
-        "session": 0,
-        "code": "/a0/instruments/default/bing_image_downloader/bing_image_downloader.sh --query 'vintage cars' --limit 15 --output_dir '/data/vintage_cars/'"
-    }
-}
+
+### Usage <br />
+```python
+from bing_image_downloader import downloader
+downloader.download(query_string, limit=100,  output_dir='dataset', adult_filter_off=True, force_replace=False, timeout=60,resize=(224,224) ,verbose=True)
 ```
+
+`query_string` : String to be searched.<br />
+`limit` : (optional, default is 100) Number of images to download.<br />
+`output_dir` : (optional, default is 'dataset') Name of output dir.<br />
+`adult_filter_off` : (optional, default is True) Enable of disable adult filteration.<br />
+`force_replace` : (optional, default is False) Delete folder if present and start a fresh download.<br />
+`timeout` : (optional, default is 60) timeout for connection in seconds.<br />
+`filter` : (optional, default is "") filter, choose from [line, photo, clipart, gif, transparent]<br />
+`verbose` : (optional, default is True) Enable downloaded message.<br />
+
+
+You can also test the programm by runnning `test.py keyword`
+
+
+### PyPi <br />
+https://pypi.org/project/bing-image-downloader/
+
+
+
+
+</br>
+
+### Donate
+You can buy me a coffee if this project was helpful to you.</br>
+
+[<img src="https://www.buymeacoffee.com/assets/img/guidelines/download-assets-sm-1.svg" alt="Show your support" width="180"/>](https://www.buymeacoffee.com/gurugaurav)
+  
+
+
+

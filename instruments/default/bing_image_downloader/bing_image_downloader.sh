@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# This script is the entry point for the Bing Image Downloader instrument.
-# It calls the main Python script with all provided arguments.
+# Get the directory of the current script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-python3 /a0/instruments/default/bing_image_downloader/download_bing_images.py "$@"
+# Execute the main Python script
+python3 "$SCRIPT_DIR/downloader.py" "$@"
