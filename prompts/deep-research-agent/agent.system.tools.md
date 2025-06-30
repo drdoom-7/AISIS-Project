@@ -10,8 +10,6 @@
 
 {{ include './agent.system.tool.memory.md' }}
 
-{{ include './agent.system.tool.code_exe.md' }}
-
 {{ include './agent.system.tool.input.md' }}
 
 {{ include './agent.system.tool.browser.md' }}
