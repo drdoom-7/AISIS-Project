@@ -7,6 +7,9 @@ from python.helpers import files, memory
 class BehaviourPrompt(Extension):
 
     async def execute(self, system_prompt: list[str]=[], loop_data: LoopData = LoopData(), **kwargs):
+        # If this is a subordinate agent, do not append general behaviour rules.
+        if self.agent.get_data(Agent.DATA_NAME_SUPERIOR):
+            return
         prompt = read_rules(self.agent)
         system_prompt.insert(0, prompt) #.append(prompt)
 

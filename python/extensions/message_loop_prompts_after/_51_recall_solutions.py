@@ -1,5 +1,6 @@
 import asyncio
 from python.helpers.extension import Extension
+from agent import Agent
 from python.helpers.memory import Memory
 from agent import LoopData
 
@@ -14,6 +15,9 @@ class RecallSolutions(Extension):
     THRESHOLD = 0.6
 
     async def execute(self, loop_data: LoopData = LoopData(), **kwargs):
+        # If this is a subordinate agent, do not recall solutions or instruments.
+        if self.agent.get_data(Agent.DATA_NAME_SUPERIOR):
+            return
 
         # every 3 iterations (or the first one) recall memories
         if loop_data.iteration % RecallSolutions.INTERVAL == 0:

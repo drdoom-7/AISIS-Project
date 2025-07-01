@@ -282,6 +282,7 @@ class Agent:
     def __init__(
         self, number: int, config: AgentConfig, context: AgentContext | None = None
     ):
+        print(f"[DEBUG Agent.__init__]: Initializing Agent {number} with context ID {context.id if context else 'None'}.")
 
         # agent config
         self.config = config
@@ -297,6 +298,7 @@ class Agent:
         self.last_user_message: history.Message | None = None
         self.intervention: UserMessage | None = None
         self.data = {}  # free data object all the tools can use
+        print(f"[DEBUG Agent.__init__]: Agent {number} data initialized to: {self.data}")
 
     async def monologue(self):
         while True:
@@ -398,6 +400,7 @@ class Agent:
         self.context.log.set_progress("Building prompt")
 
         # call extensions before setting prompts
+        print(f"[DEBUG Agent.prepare_prompt]: Agent {self.number} (Context: {self.context.id}) - DATA_NAME_SUPERIOR before extensions: {self.get_data(Agent.DATA_NAME_SUPERIOR)}")
         await self.call_extensions("message_loop_prompts_before", loop_data=loop_data)
 
         # set system prompt and message history
@@ -434,6 +437,12 @@ class Agent:
                 # AIMessage(content="JSON:"), # force the LLM to start with json
             ]
         )
+
+        # Debugging: Write the final prompt and history to a file
+        if self.get_data(Agent.DATA_NAME_SUBORDINATE):
+            from datetime import datetime, timezone
+            with open('/root/subordinate_prompt_debug.txt', 'a') as f:
+                f.write(f"\n\n--- Final System Prompt for Agent {self.agent_name} at {datetime.now(timezone.utc)} ---\n{system_text}\n\n--- History for Agent {self.agent_name} ---\n{history.output_text(loop_data.history_output + extras)}\n")
 
         # store as last context window content
         self.set_data(
@@ -473,6 +482,11 @@ class Agent:
             raise HandledException(exception)  # Re-raise the exception to kill the loop
 
     async def get_system_prompt(self, loop_data: LoopData) -> list[str]:
+        # If a one-time system prompt is set for a subordinate agent, use only that.
+        if self.get_data(Agent.DATA_NAME_SUPERIOR) and self.get_data("_one_time_system_prompt"):
+            print(f"[DEBUG Agent.get_system_prompt]: Agent {self.number} (Context: {self.context.id}) - Using one-time system prompt for subordinate.")
+            return [self.get_data("_one_time_system_prompt")]
+
         system_prompt = []
         await self.call_extensions(
             "system_prompt", system_prompt=system_prompt, loop_data=loop_data
@@ -507,10 +521,13 @@ class Agent:
         return prompt
 
     def get_data(self, field: str):
-        return self.data.get(field, None)
+        value = self.data.get(field, None)
+        print(f"[DEBUG Agent.get_data]: Agent {self.number} (Context: {self.context.id}) - Getting data for field '{field}': {value}")
+        return value
 
     def set_data(self, field: str, value):
         self.data[field] = value
+        print(f"[DEBUG Agent.set_data]: Agent {self.number} (Context: {self.context.id}) - Setting data for field '{field}' to: {value}. Current data: {self.data}")
 
     def hist_add_message(
         self, ai: bool, content: history.MessageContent, tokens: int = 0
