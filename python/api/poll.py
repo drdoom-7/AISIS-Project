@@ -3,7 +3,7 @@ from datetime import datetime
 from python.helpers.api import ApiHandler
 from flask import Request, Response
 
-from agent import AgentContext
+from agent import AgentContext, AgentContextType
 
 from python.helpers import persist_chat
 from python.helpers.task_scheduler import TaskScheduler
@@ -56,9 +56,36 @@ class Poll(ApiHandler):
                 context_task is not None and context_task.context_id == ctx.id
             )
 
-            if not is_task_context:
-                ctxs.append(context_data)
+            is_scheduler_task = (
+                context_task is not None and context_task.context_id == ctx.id
+            )
+
+            if is_scheduler_task:
+                # This is a task registered with the scheduler
+                pass # The existing logic for handling scheduler tasks will follow
+            elif ctx.type == AgentContextType.TASK:
+                # This is a context marked as a task type (e.g., a subordinate agent)
+                # Treat it as a task for UI display purposes, similar to scheduler tasks
+                context_data.update({
+                    "task_name": ctx.name if ctx.name else f"Subordinate Agent {ctx.no}",
+                    "uuid": ctx.id,
+                    "state": "running" if not ctx.paused else "idle", # infer state from context
+                    "type": ctx.type.value,
+                    "system_prompt": "", # Not directly retrievable here
+                    "prompt": "", # Not directly retrievable here
+                    "last_run": Localization.get().serialize_datetime(ctx.last_message),
+                    "last_result": "",
+                    "attachments": [],
+                    "context_id": ctx.id,
+                })
+                tasks.append(context_data)
+                processed_contexts.add(ctx.id) # Mark as processed before falling through if not a scheduler task
+                continue # Skip the rest of the loop for this context as it's handled
             else:
+                ctxs.append(context_data)
+
+            # If it was a scheduler task, it will fall through to the original 'else' block here to get its details
+            if is_scheduler_task:
                 # If this is a task, get task details from the scheduler
                 task_details = scheduler.serialize_task(ctx.id)
                 if task_details:
