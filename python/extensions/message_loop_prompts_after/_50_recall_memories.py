@@ -1,5 +1,6 @@
 import asyncio
 from python.helpers.extension import Extension
+from agent import Agent
 from python.helpers.memory import Memory
 from agent import LoopData
 

@@ -9,6 +9,9 @@ from python.helpers.localization import Localization
 class SystemPrompt(Extension):
 
     async def execute(self, system_prompt: list[str] = [], loop_data: LoopData = LoopData(), **kwargs: Any):
+        # If this is a subordinate agent, do not append the default system prompt.
+        if self.agent.get_data(Agent.DATA_NAME_SUPERIOR):
+            return
         # append main system prompt and tools
         main = get_main_prompt(self.agent)
         tools = get_tools_prompt(self.agent)
