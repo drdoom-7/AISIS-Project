@@ -10,7 +10,10 @@ class Delegation(Tool):
             self.agent.get_data(Agent.DATA_NAME_SUBORDINATE) is None
             or str(reset).lower().strip() == "true"
         ):
-            sub_context = AgentContext(self.agent.config, type=AgentContextType.TASK)
+            # MODIFIED: Create a new AgentContext but pass the superior's log object
+            # This allows the subordinate to have its own context (for history, etc.)
+            # but direct its output to the superior's chat UI.
+            sub_context = AgentContext(self.agent.config, type=AgentContextType.TASK, log=self.agent.context.log)
             sub = Agent(
                 self.agent.number + 1, self.agent.config, sub_context
             )
@@ -22,7 +25,25 @@ class Delegation(Tool):
         subordinate: Agent = self.agent.get_data(Agent.DATA_NAME_SUBORDINATE)
 
         # Define and set the one-time system prompt for the subordinate
-        subordinate_system_prompt = "You are a specialized subordinate AI. You have no prior chat history or external memory access. Your sole purpose is to respond to the immediate task given by your superior. Confirm you have no prior chat history or external memory and state your purpose. Respond in a concise JSON format: { \"confirmation\": \"<yes/no>\", \"purpose\": \"<your purpose>\", \"history_length\": <length of history>, \"actual_system_prompt_start\": \"<start of system prompt>\" }"
+        # MODIFIED: Giving the subordinate the same response formatting instructions as Agent 0
+        subordinate_system_prompt = (
+            "You are a subordinate agent. Your responses must always be valid JSON with the following fields: `thoughts`, `tool_name`, and `tool_args`. "
+            "You should provide your thoughts before execution and then specify the tool to use with its arguments. "
+            "No text should appear before or after the JSON output. Always output full file paths when interacting with the file system."
+            "\n\nExample Response Format:\n" 
+            "```json\n" 
+            "{\n" 
+            "    \"thoughts\": [\n" 
+            "        \"This is my thought process.\",\n" 
+            "        \"I am planning to use a tool.\"\n" 
+            "    ],\n" 
+            "    \"tool_name\": \"response\",\n" 
+            "    \"tool_args\": {\n" 
+            "        \"text\": \"This is my final answer or the result of my task.\"\n" 
+            "    }\n" 
+            "}\n" 
+            "```"
+        )
         subordinate.set_data("_one_time_system_prompt", subordinate_system_prompt)
 
         subordinate.hist_add_user_message(UserMessage(message=message, attachments=[]))
