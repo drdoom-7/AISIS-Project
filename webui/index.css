@@ -241,7 +241,7 @@ body {
   position: relative; /* For absolute positioning of children */
   overflow: hidden;
   background-color: var(--color-panel); /* Use default panel background (30% opaque) */
-  opacity: 0.5; /* Make the entire panel 50% transparent when idle */
+
   transition: all 0.3s ease-in-out; /* Smooth transition for width and opacity */
 }
 
@@ -262,7 +262,7 @@ body {
   width: 4px;
   height: 60px;
   background: linear-gradient(to bottom, rgba(0, 229, 255, 0), var(--color-accent), rgba(0, 229, 255, 0));
-  box-shadow: 0 0 10px var(--color-accent), 0 0 25px var(--color-primary); /* neon glow effect */
+  box-shadow: 0 0 15px var(--color-accent), 0 0 40px var(--color-primary); /* more prominent neon glow effect */
   border-radius: 2px;
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
