@@ -14,7 +14,7 @@
   --color-accent-dark: #00E5FF; /* Brighter Cyan */
   --color-message-bg-dark: rgba(26, 26, 34, 0.4);
   --color-message-text-dark: #E0FBFC;
-  --color-panel-dark: rgba(26, 26, 34, 0.3);
+  --color-panel-dark: rgba(26, 26, 34, 0.25); /* Increased opacity and darker color for better 'frosted glass' blur visibility */
   --color-border-dark: rgba(0, 229, 255, 0.3);
   --color-input-dark: rgba(26, 26, 34, 0.3);
   --color-input-focus-dark: rgba(0, 229, 255, 0.15);
@@ -25,10 +25,10 @@
   --color-purple-neon: #8a2be2;
 
   /* Glassmorphism effect properties */
-  --glass-blur: 35px; /* Further increased blur for stronger effect */
+  --glass-blur: 7.5084686279296875px; /* Reduced blur by another 25% as requested */
   --glass-border-width: 1.5px; /* Thicker border */
-  --glass-border-color: rgba(0, 229, 255, 0.5); /* Stronger border for more glass look */
-  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.4); /* More pronounced shadow */
+  --glass-border-color: rgba(0, 229, 255, 0.15); /* Softer border to enhance blur perception */
+  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* Softer shadow to enhance blur perception */
 
   /* Floating effect */
   --float-offset: -5px;
@@ -38,6 +38,9 @@
   --neon-glow-primary: 0 0 8px var(--color-primary-dark), 0 0 20px var(--color-accent-dark);
   --neon-glow-red: 0 0 5px var(--color-red-neon), 0 0 15px var(--color-red-neon);
   --neon-glow-green: 0 0 5px var(--color-green-neon), 0 0 15px var(--color-green-neon);
+
+  /* Blur for panel content when idle */
+  --content-blur-idle: 1.2514114379882812px; /* Reduced blur by another 25% as requested */
 
   /* Light mode */
   --color-background-light: #dbdbdb;
@@ -293,6 +296,19 @@ body {
   flex-shrink: 0;
   padding: var(--spacing-sm);
   border-top: var(--glass-border-width) solid var(--glass-border-color);
+}
+
+/* Apply blur to content areas when panel is idle */
+#left-panel .left-panel-top,
+#left-panel .left-panel-bottom {
+  filter: blur(var(--content-blur-idle));
+  transition: filter 0.3s ease-in-out;
+}
+
+/* Remove blur from content areas when panel is hovered */
+#left-panel:hover .left-panel-top,
+#left-panel:hover .left-panel-bottom {
+  filter: blur(0);
 }
 
 /* Sidebar Toggle Button */
