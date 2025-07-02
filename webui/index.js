@@ -581,6 +581,10 @@ window.killChat = async function (id) {
         return;
     }
 
+    if (!confirm('Are you sure you want to delete this chat? This action cannot be undone.')) {
+        return; // User cancelled the action
+    }
+
     console.log("Deleting chat with ID:", id);
 
     try {
@@ -1437,6 +1441,19 @@ function sortAndRenderChats(chatsAD) {
 
 window.togglePinChat = function (id) {
     const chatsAD = Alpine.$data(chatsSection);
+    const chat = chatsAD.contexts.find(ctx => ctx.id === id);
+    if (!chat) return;
+
+    let confirmationMessage;
+    if (chat.isPinned) {
+        confirmationMessage = 'Are you sure you want to unpin this chat?';
+    } else {
+        confirmationMessage = 'Are you sure you want to pin this chat?';
+    }
+
+    if (!confirm(confirmationMessage)) {
+        return; // User cancelled the action
+    }
     const chatIndex = chatsAD.contexts.findIndex(ctx => ctx.id === id);
 
     if (chatIndex !== -1) {
