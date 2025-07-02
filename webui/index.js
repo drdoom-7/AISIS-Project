@@ -13,6 +13,7 @@ const chatsSection = document.getElementById('chats-section');
 const tasksSection = document.getElementById('tasks-section');
 const progressBar = document.getElementById('progress-bar');
 const logoContainer = document.getElementById('logo-container');
+const hideButton = document.getElementById('hide-button');
 const autoScrollSwitch = document.getElementById('auto-scroll-switch');
 const timeDate = document.getElementById('time-date-container');
 
@@ -342,6 +343,10 @@ function setConnectionStatus(connected) {
     connectionStatus = connected
     const statusIcon = Alpine.$data(timeDate.querySelector('.status-icon'));
     statusIcon.connected = connected
+    const hideButtonData = Alpine.$data(hideButton);
+    if (hideButtonData) {
+        hideButtonData.connected = connected;
+    }
 }
 
 let lastLogVersion = 0;
