@@ -234,12 +234,23 @@ body {
 
 /* Left Panel */
 #left-panel {
-  width: 280px; /* Adjusted for less horizontal space */
-  min-width: 260px; /* Adjusted minimum width */
-  max-width: 300px; /* Adjusted maximum width */
+  width: 60px; /* Even more squeezed */
+  min-width: 60px; /* Even more squeezed */
+  max-width: 80px; /* Even more squeezed */
   margin: 0; /* Remove fixed margins, handled by container gap */
   position: relative; /* For absolute positioning of children */
   overflow: hidden;
+  background-color: var(--color-panel); /* Use default panel background (30% opaque) */
+  opacity: 0.5; /* Make the entire panel 50% transparent when idle */
+  transition: all 0.3s ease-in-out; /* Smooth transition for width and opacity */
+}
+
+#left-panel:hover {
+  width: 280px; /* Expand even more on hover */
+  min-width: 250px; /* Ensure min-width for expansion */
+  max-width: 300px; /* Ensure max-width for expansion */
+  background-color: rgba(26, 26, 34, 0.9); /* Almost opaque on hover for clear visibility */
+  opacity: 1; /* Fully opaque on hover */
 }
 
 #left-panel.hidden {
@@ -254,13 +265,13 @@ body {
   flex-direction: column;
   min-height: 0;
   overflow-y: auto; /* Enable scroll for content */
-  padding: var(--spacing-md);
-  padding-top: calc(var(--spacing-md) + 3.5rem); /* Space for header elements */
+  padding: var(--spacing-sm);
+  padding-top: calc(var(--spacing-sm) + 3rem); /* Reduced top space for header elements */
 }
 
 .left-panel-bottom {
   flex-shrink: 0;
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm);
   border-top: var(--glass-border-width) solid var(--glass-border-color);
 }
 
@@ -308,7 +319,7 @@ body {
 /* Chats container */
 .chat-list-button {
   cursor: pointer;
-  padding: 0.1rem 0.5rem;
+  padding: 0.05rem 0.3rem; /* Reduced padding */
   line-height: 1.2; /* Added to reduce vertical space around text */
   border-radius: var(--spacing-xs);
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
@@ -337,12 +348,12 @@ body {
   flex-direction: column;
   min-height: 0;
   flex: 1;
-  margin-top: 1.5rem;
+  margin-top: var(--spacing-sm); /* Reduced margin-top */
 }
 
 /* Tabs container */
 .tabs-container {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-xs); /* Reduced margin-bottom */
   padding: 0 var(--spacing-xs);
   border-bottom: 1px solid rgba(0, 229, 255, 0.15);
 }
@@ -532,8 +543,8 @@ pre {
   overflow-y: scroll;
   overflow-x: hidden; /* Prevent horizontal scroll for chat history */
   scroll-behavior: auto !important; /* avoid infinite scrolling! */
-  padding: var(--spacing-md);
-  padding-top: calc(3.5rem + var(--spacing-md)); /* Space for logo and time-date */
+  padding: var(--spacing-sm); /* Reduced padding */
+  padding-top: calc(3rem + var(--spacing-sm)); /* Reduced space for logo and time-date */
   transition: all 0.3s ease;
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
@@ -1136,7 +1147,7 @@ pre {
 
 .config-list li {
   border-top: 1px solid var(--color-border);
-  padding: 0.05rem 0; /* Aggressively reduced top/bottom padding */
+  padding: 0.02rem 0; /* Further reduced padding */
   width: 100%;
   box-sizing: border-box;
   display: flex;
@@ -1226,6 +1237,13 @@ color: var(--color-text); /* Ensure text color */
   display: flex; /* Center icon */
   align-items: center;
   justify-content: center;
+  opacity: 0; /* Hidden by default */
+  pointer-events: none; /* Do not block clicks when hidden */
+}
+
+.config-list li:hover .edit-button {
+  opacity: 1; /* Visible on hover */
+  pointer-events: auto; /* Enable clicks when visible */
 }
 
 .edit-button:hover {
