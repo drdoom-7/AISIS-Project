@@ -1176,6 +1176,10 @@ pre {
     margin-bottom: var(--spacing-xs); /* Add some space below the buttons */
 }
 
+.config-section {
+    margin-top: 15px;
+}
+
 /* Config Section */
 .config-section > h4 {
   margin-top: 0;
