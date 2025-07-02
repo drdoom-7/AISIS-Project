@@ -253,6 +253,26 @@ body {
   opacity: 1; /* Fully opaque on hover */
 }
 
+#left-panel::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(100% - 4px); /* positioned 4px from the right edge */
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60px;
+  background: linear-gradient(to bottom, rgba(0, 229, 255, 0), var(--color-accent), rgba(0, 229, 255, 0));
+  box-shadow: 0 0 10px var(--color-accent), 0 0 25px var(--color-primary); /* neon glow effect */
+  border-radius: 2px;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+}
+
+#left-panel:hover::before {
+  opacity: 0;
+}
+
 #left-panel.hidden {
   transform: translateX(calc(-100% - var(--spacing-sm))); /* Slide out completely */
   opacity: 0;
