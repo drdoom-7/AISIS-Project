@@ -287,7 +287,8 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow-y: auto; /* Enable scroll for content */
+  overflow-y: auto; /* Enable vertical scroll for content */
+  overflow-x: hidden; /* Hide horizontal overflow */
   padding: var(--spacing-sm);
   padding-top: calc(var(--spacing-sm) + 3rem); /* Reduced top space for header elements */
 }
@@ -370,10 +371,18 @@ body {
   box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); /* Subtle glow */
 }
 
+.chat-name {
+  display: block;
+  white-space: normal;
+  word-break: break-all; /* Ensure text breaks within the available width */
+  min-width: 0; /* Allow the element to shrink */
+}
+
 .chats-list-container {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden; /* Hide horizontal scrollbar */
   scroll-behavior: smooth;
   padding-right: 10px; /* Space for custom scrollbar */
 }
@@ -1184,7 +1193,8 @@ pre {
 .config-list li {
   border-top: 1px solid var(--color-border);
   padding: 0.02rem 0; /* Further reduced padding */
-  width: 100%;
+  flex: 1 1 100%; /* Allows the li to take full width but also shrink */
+  min-width: 0; /* Ensures the flex item can shrink beyond its content's intrinsic width */
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -1266,15 +1276,28 @@ color: var(--color-text); /* Ensure text color */
   border-radius: 0.1875rem;
   color: var(--color-primary);
   cursor: pointer;
-  padding: 0.125rem 0.5rem;
   transition: all var(--transition-speed) ease-in-out;
-  min-width: 30px; /* Ensure a minimum size for clickability */
-  height: 30px; /* Ensure a consistent height */
   display: flex; /* Center icon */
   align-items: center;
   justify-content: center;
-  opacity: 0; /* Hidden by default */
-  pointer-events: none; /* Do not block clicks when hidden */
+  opacity: 0; /* Hidden by default, controlled by li:hover */
+  pointer-events: none; /* Do not block clicks when hidden, controlled by li:hover */
+
+  /* Collapse width and padding when panel is narrow */
+  width: 0;
+  min-width: 0;
+  height: 0; /* Also collapse height to ensure no vertical space */
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Restore properties when left-panel is hovered/expanded */
+#left-panel:hover .edit-button {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0.125rem 0.5rem;
+  /* Opacity and pointer-events remain controlled by .config-list li:hover .edit-button */
 }
 
 .config-list li:hover .edit-button {
