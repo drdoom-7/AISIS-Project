@@ -484,6 +484,7 @@ body {
   flex-grow: 1; /* Take up remaining space */
   margin: 0; /* Handled by container gap */
   position: relative; /* For absolute positioning of children */
+  overflow: visible !important; /* Crucial: Allow glow effects to extend beyond boundaries */
 }
 
 #right-panel.expanded {
@@ -1095,6 +1096,7 @@ pre {
 /* Text input */
 #chat-input-container {
   position: relative;
+  z-index: 1; /* Ensure this container is below the button row */
   width: 100%;
 }
 
@@ -1380,10 +1382,12 @@ color: var(--color-text); /* Ensure text color */
 
 /* Top row styling */
 .input-row {
+  position: relative; /* Crucial: Make it a positioned element for z-index to work */
   display: flex;
   align-items: center; /* Changed back to center for better overall alignment */
   gap: var(--spacing-xs);
   width: 100%;
+  z-index: 1; /* Ensure this row is below the button row */
 }
 
 #chat-buttons-wrapper {
@@ -1624,6 +1628,8 @@ color: var(--color-text); /* Ensure text color */
 
 /* Bottom text buttons row for smartphones */
 .text-buttons-row {
+    position: relative; /* Establish a new stacking context for the button row */
+    z-index: 10000; /* Ensure it stacks clearly above the input area and other elements */
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start; /* Items start from left */
@@ -1631,6 +1637,7 @@ color: var(--color-text); /* Ensure text color */
     width: 100%;
     padding: 0 var(--spacing-sm) var(--spacing-xs) 0;
 
+    overflow: visible !important; /* Allow glow to extend beyond bounds */
     overflow-x: auto; /* Allow horizontal scrolling if content overflows */
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     scrollbar-width: none; /* Hide scrollbar for Firefox */
@@ -1666,6 +1673,8 @@ color: var(--color-text); /* Ensure text color */
     background-color: rgba(0, 229, 255, 0.15);
     box-shadow: var(--neon-glow-primary);
     transform: translateY(-2px); /* Slight lift */
+    z-index: 1002; /* Ensure glow appears above input section */
+    overflow: visible !important; /* Ensure glow is not clipped by button itself */
 }
 
 .text-button:active {
