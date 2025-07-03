@@ -46,7 +46,7 @@
   --color-background-light: #dbdbdb;
   --color-text-light: #333333;
   --color-primary-light: #384653;
-  --color-secondary-light: #e8eaf6;
+  --color-secondary-light: #e8e4f6;
   --color-accent-light: #b00020;
   --color-message-bg-light: #ffffff;
   --color-message-text-light: #333333;
@@ -63,9 +63,9 @@
   --color-message-bg: var(--color-message-bg-dark);
   --color-message-text: var(--color-message-text-dark);
   --color-panel: var(--color-panel-dark);
-  --color-border: var(--color-border-dark);
   --color-input: var(--color-input-dark);
   --color-input-focus: var(--color-input-focus-dark);
+  --color-border: var(--color-border-dark);
 
   /* Spacing variables */
   --spacing-xs: 0.5rem;
@@ -85,20 +85,44 @@
 }
 
 /* Keyframe Animations */
-@keyframes charFadeIn {
-  0% { opacity: 0; transform: translateY(10px); }
-  100% { opacity: 1; transform: translateY(0); }
+@keyframes logoCharGlitchFadeIn {
+  0% { opacity: 0; transform: translateY(10px) skewX(-10deg); filter: blur(5px); }
+  20% { opacity: 0.5; transform: translateY(-2px) skewX(5deg); filter: blur(2px); }
+  40% { opacity: 0.8; transform: translateY(1px) skewX(-2deg); filter: blur(1px); }
+  100% { opacity: 1; transform: translateY(0) skewX(0deg); filter: blur(0); }
 }
+
+@keyframes logo-active-glow {
+    0% { transform: scale(1); box-shadow: 0 0 8px rgba(0, 229, 255, 0.3), 0 0 15px rgba(0, 229, 255, 0.1), inset 0 0 5px rgba(0, 229, 255, 0.1); }
+    50% { transform: scale(1.01); box-shadow: 0 0 16px rgba(0, 229, 255, 0.7), 0 0 30px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.3); }
+    100% { transform: scale(1); box-shadow: 0 0 8px rgba(0, 229, 255, 0.3), 0 0 15px rgba(0, 229, 255, 0.1), inset 0 0 5px rgba(0, 229, 255, 0.1); }
+}
+
+@keyframes right-panel-pulse-border {
+    0% {
+        border-color: rgba(0, 229, 255, 0.3);
+        box-shadow: 0 0 10px rgba(0, 229, 255, 0.2), /* Outer glow */
+                    inset 0 0 5px rgba(0, 229, 255, 0.1); /* Inner subtle glow */
+        transform: scale(1);
+    }
+    50% {
+        border-color: rgba(0, 229, 255, 0.8); /* Brighter border */
+        box-shadow: 0 0 25px rgba(0, 229, 255, 0.6), /* Stronger outer glow */
+                    inset 0 0 15px rgba(0, 229, 255, 0.4); /* Stronger inner glow */
+        transform: scale(1.002); /* Very subtle pulse outwards */
+    }
+    100% {
+        border-color: rgba(0, 229, 255, 0.3);
+        box-shadow: 0 0 10px rgba(0, 229, 255, 0.2),
+                    inset 0 0 5px rgba(0, 229, 255, 0.1);
+        transform: scale(1);
+    }
+}
+
 @keyframes neonGlow {
   0% { box-shadow: var(--neon-glow-primary); }
   50% { box-shadow: 0 0 12px var(--color-accent-dark), 0 0 30px var(--color-primary-dark); }
   100% { box-shadow: var(--neon-glow-primary); }
-}
-
-@keyframes logo-active-glow {
-    0% { transform: scale(1); box-shadow: 0 0 8px rgba(0, 229, 255, 0.3), 0 0 15px rgba(0, 229, 255, 0.1); }
-    50% { transform: scale(1.02); box-shadow: 0 0 12px rgba(0, 229, 255, 0.6), 0 0 25px rgba(0, 229, 255, 0.3); }
-    100% { transform: scale(1); box-shadow: 0 0 8px rgba(0, 229, 255, 0.3), 0 0 15px rgba(0, 229, 255, 0.1); }
 }
 
 @keyframes status-pulse-glow {
@@ -210,8 +234,11 @@ body {
   transform: translateY(var(--float-offset)); /* Subtle float on hover */
 }
 
-.panel-active-glow {
-  box-shadow: var(--neon-glow-primary);
+/* The primary glowing effect is now applied via `right-panel-pulse-border` animation */
+/* The .panel-active-glow class is applied by JavaScript to trigger this animation */
+#right-panel.panel-active-glow {
+    animation: right-panel-pulse-border 2s infinite alternate ease-in-out; /* Slower, more sophisticated pulse */
+    transition: all var(--transition-speed) ease-in-out, box-shadow 0.5s ease; /* Ensure box-shadow transition is smooth */
 }
 
 /* Custom Scrollbars for Panels */
@@ -608,6 +635,10 @@ pre {
   transition: all 0.3s ease;
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
+  /* New: Subtle background pattern */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><rect x="0" y="0" width="20" height="20" fill="none"/><circle cx="10" cy="10" r="1" fill="%2300BCD4" opacity="0.05"/><path d="M0 0 L10 10 L0 20 Z M20 0 L10 10 L20 20 Z" fill="%2300BCD4" opacity="0.02"/></svg>');
+  background-size: 80px 80px; /* Adjust size for subtlety */
+  background-repeat: repeat;
 }
 
 #chat-history > *:first-child {
@@ -677,7 +708,8 @@ pre {
 
 .logo-char {
   opacity: 0;
-  animation: charFadeIn 0.5s ease-out forwards;
+  animation: logoCharGlitchFadeIn 0.8s ease-out forwards; /* Longer duration for glitch effect */
+  display: inline-block; /* Essential for transform to work properly on span */
 }
 
 .logo-char:nth-child(1) { animation-delay: 0.1s; }
@@ -692,6 +724,19 @@ pre {
 .logo-char:nth-child(10) { animation-delay: 1.0s; }
 .logo-char:nth-child(11) { animation-delay: 1.1s; }
 .logo-char:nth-child(12) { animation-delay: 1.2s; }
+
+.logo-status-dot svg {
+    vertical-align: middle; /* Align dots better with text */
+    margin-left: 2px;
+    margin-right: 2px;
+    transition: all 0.3s ease-in-out;
+}
+
+.logo-status-dot circle {
+    stroke-width: 0.5;
+    stroke: rgba(0, 229, 255, 0.5); /* Subtle outline */
+    transition: all 0.3s ease-in-out;
+}
 
 #progress-bar-box {
   background-color: var(--color-panel);
@@ -730,6 +775,30 @@ pre {
   transition: color 0.3s ease;
 }
 
+/* FIX: Apply shiny effect to progress-bar text */
+#progress-bar {
+  color: var(--color-primary); /* Default text color when not active/shining */
+  transition: color 0.3s ease; /* Smooth transition for color */
+}
+
+#progress-bar-h.shiny-text #progress-bar {
+  background: linear-gradient(
+      to right,
+      var(--color-primary-dark) 20%,
+      var(--color-accent-dark) 40%,
+      var(--color-accent-dark) 60%,
+      var(--color-primary-dark) 80%
+  );
+  background-size: 200% auto;
+  color: transparent; /* Make text transparent so gradient can show through */
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shiny 1s linear infinite;
+}
+
+/* Ensure #progress-bar-i also gets the shine as it's part of the 'progress' visual. */
+/* If it should *not* shine when text shines, then the user meant only the span content. */
+/* For now, making sure *text* shines includes the 'text' of the indicator. */
 #progress-bar-h.shiny-text #progress-bar-i {
   background: linear-gradient(
       to right,
@@ -805,6 +874,11 @@ pre {
 
 .copy-button:hover {
   background-color: rgba(0, 229, 255, 0.4);
+}
+
+.copy-button:active {
+  transform: scale(0.95);
+  opacity: 0.8;
 }
 
 .user-container {
@@ -1597,7 +1671,7 @@ color: var(--color-text); /* Ensure text color */
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: background-color 0.2s ease, transform 0.1s ease-in-out;
   z-index: 1;
 }
 
