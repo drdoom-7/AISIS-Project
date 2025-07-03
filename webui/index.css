@@ -491,42 +491,56 @@ body {
   margin-left: 0; /* Remove margin when expanded */
 }
 
+
+
 #time-date-container {
-  position: absolute;
-  top: var(--spacing-md);
-  right: var(--spacing-md);
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  z-index: 1001;
+  gap: 0.5rem; /* Space between time/date and status icon */
   color: var(--color-text);
-  font-size: var(--font-size-normal);
-  text-align: right;
-  line-height: 1.1;
-  background-color: rgba(26, 26, 34, 0.4); /* Glassmorphism effect */
-  backdrop-filter: blur(calc(var(--glass-blur) / 2));
-  -webkit-backdrop-filter: blur(calc(var(--glass-blur) / 2));
-  border: 1px solid rgba(0, 229, 255, 0.1);
-  border-radius: var(--border-radius);
-  padding: 0.6rem 0.5rem;
+  background-color: transparent; /* No background to avoid button look */
+  border: none; /* No border */
+  border-radius: 0; /* No border-radius */
+  padding: 0; /* No padding */
+  box-shadow: none; /* No box-shadow */
+  margin-left: auto; /* Push to the right within the flex container */
+  margin-right: var(--spacing-xs); /* Align with other buttons' spacing */
+  height: 2.3rem; /* Keep height for alignment */
+  white-space: nowrap;
+
 }
 
 #time-date {
-  color: var(--color-text);
-  font-size: var(--font-size-normal);
-  text-align: right;
-  line-height: 1.1;
+  display: flex;
+  flex-direction: row; /* Make time and date display horizontally */
+  align-items: center;
+  gap: 0.3rem; /* Small gap between time and date */
+  font-size: 0.9rem; /* Adjusted font size for general text */
 }
 
 #user-date {
-  font-size: var(--font-size-small);
-  opacity: 0.6;
+  font-size: 0.8rem; /* Slightly smaller for date */
+  opacity: 0.9; /* Slightly more visible */
+  color: var(--color-text-muted);
+}
+
+.status-icon {
+  width: 18px; /* Slightly larger for visibility */
+  height: 18px; /* Slightly larger for visibility */
+  margin-left: 0.25rem; /* Add a small margin to separate from text */
+}
+
+#user-date {
+  font-size: 0.8rem; /* Adjusted font size */
+  opacity: 0.9; /* Slightly more visible */
+  color: var(--color-text-muted);
 }
 
 /* Status Icon */
 .status-icon {
-  width: 20px; /* Adjust size */
-  height: 20px;
+  width: 18px; /* Slightly larger for visibility */
+  height: 18px; /* Slightly larger for visibility */
+  margin-left: 0.25rem; /* Add a small margin to separate from text */
 }
 
 .status-icon circle {
@@ -1612,9 +1626,18 @@ color: var(--color-text); /* Ensure text color */
 .text-buttons-row {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-start;
+    justify-content: flex-start; /* Items start from left */
+    align-items: center; /* Vertically align items */
     width: 100%;
     padding: 0 var(--spacing-sm) var(--spacing-xs) 0;
+
+    overflow-x: auto; /* Allow horizontal scrolling if content overflows */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+.text-buttons-row::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Webkit browsers */
 }
 
 .text-button {
@@ -1889,14 +1912,22 @@ color: var(--color-text); /* Ensure text color */
 
   /* Bottom text buttons row for smartphones */
   .text-buttons-row {
-    flex-direction: row; /* Ensure horizontal layout */
-    justify-content: space-evenly; /* Evenly space buttons */
-    gap: 4px; /* Maintain gap */
-    padding: var(--spacing-xs); /* Adjust padding */
-    margin-left: 0;
-    width: 100%;
+  flex-direction: row;
+  justify-content: flex-start; /* Align items to the start, allow time-date to push right */
+  align-items: center; /* Vertically align items */
+  gap: 4px;
+  padding: var(--spacing-xs);
+  margin-left: 0;
+  width: 100%;
     box-sizing: border-box;
-  }
+    overflow-x: auto; /* Allow horizontal scrolling if buttons overflow */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+.text-buttons-row::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Webkit browsers */
+}
 
   .text-button {
     width: auto; /* Allow content-based width */
