@@ -834,6 +834,9 @@ toggleDarkMode(isDarkMode);
 
         // Load pinned chats from local storage on startup
         pinnedChats = loadPinnedChatsFromLocalStorage();
+
+        // Load initial prompt subdirectory setting
+        fetchSettingsAndSetPrompt();
     });
 
 
@@ -1442,6 +1445,54 @@ function sortAndRenderChats(chatsAD) {
     });
     // Force Alpine.js to re-render by creating a new array instance
     chatsAD.contexts = [...chatsAD.contexts];
+}
+
+window.updateAgentPromptSubdirectory = async function (promptDir) {
+    try {
+        // Assuming 'agent_prompts_subdir' is the ID for the setting
+        const settingsData = {
+            sections: [
+                {
+                    id: 'agent',
+                    fields: [
+                        {
+                            id: 'agent_prompts_subdir',
+                            value: promptDir
+                        }
+                    ]
+                }
+            ]
+        };
+        await sendJsonData("/settings_set", settingsData);
+        toast(`Agent personality set to: ${promptDir}`, "success");
+        // Optionally, you might want to restart the agent for the change to take full effect
+        // window.restart();
+    } catch (e) {
+        toastFetchError(`Error setting agent personality to ${promptDir}`, e);
+    }
+}
+
+async function fetchSettingsAndSetPrompt() {
+    try {
+        const response = await sendJsonData("/settings_get", {});
+        if (response && response.settings && response.settings.sections) {
+            const agentSection = response.settings.sections.find(s => s.id === 'agent');
+            if (agentSection && agentSection.fields) {
+                const promptField = agentSection.fields.find(f => f.id === 'agent_prompts_subdir');
+                if (promptField && promptField.value) {
+                    const promptSelectorElement = document.querySelector('.prompt-selector-container');
+                    if (promptSelectorElement) {
+                        // Update the Alpine.js data property for selectedPrompt
+                        Alpine.$data(promptSelectorElement).selectedPrompt = promptField.value;
+                        localStorage.setItem('selectedPromptSubdirectory', promptField.value);
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Error fetching settings for prompt subdirectory:', e);
+        // Do not toast error here, as it might happen on initial load if backend is not ready
+    }
 }
 
 window.togglePinChat = function (id) {

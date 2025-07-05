@@ -553,6 +553,26 @@
                 <!-- The actual buttons that will be hidden/shown -->
                 <div x-show="showButtons" x-collapse.duration.300ms class="text-buttons-row">
 
+                    <!-- New dropdown for prompt subdirectories -->
+                        <div x-data="{ open: false, selectedPrompt: localStorage.getItem('selectedPromptSubdirectory') || 'default', promptSubdirectories: ['deep-research-agent', 'deep-research-agent2', 'deep-research-agent3', 'default', 'hacker', 'research_agent'] }" class="prompt-selector-container">
+                            <button class="text-button" @click="open = !open" @click.outside="open = false">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="14" height="14">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
+                                </svg>
+                                <span x-text="selectedPrompt ? 'Personality: ' + selectedPrompt : 'Select Personality'"></span>
+                                <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" :class="{'rotated': open}">
+                                    <path d="M8 4l8 8-8 8" />
+                                </svg>
+                            </button>
+                            <div x-show="open" x-collapse.duration.200ms class="prompt-dropdown-menu">
+                                <template x-for="promptDir in promptSubdirectories" :key="promptDir">
+                                    <button class="dropdown-item" @click="selectedPrompt = promptDir; localStorage.setItem('selectedPromptSubdirectory', promptDir); open = false; console.log('Selected prompt subdirectory:', promptDir); /* Add logic to send to backend if needed */">
+                                        <span x-text="promptDir"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
                     <button class="text-button" @click="pauseAgent(!paused)">
                         <!-- Dynamic path that switches between pause and play icons -->
                         <template x-if="!paused">
