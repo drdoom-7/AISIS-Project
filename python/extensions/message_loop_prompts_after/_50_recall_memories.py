@@ -60,7 +60,7 @@ class RecallMemories(Extension):
         # call util llm to summarize conversation
         query = await self.agent.call_utility_model(
             system=system,
-            message=loop_data.user_message.output_text() if loop_data.user_message else "",
+            message=loop_data.user_message.output_text(),
             callback=log_callback,
         )
 

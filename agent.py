@@ -141,8 +141,11 @@ class AgentContext:
     def nudge(self):
         self.kill_process()
         self.paused = False
-        self.task = self.run_task(self.get_agent().monologue)
-        return self.task
+        # Only run monologue if there is a last user message, otherwise just unpause
+        if self.get_agent().last_user_message:
+            self.task = self.run_task(self.get_agent().monologue)
+            return self.task
+        return None # No task started
 
     def get_agent(self):
         return self.streaming_agent or self.agent0
