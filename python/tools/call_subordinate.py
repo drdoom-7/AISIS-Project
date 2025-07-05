@@ -34,13 +34,19 @@ class Delegation(Tool):
             "### response:\nFinal answer to user; ends task processing. Use only when done or no task active. Put result in text arg.\n"
             "\nUsage:\n```json\n{\n    \"thoughts\": [\"...\"],\n    \"tool_name\": \"response\",\n    \"tool_args\": {\n        \"text\": \"Answer to the user\"\n    }\n}\n```\n\n"
             "### fetch.fetch:\nFetches a URL from the internet and optionally extracts its contents as markdown.\nUsage:\n```json\n{\n    \"thoughts\": [\"...\"],\n    \"tool_name\": \"fetch.fetch\",\n    \"tool_args\": {\n        \"url\": \"https://example.com\",\n        \"max_length\": 5000\n    }\n}\n```\n\n"
+            "     * **Use `fetch.fetch` thoroughly before fallback:**\n"
+            "       Start with `fetch.fetch` using `raw=false` from `start_index=0`. If the response is truncated, follow the `start_index` hint and continue fetching more parts until the full page is retrieved.\n"
+            "       If 3 consecutive chunks return only boilerplate (e.g., menus, link lists, irrelevant layout), treat `fetch` as ineffective.\n"
+            "       If `raw=false` gives no usable data (e.g., empty, broken, or stripped content), retry with `raw=true` from `start_index=0`. If `raw=true` also fails or gives junk, abandon `fetch` and use `browser_agent`.\n"
+            "       Do not retry `raw=true` more than once.\n"
+            "       Only use `browser_agent` after these conditions are met.\n"
             "### browser_agent:\nSubordinate agent controls playwright browser. Use 'message' for instructions and 'reset' to spawn a new agent. Do not reset if iterating.\nUsage:\n```json\n{\n    \"thoughts\": [\"I need to log in to...\"],\n    \"tool_name\": \"browser_agent\",\n    \"tool_args\": {\n        \"message\": \"Open and log me into example.com\",\n        \"reset\": \"true\"\n    }\n}\n```\n\n"
             "### filesystem.read_file:\nRead the complete contents of a file from the file system.\nUsage:\n```json\n{\n    \"thoughts\": [\"...\"],\n    \"tool_name\": \"filesystem.read_file\",\n    \"tool_args\": {\n        \"path\": \"/path/to/file.txt\"\n    }\n}\n```\n\n"
             "### filesystem.write_file:\nCreate a new file or completely overwrite an existing file with new content.\nUsage:\n```json\n{\n    \"thoughts\": [\"...\"],\n    \"tool_name\": \"filesystem.write_file\",\n    \"tool_args\": {\n        \"path\": \"/path/to/new_file.txt\",\n        \"content\": \"Hello World!\"\n    }\n}\n```\n\n"
             "### filesystem.create_directory:\nCreate a new directory or ensure a directory exists.\nUsage:\n```json\n{\n    \"thoughts\": [\"...\"],\n    \"tool_name\": \"filesystem.create_directory\",\n    \"tool_args\": {\n        \"path\": \"/path/to/new_directory\"\n    }\n}\n```\n\n"
             "### filesystem.list_directory:\nGet a detailed listing of all files and directories in a specified path.\nUsage:\n```json\n{\n    \"thoughts\": [\"...\"],\n    \"tool_name\": \"filesystem.list_directory\",\n    \"tool_args\": {\n        \"path\": \"/path/to/directory\"\n    }\n}\n```\n\n"
             "### filesystem.move_file:\nMove or rename files and directories.\nUsage:\n```json\n{\n    \"thoughts\": [\"...\"],\n    \"tool_name\": \"filesystem.move_file\",\n    \"tool_args\": {\n        \"source\": \"/path/to/old_name.txt\",\n        \"destination\": \"/path/to/new_name.txt\"\n    }\n}\n```\n\n"
-            "### filesystem.get_file_info:\nRetrieve detailed metadata about a file or directory.\nUsage:\n```json\n{\n    \"thoughts\": [\"...\"],\n    \"tool_name\": \"filesystem.get_file_info\",\n    \"tool_args\": {\n        \"path\": \"/path/to/file.txt\"\n    }\n}\n```\n\n"
+            "### filesystem.get_file_info:\nRetrieve detailed metadata about a file or directory.\nUsage:\n```json\n{\n    \"thoughts\": [\"...\"],\n    \"tool_name\": \"filesystem.get_file_info\",\n    \"tool_args\": {\n        \"path\": \"/path/to/file.txt\"\n    }\\n}\\n```\\n\\n"
             "\nExample Response Format:\n" 
             "```json\n" 
             "{\n" 
@@ -54,7 +60,7 @@ class Delegation(Tool):
             "    }\n" 
             "}\n" 
             "```"
-        )
+)
         subordinate.set_data("_one_time_system_prompt", subordinate_system_prompt)
 
         subordinate.hist_add_user_message(UserMessage(message=message, attachments=[]))

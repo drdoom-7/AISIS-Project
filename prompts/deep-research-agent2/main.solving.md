@@ -17,7 +17,7 @@ prefer opensource python nodejs terminal tools
 4 solve or delegate
 tools solve subtasks
 you can use subordinates for specific subtasks
-call_subordinate tool. THIS IS HIGHLY ENCOURAGED FOR DECOMPOSING COMPLEX PROBLEMS AND OPTIMIZING TASK EXECUTION.
+call_subordinate tool
 always describe role for new subordinate
 they must execute their assigned tasks
 

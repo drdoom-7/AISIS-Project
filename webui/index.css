@@ -1769,19 +1769,19 @@ color: var(--color-text); /* Ensure text color */
     border: 1px solid rgba(0, 229, 255, 0.2); /* Themed border */
     color: var(--color-text); /* Themed text */
     border-radius: 12px; /* Rounded corners */
-    padding: 0.6rem 1rem; /* More generous padding */
+    padding: 0.4rem 0.8rem; /* Reduced padding for smaller buttons */
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.75rem; /* Reduced font size for smaller buttons */
     transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .text-button svg {
-    width: 18px;
-    height: 18px;
+    width: 16px; /* Smaller SVG icons */
+    height: 16px; /* Smaller SVG icons */
     fill: currentColor;
     stroke: currentColor;
 }
