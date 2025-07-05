@@ -38,6 +38,7 @@ class Delegation(Tool):
             "       Start with `fetch.fetch` using `raw=false` from `start_index=0`. If the response is truncated, follow the `start_index` hint and continue fetching more parts until the full page is retrieved.\n"
             "       If 3 consecutive chunks return only boilerplate (e.g., menus, link lists, irrelevant layout), treat `fetch` as ineffective.\n"
             "       If `raw=false` gives no usable data (e.g., empty, broken, or stripped content), retry with `raw=true` from `start_index=0`. If `raw=true` also fails or gives junk, abandon `fetch` and use `browser_agent`.\n"
+            "       If the fetch fails due to `robots.txt`, discard the fetch result and proceed directly with `browser_agent`.\n"
             "       Do not retry `raw=true` more than once.\n"
             "       Only use `browser_agent` after these conditions are met.\n"
             "### browser_agent:\nSubordinate agent controls playwright browser. Use 'message' for instructions and 'reset' to spawn a new agent. Do not reset if iterating.\nUsage:\n```json\n{\n    \"thoughts\": [\"I need to log in to...\"],\n    \"tool_name\": \"browser_agent\",\n    \"tool_args\": {\n        \"message\": \"Open and log me into example.com\",\n        \"reset\": \"true\"\n    }\n}\n```\n\n"
