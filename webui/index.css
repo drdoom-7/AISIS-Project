@@ -1134,6 +1134,14 @@ pre {
   z-index: 1001;
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
+  transition: all 0.3s ease-out, transform 0.3s ease-out, opacity 0.3s ease-out; /* Added transform and opacity transitions */
+}
+
+/* This class will be applied by Alpine.js when `isInputSectionHidden` is true */
+#input-section.hidden-full {
+    transform: translateY(100%); /* Slide down out of view */
+    opacity: 0;
+    pointer-events: none; /* Disable interactions when hidden */
 }
 
 /* Preview section */
@@ -2166,7 +2174,47 @@ color: var(--color-text); /* Ensure text color */
     fill: var(--color-text-muted); /* Color of the arrow icon */
   }
 
-  
+  /* Reveal Input Button */
+  #reveal-input-button {
+    background-color: var(--color-primary); /* Use primary color */
+    color: var(--color-background); /* Text color contrasting with primary */
+    padding: 0.75rem 1.25rem;
+    border-radius: 9999px; /* Tailwind's rounded-full */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Soft shadow */
+    border: 1px solid var(--color-accent); /* Subtle border */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    z-index: 5000; /* Ensure it's above other elements */
+    transition: all 0.3s ease-in-out; /* Smooth transitions for all properties */
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: neonGlow 2s infinite alternate ease-in-out;
+    text-shadow: 0 0 5px var(--color-background), 0 0 10px var(--color-background); /* Subtle text shadow for better contrast */
+  }
+
+  #reveal-input-button:hover {
+    background-color: var(--color-accent); /* Brighter on hover */
+    box-shadow: 0 0 15px var(--color-accent), 0 0 30px var(--color-primary); /* Stronger glow on hover */
+    transform: translateX(-50%) translateY(-2px); /* Slight lift */
+  }
+
+  #reveal-input-button:active {
+    transform: translateX(-50%) scale(0.95);
+    opacity: 0.8;
+  }
+
+  #reveal-input-button svg {
+      width: 1.5rem;
+      height: 1.5rem;
+      fill: currentColor;
+  }
+
   .msg-kvps {
     display: flex;
     flex-direction: column;

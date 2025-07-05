@@ -398,84 +398,227 @@
             attachments: [],
             hasAttachments: false,
             showButtons: window.innerWidth > 768, // Initialize based on window width
+            isInputSectionHidden: false, // New variable to hide the entire section
             startY: 0,
-            deltaY: 0,
+            currentSwipeY: 0, // Current Y position during swipe relative to start
+            isDragging: false, // New state for active dragging
+            inputSectionElement: null, // Reference to the element
+            inputSectionHeight: 0, // Dynamic height of input section for calculations
 
             init() {
-            // Add a listener for window resize to update showButtons
+                this.inputSectionElement = this.$el;
+
+                // Watch for changes in isInputSectionHidden and showButtons to update inputSectionHeight dynamically
+                this.$watch('isInputSectionHidden', () => this.$nextTick(() => { this.updateInputSectionHeight(); }));
+                this.$watch('showButtons', () => this.$nextTick(() => { this.updateInputSectionHeight(); }));
+
+                // Also update on window resize
+                window.addEventListener('resize', () => {
+                    this.updateInputSectionHeight();
+                    // Re-evaluate showButtons based on width on resize if desktop size is crossed
+                    const newShowButtons = window.innerWidth > 768;
+                    if (this.showButtons !== newShowButtons) {
+                        this.showButtons = newShowButtons;
+                    }
+                    this.updateSwipeHandleVisibility();
+                });
+
+                // Initial setup
+                this.updateInputSectionHeight();
+                this.updateSwipeHandleVisibility();
+
                 const mediaQuery = window.matchMedia('(min-width: 769px)');
                 const handleMediaQueryChange = (e) => {
-                this.showButtons = e.matches;
-                    // Ensure swipe handle visibility is correct after resize
+                    this.showButtons = e.matches;
                     this.$nextTick(() => {
-                    const swipeHandle = document.querySelector('.swipe-handle');
-                    if (swipeHandle) {
-                    swipeHandle.style.display = (!this.showButtons && window.innerWidth <= 768) ? 'flex' : 'none';
-                    }
-                });
+                        this.updateSwipeHandleVisibility();
+                    });
                 };
                 mediaQuery.addEventListener('change', handleMediaQueryChange);
+            },
 
-                // Initial call to set swipe handle visibility correctly on load
+            updateInputSectionHeight() {
+                // Temporarily ensure it's visible to get its full height, but only if not currently dragging
+                // during dragging, its style properties are being directly manipulated
+                if (!this.isDragging) {
+                    const originalDisplay = this.inputSectionElement.style.display;
+                    const originalTransform = this.inputSectionElement.style.transform;
+                    const originalOpacity = this.inputSectionElement.style.opacity;
+                    const originalPointerEvents = this.inputSectionElement.style.pointerEvents;
+                    const originalTransition = this.inputSectionElement.style.transition;
+                    const originalHeight = this.inputSectionElement.style.height;
+
+                    this.inputSectionElement.style.transition = 'none'; // Disable transition for measurement
+                    this.inputSectionElement.style.display = 'flex'; // Ensure flex to measure properly
+                    this.inputSectionElement.style.transform = 'translateY(0)';
+                    this.inputSectionElement.style.opacity = '1';
+                    this.inputSectionElement.style.pointerEvents = 'auto';
+                    this.inputSectionElement.style.height = 'auto'; // Allow content to determine height
+
+                    // Ensure buttons are temporarily shown to get maximum height if that's the intention for 'full height'
+                    const currentShowButtons = this.showButtons;
+                    this.showButtons = true; 
                     this.$nextTick(() => {
-                    const swipeHandle = document.querySelector('.swipe-handle');
+                        document.body.offsetHeight; // Trigger reflow
+                        this.inputSectionHeight = this.inputSectionElement.offsetHeight;
+                        
+                        // Restore original state after measurement
+                        this.inputSectionElement.style.display = originalDisplay;
+                        this.inputSectionElement.style.transform = originalTransform;
+                        this.inputSectionElement.style.opacity = originalOpacity;
+                        this.inputSectionElement.style.pointerEvents = originalPointerEvents;
+                        this.inputSectionElement.style.transition = originalTransition;
+                        this.inputSectionElement.style.height = originalHeight;
+                        this.showButtons = currentShowButtons; // Restore original showButtons state
+                    });
+                }
+            },
+
+            updateSwipeHandleVisibility() {
+                const swipeHandle = document.querySelector('.swipe-handle');
                 if (swipeHandle) {
-                        swipeHandle.style.display = (!this.showButtons && window.innerWidth <= 768) ? 'flex' : 'none';
-                    }
-            });
+                    // Show swipe handle only on mobile, when the main input section is visible and buttons are hidden
+                    // This handle is specifically for opening the buttons when input is active.
+                    swipeHandle.style.display = (window.innerWidth <= 768 && !this.isInputSectionHidden && !this.showButtons) ? 'flex' : 'none';
+                }
+                // The reveal-input-button handles the case where isInputSectionHidden is true.
             },
 
             handleTouchStart(event) {
-            if (window.innerWidth <= 768) { // Only enable touch swipe on mobile
-            this.startY = event.touches[0].clientY;
-            }
+                if (window.innerWidth <= 768) {
+                    this.startY = event.touches[0].clientY;
+                    this.currentSwipeY = 0;
+                    this.isDragging = true;
+                    // Temporarily remove Alpine transition classes for direct DOM manipulation
+                    this.inputSectionElement.classList.remove('transition', 'ease-out', 'duration-300', 'transform-gpu', 'ease-in');
+                    this.inputSectionElement.style.transition = 'none'; // Ensure no CSS transition during drag
+                    this.inputSectionElement.style.pointerEvents = 'auto'; // Always enable during touch to avoid issues
+                    // Capture initial height at start of drag, as it might change due to showButtons toggle
+                    this.inputSectionHeight = this.inputSectionElement.offsetHeight;
+                }
             },
+
             handleTouchMove(event) {
-                if (window.innerWidth <= 768) { // Only enable touch swipe on mobile
-                this.deltaY = this.startY - event.touches[0].clientY;
+                if (this.isDragging && window.innerWidth <= 768) {
+                    this.currentSwipeY = event.touches[0].clientY - this.startY;
+
+                    // Prevent native scroll if vertical movement is dominant
+                    if (Math.abs(this.currentSwipeY) > 5) { // Small dead zone before preventing default
+                        event.preventDefault();
                     }
+
+                    let targetTransformY = 0; // Default to visible position
+                    let targetOpacity = 1; // Default to full opacity
+
+                    if (this.isInputSectionHidden) {
+                        // If section is logically hidden, allow dragging it up from its 'hidden' position (100% translateY)
+                        // currentSwipeY is negative when dragging up. So, this brings translateY closer to 0.
+                        targetTransformY = Math.max(0, this.inputSectionHeight + this.currentSwipeY);
+                        targetOpacity = Math.min(1, Math.abs(this.currentSwipeY) / this.inputSectionHeight); // Fade in as it comes up
+
+                    } else { 
+                        // If section is logically visible, allow dragging it down from 0% translateY
+                        targetTransformY = Math.max(0, Math.min(this.currentSwipeY, this.inputSectionHeight));
+                        targetOpacity = 1 - (targetTransformY / this.inputSectionHeight); // Fade out as it goes down
+                    }
+                    
+                    this.inputSectionElement.style.transform = `translateY(${targetTransformY}px)`;
+                    this.inputSectionElement.style.opacity = Math.max(0, Math.min(targetOpacity, 1));
+                }
             },
+
             handleTouchEnd() {
-                    if (window.innerWidth <= 768) { // Only enable touch swipe on mobile
-            if (Math.abs(this.deltaY) > 50) {
-                            this.showButtons = this.deltaY > 0;
-            }
-            this.deltaY = 0;
-            }
+                if (this.isDragging && window.innerWidth <= 768) {
+                    this.isDragging = false;
+                    // Re-add Alpine transition classes for smooth snap-back
+                    this.inputSectionElement.classList.add('transition', 'ease-out', 'duration-300', 'transform-gpu');
+                    this.inputSectionElement.style.transition = ''; // Restore CSS transition
+
+                    const swipeThresholdButtons = 30; // Threshold for toggling buttons (small swipe)
+                    const swipeThresholdFullHide = 100; // Threshold for full hide (larger swipe down)
+                    const swipeThresholdFullShow = -100; // Threshold for full show (larger swipe up)
+
+                    // Determine target state based on swipe direction and distance
+                    if (this.currentSwipeY > swipeThresholdFullHide) { // Strong swipe down: hide everything
+                        this.isInputSectionHidden = true;
+                        this.showButtons = false; 
+                    } else if (this.currentSwipeY < swipeThresholdFullShow) { // Strong swipe up: show everything
+                        this.isInputSectionHidden = false;
+                        this.showButtons = true; // Default to showing buttons when revealing
+                    } else { 
+                        // Not a full hide/show gesture, decide based on current state and smaller swipe
+                        if (this.isInputSectionHidden) {
+                            // If currently hidden, and not enough swipe up for full show: snap back hidden
+                            this.isInputSectionHidden = true; // Maintain hidden state
+                        } else {
+                            // If currently visible:
+                            if (this.currentSwipeY > swipeThresholdButtons) { // Small swipe down to hide buttons
+                                this.showButtons = false;
+                            } else if (this.currentSwipeY < -swipeThresholdButtons) { // Small swipe up to show buttons
+                                this.showButtons = true;
+                            }
+                            // If very small swipe (within dead zone), maintain current showButtons state
+                        }
+                    }
+
+                    // Explicitly apply final styles to snap, then let Alpine's x-show take over
+                    this.$nextTick(() => {
+                        if (this.isInputSectionHidden) {
+                            this.inputSectionElement.style.transform = `translateY(${this.inputSectionHeight}px)`;
+                            this.inputSectionElement.style.opacity = '0';
+                            this.inputSectionElement.style.pointerEvents = 'none'; // Disable interaction when hidden
+                        } else {
+                            this.inputSectionElement.style.transform = 'translateY(0)';
+                            this.inputSectionElement.style.opacity = '1';
+                            this.inputSectionElement.style.pointerEvents = 'auto'; // Enable interaction when visible
+                        }
+                    });
+
+                    this.startY = 0;
+                    this.currentSwipeY = 0;
+                    this.updateSwipeHandleVisibility(); // Update visibility after state change
+                }
             },
             handleFileUpload(event) {
-            const files = event.fromEvent(event.target.files);
-            Array.from(files).forEach(file => {
-            const ext = file.name.split('.').pop().toLowerCase();
-            const isImage = ['jpg', 'jpeg', 'png', 'bmp'].includes(ext);
-            if (isImage) {
-            const reader = new FileReader();
-            reader.onload = e => {
-            this.attachments.push({
-                file: file,
-                    url: e.target.result,
-                type: 'image',
-                name: file.name,
-            extension: ext
-            });
-            this.hasAttachments = true;
-            };
-            reader.readAsDataURL(file);
-            } else {
-            this.attachments.push({
-                        file: file,
-                            type: 'file',
+                const files = event.fromEvent(event.target.files);
+                Array.from(files).forEach(file => {
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    const isImage = ['jpg', 'jpeg', 'png', 'bmp'].includes(ext);
+                    if (isImage) {
+                        const reader = new FileReader();
+                        reader.onload = e => {
+                            this.attachments.push({
+                                file: file,
+                                url: e.target.result,
+                                type: 'image',
                                 name: file.name,
                                 extension: ext
                             });
                             this.hasAttachments = true;
-                        }
-                    });
-                }
-            }"
-            @touchstart.passive="handleTouchStart($event)"
-            @touchmove.passive="handleTouchMove($event)"
-            @touchend.passive="handleTouchEnd($event)">
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        this.attachments.push({
+                            file: file,
+                            type: 'file',
+                            name: file.name,
+                            extension: ext
+                        });
+                        this.hasAttachments = true;
+                    }
+                });
+            }
+        }"
+            @touchstart="handleTouchStart($event)"
+            @touchmove="handleTouchMove($event)"
+            @touchend="handleTouchEnd($event)"
+            x-show="!isInputSectionHidden"
+            x-transition:enter="transition ease-out duration-300 transform-gpu"
+            x-transition:enter-start="opacity-0 translate-y-full"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-300 transform-gpu"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 translate-y-full">
 
                 <!-- Preview section -->
                 <div x-show="hasAttachments" class="preview-section">
@@ -667,7 +810,7 @@
                 </div>
 
                 <!-- Swipe handle / indicator -->
-                <div class="swipe-handle" @click="showButtons = !showButtons" x-show="!showButtons && window.innerWidth <= 768" x-transition.opacity>
+                <div class="swipe-handle" @click="showButtons = !showButtons" x-show="!showButtons && window.innerWidth <= 768 && !isInputSectionHidden" x-transition.opacity>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M7 14l5-5 5 5z"/>
                     </svg>
@@ -675,6 +818,28 @@
             </div>
         </div>
     </div>
+    <!-- New button to reveal the input section when fully hidden -->
+    <button id="reveal-input-button" x-data="{ isInputSectionHidden: false }" x-init="
+        // Directly observe the isInputSectionHidden property from the #input-section component
+        // This is a common pattern to link Alpine.js component states without a global store
+        $watch(() => document.getElementById('input-section').__x.$data.isInputSectionHidden, (value) => {
+            this.isInputSectionHidden = value;
+        });
+    "
+    x-show="isInputSectionHidden" 
+    @click="document.getElementById('input-section').__x.$data.isInputSectionHidden = false" 
+    x-transition:enter="transition ease-out duration-300 transform-gpu"
+    x-transition:enter-start="opacity-0 translate-y-full"
+    x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-300 transform-gpu"
+    x-transition:leave-start="opacity-100 translate-y-0"
+    x-transition:leave-end="opacity-0 translate-y-full"
+    class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white p-3 rounded-full shadow-lg z-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15a1 1 0 110-2 1 1 0 010 2zm0-4a1 1 0 01-1-1V8a1 1 0 012 0v4a1 1 0 01-1 1z"/>
+        </svg>
+        Show Input
+    </button>
     <div id="settingsModal" x-data="settingsModalProxy">
         <template x-teleport="body">
             <div x-show="isOpen" class="modal-overlay" @click.self="handleCancel()"
