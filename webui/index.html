@@ -566,7 +566,7 @@
                             </button>
                             <div x-show="open" x-collapse.duration.200ms class="prompt-dropdown-menu">
                                 <template x-for="promptDir in promptSubdirectories" :key="promptDir">
-                                    <button class="dropdown-item" @click="selectedPrompt = promptDir; localStorage.setItem('selectedPromptSubdirectory', promptDir); open = false; console.log('Selected prompt subdirectory:', promptDir); /* Add logic to send to backend if needed */">
+                                    <button class="dropdown-item" @click="selectedPrompt = promptDir; localStorage.setItem('selectedPromptSubdirectory', promptDir); open = false; console.log('Selected prompt subdirectory:', promptDir); window.updateAgentPromptSubdirectory(promptDir); window.nudge();">
                                         <span x-text="promptDir"></span>
                                     </button>
                                 </template>
