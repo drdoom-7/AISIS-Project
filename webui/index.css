@@ -1138,10 +1138,15 @@ pre {
 }
 
 /* This class will be applied by Alpine.js when `isInputSectionHidden` is true */
-#input-section.hidden-full {
+#input-section.input-section-collapsed {
     transform: translateY(100%); /* Slide down out of view */
     opacity: 0;
     pointer-events: none; /* Disable interactions when hidden */
+    max-height: 0; /* Ensures physical collapse */
+    padding-top: 0; /* Collapse padding */
+    padding-bottom: 0; /* Collapse padding */
+    border-top-width: 0; /* Collapse border */
+    overflow: hidden; /* Hide content when collapsed */
 }
 
 /* Preview section */
