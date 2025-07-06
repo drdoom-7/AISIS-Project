@@ -407,14 +407,24 @@
 
             init() {
                 this.inputSectionElement = this.$el;
+                const progressBarBox = document.getElementById('progress-bar-box');
+                if (progressBarBox) {
+                    progressBarBox.addEventListener('touchstart', this.handleTouchStart.bind(this));
+                    progressBarBox.addEventListener('touchmove', this.handleTouchMove.bind(this));
+                    progressBarBox.addEventListener('touchend', this.handleTouchEnd.bind(this));
+                }
 
-                // Watch for changes in isInputSectionHidden and showButtons to update inputSectionHeight dynamically
-                this.$watch('isInputSectionHidden', () => this.$nextTick(() => { this.updateInputSectionHeight(); }));
-                this.$watch('showButtons', () => this.$nextTick(() => { this.updateInputSectionHeight(); }));
+                // Add touch listeners to the input-section itself
+                this.inputSectionElement.addEventListener('touchstart', this.handleTouchStart.bind(this));
+                this.inputSectionElement.addEventListener('touchmove', this.handleTouchMove.bind(this));
+                this.inputSectionElement.addEventListener('touchend', this.handleTouchEnd.bind(this));
 
-                // Also update on window resize
+                // Calculate full height once on init and on resize
+                this.calculateFullInputSectionHeight();
+
+                // Recalculate on window resize
                 window.addEventListener('resize', () => {
-                    this.updateInputSectionHeight();
+                    this.calculateFullInputSectionHeight(); // Recalculate full height
                     // Re-evaluate showButtons based on width on resize if desktop size is crossed
                     const newShowButtons = window.innerWidth > 768;
                     if (this.showButtons !== newShowButtons) {
@@ -423,55 +433,71 @@
                     this.updateSwipeHandleVisibility();
                 });
 
-                // Initial setup
-                this.updateInputSectionHeight();
-                this.updateSwipeHandleVisibility();
-
-                const mediaQuery = window.matchMedia('(min-width: 769px)');
-                const handleMediaQueryChange = (e) => {
-                    this.showButtons = e.matches;
+                // Watch for changes in isInputSectionHidden and showButtons to apply/remove class and update handle
+                this.$watch('isInputSectionHidden', (val) => {
                     this.$nextTick(() => {
-                        this.updateSwipeHandleVisibility();
+                        if (val) {
+                            this.inputSectionElement.classList.add('input-section-collapsed');
+                        } else {
+                            this.inputSectionElement.classList.remove('input-section-collapsed');
+                        }
+                        this.updateSwipeHandleVisibility(); // Update handle after state change
                     });
-                };
-                mediaQuery.addEventListener('change', handleMediaQueryChange);
+                });
+                this.$watch('showButtons', () => this.$nextTick(() => { this.updateSwipeHandleVisibility(); }));
+
+
+                this.updateSwipeHandleVisibility(); // Initial handle visibility
             },
 
-            updateInputSectionHeight() {
-                // Temporarily ensure it's visible to get its full height, but only if not currently dragging
-                // during dragging, its style properties are being directly manipulated
-                if (!this.isDragging) {
-                    const originalDisplay = this.inputSectionElement.style.display;
-                    const originalTransform = this.inputSectionElement.style.transform;
-                    const originalOpacity = this.inputSectionElement.style.opacity;
-                    const originalPointerEvents = this.inputSectionElement.style.pointerEvents;
-                    const originalTransition = this.inputSectionElement.style.transition;
-                    const originalHeight = this.inputSectionElement.style.height;
+            calculateFullInputSectionHeight() {
+                // To get the true full height, we need to temporarily un-collapse it and show buttons
+                // This method should *not* be called during an active drag.
+                if (this.isDragging) return; // Prevent interference during drag
 
-                    this.inputSectionElement.style.transition = 'none'; // Disable transition for measurement
-                    this.inputSectionElement.style.display = 'flex'; // Ensure flex to measure properly
-                    this.inputSectionElement.style.transform = 'translateY(0)';
-                    this.inputSectionElement.style.opacity = '1';
-                    this.inputSectionElement.style.pointerEvents = 'auto';
-                    this.inputSectionElement.style.height = 'auto'; // Allow content to determine height
+                const originalClasses = this.inputSectionElement.classList.contains('input-section-collapsed');
+                const originalShowButtons = this.showButtons;
+                const originalDisplay = this.inputSectionElement.style.display;
+                const originalMaxHeight = this.inputSectionElement.style.maxHeight;
+                const originalPaddingTop = this.inputSectionElement.style.paddingTop;
+                const originalPaddingBottom = this.inputSectionElement.style.paddingBottom;
+                const originalBorderTopWidth = this.inputSectionElement.style.borderTopWidth;
+                const originalTransition = this.inputSectionElement.style.transition; // Store transition
 
-                    // Ensure buttons are temporarily shown to get maximum height if that's the intention for 'full height'
-                    const currentShowButtons = this.showButtons;
-                    this.showButtons = true; 
-                    this.$nextTick(() => {
-                        document.body.offsetHeight; // Trigger reflow
-                        this.inputSectionHeight = this.inputSectionElement.offsetHeight;
-                        
-                        // Restore original state after measurement
-                        this.inputSectionElement.style.display = originalDisplay;
-                        this.inputSectionElement.style.transform = originalTransform;
-                        this.inputSectionElement.style.opacity = originalOpacity;
-                        this.inputSectionElement.style.pointerEvents = originalPointerEvents;
-                        this.inputSectionElement.style.transition = originalTransition;
-                        this.inputSectionElement.style.height = originalHeight;
-                        this.showButtons = currentShowButtons; // Restore original showButtons state
-                    });
-                }
+                // Temporarily force full visibility to measure actual height
+                this.inputSectionElement.style.transition = 'none'; // Disable transition for measurement
+                this.inputSectionElement.style.transform = 'translateY(0px)';
+                this.inputSectionElement.style.opacity = '1';
+                this.inputSectionElement.style.pointerEvents = 'auto';
+                this.inputSectionElement.style.maxHeight = ''; // Remove max-height constraint
+                this.inputSectionElement.style.paddingTop = '';
+                this.inputSectionElement.style.paddingBottom = '';
+                this.inputSectionElement.style.borderTopWidth = '';
+                this.inputSectionElement.classList.remove('input-section-collapsed');
+                this.inputSectionElement.style.display = 'flex'; // Ensure it's rendered as flex
+                
+                this.showButtons = true; // Temporarily show buttons to get full height
+                
+                // Use $nextTick to ensure Alpine has processed showButtons update before measuring
+                this.$nextTick(() => {
+                    document.body.offsetHeight; // Force reflow
+                    this.inputSectionHeight = this.inputSectionElement.offsetHeight;
+
+                    // Restore original state immediately
+                    this.inputSectionElement.style.transition = originalTransition; // Restore transition
+                    this.inputSectionElement.style.transform = ''; // Clear temporary transform/opacity
+                    this.inputSectionElement.style.opacity = '';
+                    this.inputSectionElement.style.pointerEvents = originalStyles.pointerEvents; // Restore original pointer-events
+                    this.inputSectionElement.style.display = originalDisplay;
+                    if (originalClasses) { // If it was originally collapsed, re-add the class
+                        this.inputSectionElement.classList.add('input-section-collapsed');
+                    }
+                    this.inputSectionElement.style.maxHeight = originalMaxHeight; // Restore original max-height
+                    this.inputSectionElement.style.paddingTop = originalPaddingTop;
+                    this.inputSectionElement.style.paddingBottom = originalPaddingBottom;
+                    this.inputSectionElement.style.borderTopWidth = originalBorderTopWidth;
+                    this.showButtons = originalShowButtons; // Restore original showButtons state
+                });
             },
 
             updateSwipeHandleVisibility() {
@@ -489,39 +515,62 @@
                     this.startY = event.touches[0].clientY;
                     this.currentSwipeY = 0;
                     this.isDragging = true;
-                    // Temporarily remove Alpine transition classes for direct DOM manipulation
-                    this.inputSectionElement.classList.remove('transition', 'ease-out', 'duration-300', 'transform-gpu', 'ease-in');
-                    this.inputSectionElement.style.transition = 'none'; // Ensure no CSS transition during drag
-                    this.inputSectionElement.style.pointerEvents = 'auto'; // Always enable during touch to avoid issues
-                    // Capture initial height at start of drag, as it might change due to showButtons toggle
-                    this.inputSectionHeight = this.inputSectionElement.offsetHeight;
+                    // Do NOT preventDefault here. Allow clicks/focus on initial touch.
+
+                    // Temporarily remove CSS transition for direct DOM manipulation
+                    this.inputSectionElement.style.transition = 'none';
+
+                    // Set initial transform/opacity based on current logical state for smooth drag start
+                    if (this.isInputSectionHidden) {
+                        // If starting from hidden, visually place it at its collapsed position (bottom)
+                        this.inputSectionElement.style.transform = `translateY(${this.inputSectionHeight}px)`;
+                        this.inputSectionElement.style.opacity = '0';
+                        // Temporarily remove collapsed class to allow dragging it up visibly
+                        this.inputSectionElement.classList.remove('input-section-collapsed');
+                        // Ensure it's display flex to be draggable
+                        this.inputSectionElement.style.display = 'flex';
+                    } else {
+                        // If starting from visible, place it at top (no transform)
+                        this.inputSectionElement.style.transform = 'translateY(0px)';
+                        this.inputSectionElement.style.opacity = '1';
+                    }
+                    this.inputSectionElement.style.pointerEvents = 'auto'; // Enable interaction during drag
                 }
             },
 
             handleTouchMove(event) {
                 if (this.isDragging && window.innerWidth <= 768) {
-                    this.currentSwipeY = event.touches[0].clientY - this.startY;
+                    const deltaY = event.touches[0].clientY - this.startY;
+                    this.currentSwipeY = deltaY; // Update currentSwipeY with the full delta
 
-                    // Prevent native scroll if vertical movement is dominant
-                    if (Math.abs(this.currentSwipeY) > 5) { // Small dead zone before preventing default
+                    // Only prevent native scroll if vertical movement is significant to allow taps and horizontal scrolls
+                    if (Math.abs(deltaY) > 5) { // Small dead zone to allow tap/focus
                         event.preventDefault();
                     }
 
-                    let targetTransformY = 0; // Default to visible position
-                    let targetOpacity = 1; // Default to full opacity
+                    let targetTransformY;
+                    let targetOpacity;
 
                     if (this.isInputSectionHidden) {
-                        // If section is logically hidden, allow dragging it up from its 'hidden' position (100% translateY)
-                        // currentSwipeY is negative when dragging up. So, this brings translateY closer to 0.
-                        targetTransformY = Math.max(0, this.inputSectionHeight + this.currentSwipeY);
-                        targetOpacity = Math.min(1, Math.abs(this.currentSwipeY) / this.inputSectionHeight); // Fade in as it comes up
+                        // Swiping UP to reveal (deltaY is negative)
+                        // targetTransformY starts from inputSectionHeight and goes towards 0
+                        targetTransformY = this.inputSectionHeight + deltaY;
+                        // Clamp transformY to be between 0 (fully visible) and inputSectionHeight (fully hidden)
+                        targetTransformY = Math.max(0, Math.min(this.inputSectionHeight, targetTransformY));
 
-                    } else { 
-                        // If section is logically visible, allow dragging it down from 0% translateY
-                        targetTransformY = Math.max(0, Math.min(this.currentSwipeY, this.inputSectionHeight));
+                        // Opacity fades in from 0 to 1 as it comes up
+                        targetOpacity = 1 - (targetTransformY / this.inputSectionHeight);
+                    } else {
+                        // Swiping DOWN to hide (deltaY is positive)
+                        // targetTransformY starts from 0 and goes towards inputSectionHeight
+                        targetTransformY = deltaY;
+                        // Clamp transformY to be between 0 (fully visible) and inputSectionHeight (fully hidden)
+                        targetTransformY = Math.max(0, Math.min(this.inputSectionHeight, targetTransformY));
+
+                        // Opacity fades out from 1 to 0 as it goes down
                         targetOpacity = 1 - (targetTransformY / this.inputSectionHeight); // Fade out as it goes down
                     }
-                    
+
                     this.inputSectionElement.style.transform = `translateY(${targetTransformY}px)`;
                     this.inputSectionElement.style.opacity = Math.max(0, Math.min(targetOpacity, 1));
                 }
@@ -530,49 +579,50 @@
             handleTouchEnd() {
                 if (this.isDragging && window.innerWidth <= 768) {
                     this.isDragging = false;
-                    // Re-add Alpine transition classes for smooth snap-back
-                    this.inputSectionElement.classList.add('transition', 'ease-out', 'duration-300', 'transform-gpu');
-                    this.inputSectionElement.style.transition = ''; // Restore CSS transition
+
+                    // Re-enable CSS transition immediately for smooth snap-back
+                    this.inputSectionElement.style.transition = ''; // Restore CSS transition from index.css
 
                     const swipeThresholdButtons = 30; // Threshold for toggling buttons (small swipe)
                     const swipeThresholdFullHide = 100; // Threshold for full hide (larger swipe down)
-                    const swipeThresholdFullShow = -100; // Threshold for full show (larger swipe up)
+                    const swipeThresholdFullShow = -100; // Threshold for full show (larger swipe up, negative deltaY)
 
-                    // Determine target state based on swipe direction and distance
-                    if (this.currentSwipeY > swipeThresholdFullHide) { // Strong swipe down: hide everything
-                        this.isInputSectionHidden = true;
-                        this.showButtons = false; 
-                    } else if (this.currentSwipeY < swipeThresholdFullShow) { // Strong swipe up: show everything
-                        this.isInputSectionHidden = false;
-                        this.showButtons = true; // Default to showing buttons when revealing
-                    } else { 
-                        // Not a full hide/show gesture, decide based on current state and smaller swipe
-                        if (this.isInputSectionHidden) {
-                            // If currently hidden, and not enough swipe up for full show: snap back hidden
-                            this.isInputSectionHidden = true; // Maintain hidden state
-                        } else {
-                            // If currently visible:
-                            if (this.currentSwipeY > swipeThresholdButtons) { // Small swipe down to hide buttons
-                                this.showButtons = false;
-                            } else if (this.currentSwipeY < -swipeThresholdButtons) { // Small swipe up to show buttons
-                                this.showButtons = true;
-                            }
-                            // If very small swipe (within dead zone), maintain current showButtons state
-                        }
+                    // Clear inline styles that were manually set during drag, let CSS and Alpine govern
+                    this.inputSectionElement.style.transform = '';
+                    this.inputSectionElement.style.opacity = '';
+                    this.inputSectionElement.style.pointerEvents = ''; // Restore default pointer-events
+                    // Also reset display if it was temporarily set to 'flex' for dragging from hidden state
+                    if (this.isInputSectionHidden) {
+                        this.inputSectionElement.style.display = ''; // Let x-show control it
                     }
 
-                    // Explicitly apply final styles to snap, then let Alpine's x-show take over
-                    this.$nextTick(() => {
-                        if (this.isInputSectionHidden) {
-                            this.inputSectionElement.style.transform = `translateY(${this.inputSectionHeight}px)`;
-                            this.inputSectionElement.style.opacity = '0';
-                            this.inputSectionElement.style.pointerEvents = 'none'; // Disable interaction when hidden
-                        } else {
-                            this.inputSectionElement.style.transform = 'translateY(0)';
-                            this.inputSectionElement.style.opacity = '1';
-                            this.inputSectionElement.style.pointerEvents = 'auto'; // Enable interaction when visible
+                    // Determine the new state based on swipe distance and direction
+                    if (this.isInputSectionHidden) { // If currently logically hidden (was swiping up to reveal)
+                        if (this.currentSwipeY < swipeThresholdFullShow) { // Swiped up enough to fully reveal
+                            this.isInputSectionHidden = false;
+                            this.showButtons = true; // Show buttons by default when fully revealing
+                        } else { // Not enough swipe up, snap back to hidden
+                            this.isInputSectionHidden = true;
+                            this.showButtons = false; // Buttons are hidden when input section is hidden
                         }
-                    });
+                    } else { // If currently logically visible (was swiping down to hide)
+                        if (this.currentSwipeY > swipeThresholdFullHide) { // Swiped down enough to fully hide
+                            this.isInputSectionHidden = true;
+                            this.showButtons = false;
+                        } else { // Not enough swipe down, snap back to visible
+                            this.isInputSectionHidden = false;
+                            // For small swipes when visible, toggle showButtons based on swipe direction
+                            if (this.currentSwipeY > swipeThresholdButtons) { // Swiped down a little
+                                this.showButtons = false; // Hide buttons
+                            } else if (this.currentSwipeY < -swipeThresholdButtons) { // Swiped up a little
+                                this.showButtons = true; // Show buttons
+                            }
+                            // If swipe is within small threshold, showButtons state remains as it was
+                        }
+                    }
+                    // Alpine.js will react to changes in isInputSectionHidden and showButtons
+                    // and apply the `input-section-collapsed` class and `x-show` accordingly,
+                    // which will trigger the CSS transitions.
 
                     this.startY = 0;
                     this.currentSwipeY = 0;
@@ -609,16 +659,8 @@
                 });
             }
         }"
-            @touchstart="handleTouchStart($event)"
-            @touchmove="handleTouchMove($event)"
-            @touchend="handleTouchEnd($event)"
             x-show="!isInputSectionHidden"
-            x-transition:enter="transition ease-out duration-300 transform-gpu"
-            x-transition:enter-start="opacity-0 translate-y-full"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-300 transform-gpu"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 translate-y-full">
+            class="transition ease-out duration-300 transform-gpu">
 
                 <!-- Preview section -->
                 <div x-show="hasAttachments" class="preview-section">
@@ -810,7 +852,7 @@
                 </div>
 
                 <!-- Swipe handle / indicator -->
-                <div class="swipe-handle" @click="showButtons = !showButtons" x-show="!showButtons && window.innerWidth <= 768 && !isInputSectionHidden" x-transition.opacity>
+                <div class="swipe-handle" @click="showButtons = !showButtons" x-show="!showButtons && window.innerWidth <= 768 && !isInputSectionHidden">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M7 14l5-5 5 5z"/>
                     </svg>
@@ -828,12 +870,6 @@
     "
     x-show="isInputSectionHidden" 
     @click="document.getElementById('input-section').__x.$data.isInputSectionHidden = false" 
-    x-transition:enter="transition ease-out duration-300 transform-gpu"
-    x-transition:enter-start="opacity-0 translate-y-full"
-    x-transition:enter-end="opacity-100 translate-y-0"
-    x-transition:leave="transition ease-in duration-300 transform-gpu"
-    x-transition:leave-start="opacity-100 translate-y-0"
-    x-transition:leave-end="opacity-0 translate-y-full"
     class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white p-3 rounded-full shadow-lg z-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15a1 1 0 110-2 1 1 0 010 2zm0-4a1 1 0 01-1-1V8a1 1 0 012 0v4a1 1 0 01-1 1z"/>
@@ -1436,8 +1472,6 @@
                                                                 let selectedDate;
                                                                 if (input._flatpickr && input._flatpickr.selectedDates.length > 0) {
                                                                     selectedDate = input._flatpickr.selectedDates[0];
-                                                                } else if (input.value) {
-                                                                    selectedDate = new Date(input.value);
                                                                 }
 
                                                                 if (!selectedDate || isNaN(selectedDate.getTime())) {
@@ -1887,9 +1921,7 @@
     <!-- Full Screen Input Modal -->
     <div id="fullScreenInputModal" x-data="fullScreenInputModalProxy">
         <template x-teleport="body">
-            <div x-show="isOpen" class="modal-overlay" @click.self="handleClose()"
-                @keydown.escape.window="handleClose()" x-transition>
-                <div class="modal-container full-screen-input-modal">
+            <div x-show="isOpen" class="modal-container full-screen-input-modal">
                     <div class="modal-content">
                         <button class="modal-close" @click="handleClose()">&times;</button>
 
@@ -1912,7 +1944,7 @@
                             <div class="toolbar-group">
                                 <button class="toolbar-button" @click="clearText()" title="Clear Text">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                                        <path d="M19 6v14a2 2 0 01-2 2H7a2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
                                         <line x1="10" y1="11" x2="10" y2="17"></line>
                                         <line x1="14" y1="11" x2="14" y2="17"></line>
                                     </svg>
