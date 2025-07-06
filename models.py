@@ -26,6 +26,7 @@ from langchain_google_genai import (
     embeddings as google_embeddings,
 )
 from langchain_mistralai import ChatMistralAI
+import google.api_core.exceptions
 
 # from pydantic.v1.types import SecretStr
 from python.helpers import dotenv, runtime
@@ -60,9 +61,31 @@ class ModelProvider(Enum):
 
 rate_limiters: dict[str, RateLimiter] = {}
 
+# Global variables for Google API key rotation
+_GOOGLE_API_KEYS = []
+_CURRENT_GOOGLE_API_KEY_INDEX = 0
 
 # Utility function to get API keys from environment variables
 def get_api_key(service):
+    global _GOOGLE_API_KEYS, _CURRENT_GOOGLE_API_KEY_INDEX
+
+    if service.lower() == "google":
+        if not _GOOGLE_API_KEYS:
+            keys_str = dotenv.get_dotenv_value("API_KEYS_GOOGLE")
+            if keys_str and keys_str != 'None':
+                _GOOGLE_API_KEYS = [key.strip() for key in keys_str.split(',') if key.strip()]
+            else:
+                # Fallback to single key if new var not set, or if API_KEYS_GOOGLE is empty
+                single_key = dotenv.get_dotenv_value("API_KEY_GOOGLE")
+                if single_key and single_key != 'None':
+                    _GOOGLE_API_KEYS = [single_key]
+                else:
+                    _GOOGLE_API_KEYS = [] # No keys found at all
+
+        if _GOOGLE_API_KEYS:
+            return _GOOGLE_API_KEYS[_CURRENT_GOOGLE_API_KEY_INDEX]
+        return None # Return None if no Google API keys are available
+
     return (
         dotenv.get_dotenv_value(f"API_KEY_{service.upper()}")
         or dotenv.get_dotenv_value(f"{service.upper()}_API_KEY")
@@ -72,6 +95,13 @@ def get_api_key(service):
         or "None"
     )
 
+def _rotate_google_api_key():
+    global _GOOGLE_API_KEYS, _CURRENT_GOOGLE_API_KEY_INDEX
+    if _GOOGLE_API_KEYS:
+        _CURRENT_GOOGLE_API_KEY_INDEX = (_CURRENT_GOOGLE_API_KEY_INDEX + 1) % len(_GOOGLE_API_KEYS)
+        print(f"Rotated Google API key to index: {_CURRENT_GOOGLE_API_KEY_INDEX}")
+    else:
+        print("No Google API keys available to rotate.")
 
 def get_model(type: ModelType, provider: ModelProvider, name: str, **kwargs):
     fnc_name = f"get_{provider.name.lower()}_{type.name.lower()}"  # function name of model getter
@@ -267,21 +297,52 @@ def get_openai_azure_embedding(
 def get_google_chat(
     model_name: str,
     api_key=None,
+    max_retries=3,
     **kwargs,
 ):
-    if not api_key:
-        api_key = get_api_key("google")
-    return ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, safety_settings={HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE}, **kwargs)  # type: ignore
-
+    _api_key = api_key if api_key else get_api_key("google")
+    for i in range(max_retries):
+        try:
+            if _api_key is None:
+                raise ValueError("No Google API key available for chat model.")
+            return ChatGoogleGenerativeAI(model=model_name, google_api_key=_api_key, safety_settings={HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE}, **kwargs)  # type: ignore
+        except google.api_core.exceptions.ResourceExhausted as e:
+            print(f"Google Chat API quota exceeded for key at index {_CURRENT_GOOGLE_API_KEY_INDEX}. Rotating key... Error: {e}")
+            _rotate_google_api_key()
+            _api_key = get_api_key("google") # Get the next key
+            if _api_key is None or (i == max_retries - 1 and len(_GOOGLE_API_KEYS) <= 1): # If no more keys or ran out of retries with only one key
+                raise # Re-raise if no more keys or retries left
+            elif i == max_retries - 1 and len(_GOOGLE_API_KEYS) > 1:
+                print("All Google API keys exhausted or retries failed. Please check your keys or quota.")
+                raise
+        except Exception as e:
+            print(f"An unexpected error occurred with Google Chat API: {e}")
+            raise
 
 def get_google_embedding(
     model_name: str,
     api_key=None,
+    max_retries=3,
     **kwargs,
 ):
-    if not api_key:
-        api_key = get_api_key("google")
-    return google_embeddings.GoogleGenerativeAIEmbeddings(model=model_name, google_api_key=api_key, **kwargs)  # type: ignore
+    _api_key = api_key if api_key else get_api_key("google")
+    for i in range(max_retries):
+        try:
+            if _api_key is None:
+                raise ValueError("No Google API key available for embedding model.")
+            return google_embeddings.GoogleGenerativeAIEmbeddings(model=model_name, google_api_key=_api_key, **kwargs)  # type: ignore
+        except google.api_core.exceptions.ResourceExhausted as e:
+            print(f"Google Embedding API quota exceeded for key at index {_CURRENT_GOOGLE_API_KEY_INDEX}. Rotating key... Error: {e}")
+            _rotate_google_api_key()
+            _api_key = get_api_key("google") # Get the next key
+            if _api_key is None or (i == max_retries - 1 and len(_GOOGLE_API_KEYS) <= 1):
+                raise
+            elif i == max_retries - 1 and len(_GOOGLE_API_KEYS) > 1:
+                print("All Google API keys exhausted or retries failed. Please check your keys or quota.")
+                raise
+        except Exception as e:
+            print(f"An unexpected error occurred with Google Embedding API: {e}")
+            raise
 
 
 # Mistral models
