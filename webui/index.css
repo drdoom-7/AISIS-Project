@@ -1226,7 +1226,7 @@ pre {
 /* Text input */
 #chat-input-container {
   position: relative;
-  z-index: 1; /* Ensure this container is below the button row */
+  z-index: 1001; /* Ensure this container is above the swipe handle */
   width: 100%;
 }
 
@@ -1253,6 +1253,7 @@ pre {
   transition: all 0.3s ease;
   outline: 1px solid var(--color-border);
   box-sizing: border-box; /* Include padding and border in element's total width and height */
+  z-index: 1002; /* Ensure chat input is above other elements within input section */
 }
 
 #chat-input::-webkit-scrollbar {
