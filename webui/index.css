@@ -876,20 +876,25 @@ pre {
 
 .message {
   background-color: var(--color-message-bg);
-  border-radius: var(--border-radius);
-  box-shadow: 0 0 10px rgba(0, 229, 255, 0.1);
-  padding: 0.9rem var(--spacing-md) 0.7rem var(--spacing-md);
-  backdrop-filter: blur(calc(var(--glass-blur) / 2));
-  -webkit-backdrop-filter: blur(calc(var(--glass-blur) / 2));
-  border: 1px solid rgba(0, 229, 255, 0.1);
-  max-width: 100%; /* Default for desktop messages */
-  overflow: unset; /* Allow content to expand naturally, relying on chat history scroll */
+  border-radius: 18px 5px 18px 5px; /* Angular, futuristic shape for all messages */
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.2), inset 0 0 5px rgba(0, 229, 255, 0.05); /* Enhanced glow with inner shadow */
+  padding: 1rem var(--spacing-md) 0.8rem var(--spacing-md); /* Slightly more padding */
+  backdrop-filter: blur(var(--glass-blur)); /* Stronger blur for glassmorphism */
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1.5px solid rgba(0, 229, 255, 0.25); /* Thicker, more visible border */
+  max-width: 100%;
+  overflow: unset;
   overflow-wrap: break-word;
   word-wrap: break-word;
   min-width: 0;
   white-space: normal;
   box-sizing: border-box;
-  position: relative; /* For positioning copy button */
+  position: relative;
+  transition: all 0.3s ease; /* Smooth transitions for hover/focus effects */
+}
+.message:hover {
+  transform: translateY(-2px); /* Subtle lift on hover */
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), inset 0 0 8px rgba(0, 229, 255, 0.1); /* More intense glow on hover */
 }
 
 /* Copy button styling (for desktop) */
@@ -953,8 +958,10 @@ pre {
 }
 
 .message-user {
-  background-color: rgba(0, 229, 255, 0.1);
-  border-bottom-right-radius: var(--spacing-xs);
+  background-color: rgba(0, 200, 255, 0.25); /* Vibrant user cyan */
+  border: 1.5px solid rgba(0, 200, 255, 0.5); /* Stronger border */
+  box-shadow: 0 0 15px rgba(0, 200, 255, 0.4), inset 0 0 8px rgba(0, 200, 255, 0.2); /* Pronounced glow */
+  border-radius: 5px 20px 20px 20px; /* Sharp incoming corner for user messages */
   min-width: 0;
   text-align: right;
   max-width: 100%;
@@ -984,8 +991,32 @@ pre {
 }
 
 .message-agent-response {
-  min-width: 0; /* Override any fixed min-width causing overflow */
-  background-color: #1f3c1e;
+  min-width: 0;
+  background-color: rgba(0, 229, 255, 0.2); /* Cool Cyan for Final Response */
+  border: 1px solid rgba(0, 229, 255, 0.4); /* Matching border */
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.5); /* Stronger glow */
+  position: relative;
+  margin-bottom: 2rem; /* Add space for the glow effect below */
+}
+.message-agent-response::after {
+  content: '';
+  position: absolute;
+  bottom: -20px; /* Position below the message */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%; /* Width of the glow */
+  height: 10px; /* Height of the glow */
+  background: rgba(0, 229, 255, 0.6); /* Core glow color */
+  border-radius: 50%; /* Make it a soft, elongated circle */
+  filter: blur(15px); /* Soften the glow */
+  opacity: 0.8; /* Initial opacity */
+  animation: response-glow 2s infinite alternate ease-in-out; /* Pulsating animation */
+  z-index: -1; /* Ensure it's behind the message */
+}
+@keyframes response-glow {
+  0% { transform: translateX(-50%) scale(1); opacity: 0.8; filter: blur(15px); }
+  50% { transform: translateX(-50%) scale(1.1); opacity: 1; filter: blur(25px); }
+  100% { transform: translateX(-50%) scale(1); opacity: 0.8; filter: blur(15px); }
 }
 
 .message-center {
@@ -1027,46 +1058,65 @@ pre {
 }
 
 .message-agent {
-  background-color: #34506b;
+  background-color: rgba(60, 120, 160, 0.35); /* Slightly different blue for Agent messages */
+  border: 1.5px solid rgba(60, 120, 160, 0.5); /* Matching border */
+  box-shadow: 0 0 12px rgba(60, 120, 160, 0.4), inset 0 0 6px rgba(60, 120, 160, 0.15); /* More pronounced glow */
+  border-radius: 20px 5px 20px 20px; /* Asymmetric, angular shape for agent messages */
   min-width: 0;
-  width: 100%; /* Ensure it takes available width relative to .ai-container */
-  max-width: 100%; /* Crucial to limit width within its container */
+  width: 100%;
+  max-width: 100%;
   overflow-wrap: break-word;
-  word-break: normal; /* Allow normal word breaking */
-  white-space: normal !important; /* Aggressively ensure text wrapping */
+  word-break: normal;
+  white-space: normal !important;
 }
 
 .message-agent-delegation {
-  background-color: #12685e;
+  background-color: rgba(18, 104, 94, 0.3); /* Enhanced Futuristic Green-Blue for Delegation */
+  border: 1px solid rgba(18, 104, 94, 0.5); /* Matching border */
+  box-shadow: 0 0 10px rgba(18, 104, 94, 0.3); /* Subtle glow */
 }
 
 .message-tool {
-  background-color: #2a4170;
+  background-color: rgba(42, 100, 120, 0.3); /* Futuristic Cyan/Teal for Tool messages */
+  border: 1px solid rgba(42, 100, 120, 0.5); /* Matching border */
+  box-shadow: 0 0 10px rgba(42, 100, 120, 0.3); /* Subtle glow */
 }
 
 .message-code-exe {
-  background-color: #4b3a69;
+  background-color: rgba(138, 43, 226, 0.2); /* Futuristic Purple for Code Execution */
+  border: 1px solid rgba(138, 43, 226, 0.4); /* Matching border */
+  box-shadow: 0 0 12px rgba(138, 43, 226, 0.3); /* Subtle glow */
 }
 
 .message-browser {
-  background-color: #4b3a69;
+  background-color: rgba(0, 191, 255, 0.2); /* Futuristic Deep Sky Blue for Browser Actions */
+  border: 1px solid rgba(0, 191, 255, 0.4); /* Matching border */
+  box-shadow: 0 0 12px rgba(0, 191, 255, 0.3); /* Subtle glow */
 }
 
 .message-info {
-  background-color: var(--color-panel);
+  background-color: rgba(30, 30, 50, 0.6); /* Dark translucent blue for info */
+  border: 1px solid rgba(40, 40, 60, 0.8); /* Matching darker border */
+  box-shadow: 0 0 8px rgba(30, 30, 50, 0.3); /* Subtle glow */
 }
 
 .message-util {
-  background-color: #23211a;
+  background-color: rgba(25, 25, 30, 0.6); /* Dark, subtle futuristic grey/blue for Utility */
+  border: 1px solid rgba(30, 30, 35, 0.8); /* Matching darker border */
+  box-shadow: 0 0 5px rgba(25, 25, 30, 0.2); /* Very subtle glow */
   display: none;
 }
 
 .message-warning {
-  background-color: #bc8036;
+  background-color: rgba(255, 165, 0, 0.2); /* Translucent orange for warning */
+  border: 1px solid rgba(255, 165, 0, 0.4); /* Matching border */
+  box-shadow: 0 0 12px rgba(255, 165, 0, 0.3); /* Subtle glow */
 }
 
 .message-error {
-  background-color: #af2222;
+  background-color: rgba(255, 0, 0, 0.2); /* Translucent red for error */
+  border: 1px solid rgba(255, 0, 0, 0.4); /* Matching border */
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.3); /* Subtle glow */
 }
 
 /* Agent and AI Info */
@@ -1099,6 +1149,27 @@ pre {
 
 .msg-kvps tr {
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.msg-kvps .msg-thoughts {
+  background-color: rgba(50, 150, 200, 0.25); /* More distinct, elegant blue for thoughts */
+  border-radius: 20px 20px 20px 5px; /* Rounded corners for bubble effect, slight asymmetry */
+  padding: 0.8rem 1.2rem; /* Increased padding for spacious feel */
+  margin-bottom: 1.2rem; /* More space below thoughts */
+  box-shadow: 0 0 15px rgba(50, 150, 200, 0.4), inset 0 0 10px rgba(50, 150, 200, 0.2); /* Enhanced glow */
+  position: relative;
+}
+.msg-kvps .msg-thoughts::after {
+  content: '';
+  position: absolute;
+  bottom: -10px; /* Position the tail below the bubble */
+  left: 20px; /* Position tail on the left side */
+  width: 0;
+  height: 0;
+  border-top: 10px solid rgba(50, 150, 200, 0.25); /* Tail color matches background */
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  filter: drop-shadow(0 5px 5px rgba(50, 150, 200, 0.2)); /* Shadow for the tail */
 }
 
 /* Message Actions */
