@@ -24,23 +24,49 @@
   --color-blue-neon: #00f0ff;
   --color-purple-neon: #8a2be2;
 
+  /* Custom Futuristic Colors */
+  --color-futuristic-code-purple: rgba(155, 89, 182, 0.25); /* #9b59b6 */
+  --color-futuristic-code-border: rgba(155, 89, 182, 0.5);
+  --color-futuristic-code-shadow: rgba(155, 89, 182, 0.4);
+
+  --color-futuristic-final-response-green: rgba(46, 204, 113, 0.25); /* #2ecc71 */
+  --color-futuristic-final-response-border: rgba(46, 204, 113, 0.5);
+  --color-futuristic-final-response-shadow: rgba(46, 204, 113, 0.6);
+  --color-futuristic-final-response-glow-cyan: rgba(0, 229, 255, 0.6); /* User requested "cool cyan effect blow final response" */
+
+  --color-futuristic-thoughts-blue: rgba(173, 216, 230, 0.2); /* Light Blue #ADD8E6 */
+  --color-futuristic-thoughts-border: rgba(173, 216, 230, 0.4);
+  --color-futuristic-thoughts-shadow: rgba(173, 216, 230, 0.5);
+
+  --color-futuristic-agent-purple: rgba(142, 68, 173, 0.25); /* #8e44ad */
+  --color-futuristic-agent-border: rgba(142, 68, 173, 0.5);
+  --color-futuristic-agent-shadow: rgba(142, 68, 173, 0.4);
+
+  /* Add new colors for enhanced design elements */
+  --color-card-background: rgba(26, 26, 34, 0.7);
+  --color-card-border: rgba(0, 229, 255, 0.15);
+  --color-card-shadow: rgba(0, 0, 0, 0.3);
+  --color-gradient-start: #0A0A0F;
+  --color-gradient-end: #1A1A22;
+  --color-text-highlight: #00E5FF;
+
   /* Glassmorphism effect properties */
-  --glass-blur: 7.5084686279296875px; /* Reduced blur by another 25% as requested */
-  --glass-border-width: 1.5px; /* Thicker border */
-  --glass-border-color: rgba(0, 229, 255, 0.15); /* Softer border to enhance blur perception */
-  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* Softer shadow to enhance blur perception */
+  --glass-blur: 10px; /* Increased blur slightly for more impact */
+  --glass-border-width: 2px; /* Slightly thicker border */
+  --glass-border-color: rgba(0, 229, 255, 0.2); /* Softer border to enhance blur perception */
+  --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); /* Slightly stronger shadow */
 
   /* Floating effect */
-  --float-offset: -5px;
-  --float-duration: 0.8s;
+  --float-offset: -7px; /* Increased float */
+  --float-duration: 1.2s; /* Slower float */
 
   /* Neon Glow */
-  --neon-glow-primary: 0 0 8px var(--color-primary-dark), 0 0 20px var(--color-accent-dark);
-  --neon-glow-red: 0 0 5px var(--color-red-neon), 0 0 15px var(--color-red-neon);
-  --neon-glow-green: 0 0 5px var(--color-green-neon), 0 0 15px var(--color-green-neon);
+  --neon-glow-primary: 0 0 10px var(--color-primary-dark), 0 0 25px var(--color-accent-dark); /* Enhanced glow */
+  --neon-glow-red: 0 0 7px var(--color-red-neon), 0 0 20px var(--color-red-neon);
+  --neon-glow-green: 0 0 7px var(--color-green-neon), 0 0 20px var(--color-green-neon);
 
   /* Blur for panel content when idle */
-  --content-blur-idle: 1.2514114379882812px; /* Reduced blur by another 25% as requested */
+  --content-blur-idle: 2px; /* Slightly more blur when idle */
 
   /* Light mode */
   --color-background-light: #dbdbdb;
@@ -68,19 +94,19 @@
   --color-border: var(--color-border-dark);
 
   /* Spacing variables */
-  --spacing-xs: 0.5rem;
-  --spacing-sm: 0.75rem;
-  --spacing-md: 1.25rem;
-  --spacing-lg: 2rem;
+  --spacing-xs: 0.6rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2.5rem;
 
   /* Font sizes */
-  --font-size-small: 0.9rem; /* Adjusted for better readability */
-  --font-size-normal: 1rem;
-  --font-size-large: 1.2rem;
+  --font-size-small: 0.95rem;
+  --font-size-normal: 1.05rem;
+  --font-size-large: 1.3rem;
 
   /* Other variables */
-  --border-radius: 16px; /* Slightly larger for modern feel */
-  --transition-speed: 0.3s;
+  --border-radius: 20px; /* More rounded */
+  --transition-speed: 0.4s;
   --svg-filter: invert(73%) sepia(17%) saturate(360%) hue-rotate(150deg) brightness(100%) contrast(100%); /* Cyan filter */
 }
 
@@ -870,18 +896,21 @@ pre {
 
 /* Message Styles */
 .message-container {
-  animation: fadeIn 0.5s;
+  animation: fadeIn 0.5s; /* Keep existing fade-in animation */
   margin-bottom: var(--spacing-sm);
 }
 
 .message {
-  background-color: var(--color-message-bg);
-  border-radius: 18px 5px 18px 5px; /* Angular, futuristic shape for all messages */
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.2), inset 0 0 5px rgba(0, 229, 255, 0.05); /* Enhanced glow with inner shadow */
-  padding: 1rem var(--spacing-md) 0.8rem var(--spacing-md); /* Slightly more padding */
+  margin-bottom: var(--spacing-md); /* Consistent spacing */
+  padding: 1.2rem var(--spacing-md) 1rem var(--spacing-md); /* Increased padding for spacious feel */
+  border-radius: 25px 8px 25px 8px; /* Angular, futuristic shape for all messages */
+  border: var(--glass-border-width) solid var(--glass-border-color); /* Thicker, more visible border */
+  background-color: var(--color-message-bg); /* Default message background */
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.3), inset 0 0 8px rgba(0, 229, 255, 0.1); /* Enhanced glow with inner shadow */
   backdrop-filter: blur(var(--glass-blur)); /* Stronger blur for glassmorphism */
   -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1.5px solid rgba(0, 229, 255, 0.25); /* Thicker, more visible border */
+  transition: all 0.4s ease; /* Smooth transitions for hover/focus effects */
+  position: relative;
   max-width: 100%;
   overflow: unset;
   overflow-wrap: break-word;
@@ -889,19 +918,18 @@ pre {
   min-width: 0;
   white-space: normal;
   box-sizing: border-box;
-  position: relative;
-  transition: all 0.3s ease; /* Smooth transitions for hover/focus effects */
 }
+
 .message:hover {
-  transform: translateY(-2px); /* Subtle lift on hover */
-  box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), inset 0 0 8px rgba(0, 229, 255, 0.1); /* More intense glow on hover */
+  transform: translateY(-3px); /* More noticeable lift on hover */
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.6), inset 0 0 12px rgba(0, 229, 255, 0.2); /* More intense glow on hover */
 }
 
 /* Copy button styling (for desktop) */
 .copy-button {
   position: absolute;
-  top: 8px; /* Adjust as needed */
-  right: 8px; /* Adjust as needed */
+  top: 8px;
+  right: 8px;
   background-color: rgba(0, 229, 255, 0.2); /* Semi-transparent background */
   color: var(--color-text);
   padding: 4px 8px;
@@ -909,7 +937,7 @@ pre {
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.3s ease-in-out, background-color 0.2s ease;
-  pointer-events: none; /* Do not block clicks when hidden */
+  pointer-events: none;
   font-size: 0.75rem;
   z-index: 10;
   border: 1px solid rgba(0, 229, 255, 0.3);
@@ -917,7 +945,7 @@ pre {
 
 .message:hover .copy-button {
   opacity: 1;
-  pointer-events: auto; /* Enable clicks when visible */
+  pointer-events: auto;
 }
 
 .copy-button:hover {
@@ -929,6 +957,7 @@ pre {
   opacity: 0.8;
 }
 
+/* User Message Container */
 .user-container {
   align-self: flex-end;
   margin: var(--spacing-sm) 0;
@@ -936,6 +965,7 @@ pre {
   width: fit-content; /* Only take content width */
 }
 
+/* AI Message Container */
 .ai-container {
   align-self: flex-start;
   margin: var(--spacing-sm) 0;
@@ -957,17 +987,24 @@ pre {
   margin-bottom: var(--spacing-sm);
 }
 
+/* Specific Message Styles */
 .message-user {
-  background-color: rgba(0, 200, 255, 0.25); /* Vibrant user cyan */
-  border: 1.5px solid rgba(0, 200, 255, 0.5); /* Stronger border */
-  box-shadow: 0 0 15px rgba(0, 200, 255, 0.4), inset 0 0 8px rgba(0, 200, 255, 0.2); /* Pronounced glow */
-  border-radius: 5px 20px 20px 20px; /* Sharp incoming corner for user messages */
+  background-color: rgba(0, 200, 255, 0.35); /* Vibrant user cyan */
+  border: var(--glass-border-width) solid rgba(0, 200, 255, 0.6); /* Stronger border */
+  box-shadow: 0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.3); /* Pronounced glow */
+  border-radius: 8px 25px 25px 25px; /* Sharp incoming corner for user messages, more rounded overall */
   min-width: 0;
-  text-align: right;
+  text-align: right; /* Align the block of the message to the right */
   max-width: 100%;
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: normal;
+}
+
+.message-user .message-text,
+.message-user .message-text span {
+    text-align: left; /* Align text within the user message to the left */
+    width: 100%;
 }
 
 .message-user > div {
@@ -983,7 +1020,7 @@ pre {
 }
 
 .message-ai {
-  border-bottom-left-radius: var(--spacing-xs);
+  border-bottom-left-radius: var(--spacing-xs); /* Default for AI messages */
   max-width: 100%;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -992,31 +1029,32 @@ pre {
 
 .message-agent-response {
   min-width: 0;
-  background-color: rgba(0, 229, 255, 0.2); /* Cool Cyan for Final Response */
-  border: 1px solid rgba(0, 229, 255, 0.4); /* Matching border */
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.5); /* Stronger glow */
+  background-color: var(--color-futuristic-final-response-green); /* Green for Final Response */
+  border: var(--glass-border-width) solid var(--color-futuristic-final-response-border); /* Matching border */
+  box-shadow: 0 0 20px var(--color-futuristic-final-response-shadow); /* Stronger glow */
   position: relative;
-  margin-bottom: 2rem; /* Add space for the glow effect below */
+  margin-bottom: 2.5rem; /* Add more space for the glow effect below */
+  border-radius: 25px 8px 25px 25px; /* Asymmetric for AI responses */
 }
 .message-agent-response::after {
   content: '';
   position: absolute;
-  bottom: -20px; /* Position below the message */
+  bottom: -25px; /* Position further below the message */
   left: 50%;
   transform: translateX(-50%);
-  width: 80%; /* Width of the glow */
-  height: 10px; /* Height of the glow */
-  background: rgba(0, 229, 255, 0.6); /* Core glow color */
+  width: 90%; /* Wider glow */
+  height: 15px; /* Taller glow */
+  background: var(--color-futuristic-final-response-glow-cyan); /* Cool Cyan for glow */
   border-radius: 50%; /* Make it a soft, elongated circle */
-  filter: blur(15px); /* Soften the glow */
-  opacity: 0.8; /* Initial opacity */
-  animation: response-glow 2s infinite alternate ease-in-out; /* Pulsating animation */
+  filter: blur(20px); /* Soften the glow more */
+  opacity: 0.9; /* More visible glow */
+  animation: response-glow 2.5s infinite alternate ease-in-out; /* Slower, more sophisticated pulse */
   z-index: -1; /* Ensure it's behind the message */
 }
 @keyframes response-glow {
-  0% { transform: translateX(-50%) scale(1); opacity: 0.8; filter: blur(15px); }
-  50% { transform: translateX(-50%) scale(1.1); opacity: 1; filter: blur(25px); }
-  100% { transform: translateX(-50%) scale(1); opacity: 0.8; filter: blur(15px); }
+  0% { transform: translateX(-50%) scale(0.9); opacity: 0.7; filter: blur(15px); }
+  50% { transform: translateX(-50%) scale(1.1); opacity: 1; filter: blur(30px); }
+  100% { transform: translateX(-50%) scale(0.9); opacity: 0.7; filter: blur(15px); }
 }
 
 .message-center {
@@ -1050,7 +1088,7 @@ pre {
 .message-util,
 .message-warning,
 .message-error {
-  color: #e0e0e0;
+  color: #e0e0e0; /* Consistent text color for AI messages */
 }
 
 .message-default {
@@ -1058,10 +1096,10 @@ pre {
 }
 
 .message-agent {
-  background-color: rgba(60, 120, 160, 0.35); /* Slightly different blue for Agent messages */
-  border: 1.5px solid rgba(60, 120, 160, 0.5); /* Matching border */
-  box-shadow: 0 0 12px rgba(60, 120, 160, 0.4), inset 0 0 6px rgba(60, 120, 160, 0.15); /* More pronounced glow */
-  border-radius: 20px 5px 20px 20px; /* Asymmetric, angular shape for agent messages */
+  background-color: var(--color-futuristic-agent-purple); /* Purple for Agent messages */
+  border: var(--glass-border-width) solid var(--color-futuristic-agent-border); /* Matching border */
+  box-shadow: 0 0 15px var(--color-futuristic-agent-shadow), inset 0 0 8px rgba(142, 68, 173, 0.2); /* More pronounced glow */
+  border-radius: 25px 8px 25px 25px; /* Asymmetric, angular shape for agent messages */
   min-width: 0;
   width: 100%;
   max-width: 100%;
@@ -1074,49 +1112,57 @@ pre {
   background-color: rgba(18, 104, 94, 0.3); /* Enhanced Futuristic Green-Blue for Delegation */
   border: 1px solid rgba(18, 104, 94, 0.5); /* Matching border */
   box-shadow: 0 0 10px rgba(18, 104, 94, 0.3); /* Subtle glow */
+  border-radius: 25px 8px 25px 25px; /* Consistent with agent messages */
 }
 
 .message-tool {
   background-color: rgba(42, 100, 120, 0.3); /* Futuristic Cyan/Teal for Tool messages */
   border: 1px solid rgba(42, 100, 120, 0.5); /* Matching border */
   box-shadow: 0 0 10px rgba(42, 100, 120, 0.3); /* Subtle glow */
+  border-radius: 25px 8px 25px 25px; /* Consistent with agent messages */
 }
 
 .message-code-exe {
-  background-color: rgba(138, 43, 226, 0.2); /* Futuristic Purple for Code Execution */
-  border: 1px solid rgba(138, 43, 226, 0.4); /* Matching border */
-  box-shadow: 0 0 12px rgba(138, 43, 226, 0.3); /* Subtle glow */
+  background-color: var(--color-futuristic-code-purple); /* Futuristic Purple for Code Execution */
+  border: var(--glass-border-width) solid var(--color-futuristic-code-border); /* Matching border */
+  box-shadow: 0 0 15px var(--color-futuristic-code-shadow); /* Subtle glow */
+  border-radius: 25px 8px 25px 25px; /* Consistent with agent messages */
 }
 
 .message-browser {
   background-color: rgba(0, 191, 255, 0.2); /* Futuristic Deep Sky Blue for Browser Actions */
   border: 1px solid rgba(0, 191, 255, 0.4); /* Matching border */
   box-shadow: 0 0 12px rgba(0, 191, 255, 0.3); /* Subtle glow */
+  border-radius: 25px 8px 25px 25px; /* Consistent with agent messages */
 }
 
 .message-info {
   background-color: rgba(30, 30, 50, 0.6); /* Dark translucent blue for info */
   border: 1px solid rgba(40, 40, 60, 0.8); /* Matching darker border */
   box-shadow: 0 0 8px rgba(30, 30, 50, 0.3); /* Subtle glow */
+  border-radius: var(--border-radius); /* General rounded */
 }
 
 .message-util {
   background-color: rgba(25, 25, 30, 0.6); /* Dark, subtle futuristic grey/blue for Utility */
   border: 1px solid rgba(30, 30, 35, 0.8); /* Matching darker border */
   box-shadow: 0 0 5px rgba(25, 25, 30, 0.2); /* Very subtle glow */
-  display: none;
+  /* Removed `display: none;` to make utility messages visible as per the user's request for distinct colors for all message types */
+  border-radius: var(--border-radius); /* General rounded */
 }
 
 .message-warning {
   background-color: rgba(255, 165, 0, 0.2); /* Translucent orange for warning */
   border: 1px solid rgba(255, 165, 0, 0.4); /* Matching border */
   box-shadow: 0 0 12px rgba(255, 165, 0, 0.3); /* Subtle glow */
+  border-radius: var(--border-radius); /* General rounded */
 }
 
 .message-error {
   background-color: rgba(255, 0, 0, 0.2); /* Translucent red for error */
   border: 1px solid rgba(255, 0, 0, 0.4); /* Matching border */
   box-shadow: 0 0 12px rgba(255, 0, 0, 0.3); /* Subtle glow */
+  border-radius: var(--border-radius); /* General rounded */
 }
 
 /* Agent and AI Info */
@@ -1127,49 +1173,66 @@ pre {
   opacity: 0.7;
 }
 
+/* Key-Value Pair (KVPS) Styling */
 .msg-kvps {
   font-size: 0.9em;
   margin: 0.5rem 0 0.55rem 0;
-  border-collapse: collapse;
+  border-collapse: separate; /* Use separate to control spacing better */
+  border-spacing: 0 8px; /* Vertical spacing between rows */
   width: 100%;
 }
 
 .msg-kvps th,
 .msg-kvps td {
   align-content: center;
-  padding: 0.25rem;
-  padding-left: 0;
+  padding: 0.8rem 1rem; /* More generous padding */
   text-align: left;
+  border-bottom: none; /* Remove individual row borders */
 }
 
 .msg-kvps th {
-  color: var(--color-primary);
+  color: var(--color-primary); /* Primary color for key */
   width: 40%;
+  font-weight: bold;
+  font-size: 0.9em; /* Slightly smaller font for keys */
+  background-color: transparent; /* No specific background for key */
 }
 
 .msg-kvps tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  display: table-row;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 12px; /* Slight rounding for each key-value pair row */
+  background-color: rgba(26, 26, 34, 0.2); /* Subtle background for individual KVPs */
+  border: 1px solid rgba(0, 229, 255, 0.1);
+}
+
+.msg-kvps tr:hover {
+  background-color: rgba(0, 229, 255, 0.08); /* Highlight on hover */
+  box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); /* Subtle row glow */
 }
 
 .msg-kvps .msg-thoughts {
-  background-color: rgba(50, 150, 200, 0.25); /* More distinct, elegant blue for thoughts */
-  border-radius: 20px 20px 20px 5px; /* Rounded corners for bubble effect, slight asymmetry */
-  padding: 0.8rem 1.2rem; /* Increased padding for spacious feel */
-  margin-bottom: 1.2rem; /* More space below thoughts */
-  box-shadow: 0 0 15px rgba(50, 150, 200, 0.4), inset 0 0 10px rgba(50, 150, 200, 0.2); /* Enhanced glow */
-  position: relative;
+    background-color: var(--color-futuristic-thoughts-blue); /* Light, elegant blue for thoughts */
+    border-radius: 30px 30px 30px 10px; /* More rounded corners for bubble effect, slight asymmetry */
+    padding: 1rem 1.5rem; /* Increased padding for spacious feel */
+    margin-bottom: 1.5rem; /* More space below thoughts */
+    box-shadow: 0 0 20px var(--color-futuristic-thoughts-shadow), inset 0 0 12px rgba(173, 216, 230, 0.3); /* Enhanced glow */
+    position: relative;
+    font-style: italic; /* Make thoughts visually distinct as internal monologue */
+    font-size: 0.95rem; /* Slightly larger for thoughts */
 }
 .msg-kvps .msg-thoughts::after {
   content: '';
   position: absolute;
-  bottom: -10px; /* Position the tail below the bubble */
-  left: 20px; /* Position tail on the left side */
+  bottom: -15px; /* Position the tail further below the bubble */
+  left: 25px; /* Position tail slightly more to the left */
   width: 0;
   height: 0;
-  border-top: 10px solid rgba(50, 150, 200, 0.25); /* Tail color matches background */
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  filter: drop-shadow(0 5px 5px rgba(50, 150, 200, 0.2)); /* Shadow for the tail */
+  border-top: 15px solid var(--color-futuristic-thoughts-blue); /* Tail color matches background */
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  filter: drop-shadow(0 8px 8px var(--color-futuristic-thoughts-shadow)); /* Stronger shadow for the tail */
+  z-index: -1; /* Ensure it's behind the bubble */
 }
 
 /* Message Actions */
@@ -1436,6 +1499,7 @@ pre {
 background-color: transparent;
 border: 1px solid var(--color-border);
 border-radius: var(--spacing-xs);
+border-radius: 10px;
 cursor: pointer;
 display: flex; /* Use flex to align icon and text horizontally */
 align-items: center; /* Center content vertically */
@@ -2330,6 +2394,7 @@ color: var(--color-text); /* Ensure text color */
   overflow-wrap: break-word !important;
   }
 }
+
 
 @media (min-width: 768px) {
   #chat-buttons-wrapper {

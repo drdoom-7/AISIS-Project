@@ -90,7 +90,13 @@ export function _drawMessage(
 
   if (heading) {
     const headingElement = document.createElement("h4");
-    headingElement.textContent = heading;
+        if (heading === "Agent 0: Generating") {
+        headingElement.textContent = "Initiating Directive Protocol";
+    } else if (heading === "Agent 0: Responding") {
+        headingElement.textContent = "AISIS: Transmitting Acknowledgment";
+    } else {
+        headingElement.textContent = heading;
+    }
     messageDiv.appendChild(headingElement);
   }
 
