@@ -297,52 +297,22 @@ def get_openai_azure_embedding(
 def get_google_chat(
     model_name: str,
     api_key=None,
-    max_retries=3,
     **kwargs,
 ):
     _api_key = api_key if api_key else get_api_key("google")
-    for i in range(max_retries):
-        try:
-            if _api_key is None:
-                raise ValueError("No Google API key available for chat model.")
-            return ChatGoogleGenerativeAI(model=model_name, google_api_key=_api_key, safety_settings={HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE}, **kwargs)  # type: ignore
-        except google.api_core.exceptions.ResourceExhausted as e:
-            print(f"Google Chat API quota exceeded for key at index {_CURRENT_GOOGLE_API_KEY_INDEX}. Rotating key... Error: {e}")
-            _rotate_google_api_key()
-            _api_key = get_api_key("google") # Get the next key
-            if _api_key is None or (i == max_retries - 1 and len(_GOOGLE_API_KEYS) <= 1): # If no more keys or ran out of retries with only one key
-                raise # Re-raise if no more keys or retries left
-            elif i == max_retries - 1 and len(_GOOGLE_API_KEYS) > 1:
-                print("All Google API keys exhausted or retries failed. Please check your keys or quota.")
-                raise
-        except Exception as e:
-            print(f"An unexpected error occurred with Google Chat API: {e}")
-            raise
+    if _api_key is None:
+        raise ValueError("No Google API key available for chat model.")
+    return ChatGoogleGenerativeAI(model=model_name, google_api_key=_api_key, safety_settings={HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE}, **kwargs)  # type: ignore
 
 def get_google_embedding(
     model_name: str,
     api_key=None,
-    max_retries=3,
     **kwargs,
 ):
     _api_key = api_key if api_key else get_api_key("google")
-    for i in range(max_retries):
-        try:
-            if _api_key is None:
-                raise ValueError("No Google API key available for embedding model.")
-            return google_embeddings.GoogleGenerativeAIEmbeddings(model=model_name, google_api_key=_api_key, **kwargs)  # type: ignore
-        except google.api_core.exceptions.ResourceExhausted as e:
-            print(f"Google Embedding API quota exceeded for key at index {_CURRENT_GOOGLE_API_KEY_INDEX}. Rotating key... Error: {e}")
-            _rotate_google_api_key()
-            _api_key = get_api_key("google") # Get the next key
-            if _api_key is None or (i == max_retries - 1 and len(_GOOGLE_API_KEYS) <= 1):
-                raise
-            elif i == max_retries - 1 and len(_GOOGLE_API_KEYS) > 1:
-                print("All Google API keys exhausted or retries failed. Please check your keys or quota.")
-                raise
-        except Exception as e:
-            print(f"An unexpected error occurred with Google Embedding API: {e}")
-            raise
+    if _api_key is None:
+        raise ValueError("No Google API key available for embedding model.")
+    return google_embeddings.GoogleGenerativeAIEmbeddings(model=model_name, google_api_key=_api_key, **kwargs)  # type: ignore
 
 
 # Mistral models

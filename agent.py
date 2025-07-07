@@ -9,6 +9,8 @@ from typing import Any, Awaitable, Coroutine, Dict
 from enum import Enum
 import uuid
 import models
+import google.api_core.exceptions
+
 
 from python.helpers import extract_tools, files, errors, history, tokens
 from python.helpers import dirty_json
@@ -649,24 +651,52 @@ class Agent:
         callback: Callable[[str, str], Awaitable[None]] | None = None,
     ):
         response = ""
+        max_attempts = 5 # Maximum number of key rotation attempts
 
-        # model class
-        model = self.get_chat_model()
+        for attempt in range(max_attempts):
+            try:
+                # model class
+                model = self.get_chat_model()
 
-        # rate limiter
-        limiter = await self.rate_limiter(self.config.chat_model, prompt.format())
+                # rate limiter
+                limiter = await self.rate_limiter(self.config.chat_model, prompt.format())
 
-        async for chunk in (prompt | model).astream({}):
-            await self.handle_intervention()  # wait for intervention and handle it, if paused
+                async for chunk in (prompt | model).astream({}):
+                    await self.handle_intervention()  # wait for intervention and handle it, if paused
 
-            content = models.parse_chunk(chunk)
-            limiter.add(output=tokens.approximate_tokens(content))
-            response += content
+                    content = models.parse_chunk(chunk)
+                    limiter.add(output=tokens.approximate_tokens(content))
+                    response += content
 
-            if callback:
-                await callback(content, response)
+                    if callback:
+                        await callback(content, response)
+                return response # Return if successful
 
-        return response
+            except google.api_core.exceptions.ResourceExhausted as e:
+                if self.config.chat_model.provider == models.ModelProvider.GOOGLE:
+                    print(f"Google API quota exceeded. Attempt {attempt + 1}/{max_attempts}. Rotating key...")
+                    models._rotate_google_api_key()
+                    response = "" # Reset response for the new attempt
+                    if attempt == max_attempts - 1:
+                        raise RepairableException(f"All Google API keys exhausted or max retries reached. Error: {e}")
+                    # Continue to next iteration to retry with new key
+                else:
+                    # If it's a ResourceExhausted error but not a Google model, re-raise as repairable
+                    raise RepairableException(f"Resource exhausted for non-Google model. Error: {e}")
+
+            except ValueError as e:
+                # Catch ValueError from models.get_model if no API key is available
+                if "No Google API key available" in str(e):
+                    raise RepairableException(f"Configuration Error: {e}. Please ensure API_KEY_GOOGLE or API_KEYS_GOOGLE is set correctly in .env.")
+                else:
+                    raise RepairableException(f"A configuration error occurred: {e}")
+
+            except Exception as e:
+                # For any other unexpected errors, re-raise them as RepairableException
+                raise RepairableException(f"An unexpected error occurred during model call: {e}")
+
+        # Should not be reached if max_attempts logic is correct, but as a fallback
+        raise RepairableException("Failed to get a response after multiple key rotation attempts.")
 
     async def rate_limiter(
         self, model_config: ModelConfig, input: str, background: bool = False
