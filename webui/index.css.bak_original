@@ -580,7 +580,7 @@ body {
   flex-grow: 1; /* Take up remaining space */
   margin: 0; /* Handled by container gap */
   position: relative; /* For absolute positioning of children */
-  overflow: hidden; /* Crucial: Allow glow effects to extend beyond boundaries */
+  overflow: visible !important; /* Crucial: Allow glow effects to extend beyond boundaries */
 }
 
 #right-panel.expanded {
@@ -673,10 +673,6 @@ h3 {
 
 h4 {
   margin: auto 0;
-  max-width: 100% !important; /* Force headings respect parent width */
-  width: 100%; /* Force heading to take full available width */
-  word-break: break-all; /* Break long words in headings */
-  box-sizing: border-box; /* Include padding and border in width */
 }
 
 #a0version {
@@ -691,13 +687,8 @@ pre {
   font-optical-sizing: auto;
   -webkit-font-optical-sizing: auto;
   font-size: 0.75rem;
-  white-space: pre-wrap !important; /* Force text to wrap within pre tags */
+  white-space: pre-wrap; /* Ensure text wraps within pre tags */
   word-wrap: break-word; /* Ensure long words break within pre tags */
-  overflow-wrap: anywhere !important; /* Stronger word breaking to prevent overflow */
-  overflow-x: auto !important; /* Force horizontal scrolling for overflowing content */
-  max-width: 100% !important; /* Force pre tags respect parent width */
-  box-sizing: border-box; /* Include padding and border in width */
-  min-width: 0; /* Ensure pre can shrink in flex contexts */
 }
 
 /* Chat History */
@@ -920,41 +911,18 @@ pre {
   -webkit-backdrop-filter: blur(var(--glass-blur));
   transition: all 0.4s ease; /* Smooth transitions for hover/focus effects */
   position: relative;
-  max-width: 100% !important; /* Force max-width */
-  overflow: hidden !important; /* Force overflow hidden */
+  max-width: 100%;
+  overflow: unset;
   overflow-wrap: break-word;
   word-wrap: break-word;
   min-width: 0;
   white-space: normal;
   box-sizing: border-box;
-  display: flex; /* Make the message bubble itself a flex container */
-  flex-direction: column; /* Stack its direct children vertically */
-  flex-shrink: 1; /* Allow the message bubble to shrink */
 }
 
 .message:hover {
   transform: translateY(-3px); /* More noticeable lift on hover */
   box-shadow: 0 0 30px rgba(0, 229, 255, 0.6), inset 0 0 12px rgba(0, 229, 255, 0.2); /* More intense glow on hover */
-}
-
-/* Ensure direct children of message also behave responsively */
-.message > h4,
-.message > pre {
-  min-width: 0; /* Allow h4 and pre to shrink */
-  max-width: 100%; /* Ensure h4 and pre respect parent message width */
-  flex-shrink: 1; /* Allow h4 and pre to shrink in flex context */
-  box-sizing: border-box; /* Essential for internal elements */
-}
-
-/* For the span inside pre, specifically */
-pre span {
-    display: block; /* Treat as block-level for proper width calculation and wrapping */
-    max-width: 100% !important; /* Force it to respect parent width */
-    width: 100% !important; /* Force span to take full available width */
-    word-break: break-all !important; /* Force breaks */
-    overflow-wrap: anywhere !important; /* Stronger word breaking to prevent overflow */
-    white-space: pre-wrap !important; /* Force text to wrap within span inside pre */
-    box-sizing: border-box; /* Essential */
 }
 
 /* Copy button styling (for desktop) */
@@ -1003,12 +971,10 @@ pre span {
   margin: var(--spacing-sm) 0;
   margin-right: auto; /* Push to left */
   max-width: 100%; /* Ensure it respects parent width */
-  width: auto; /* Allow width to be determined by content and max-width */
+  width: 100%; /* Take full available width */
   min-width: 0; /* Allow shrinking */
   display: flex; /* Ensure it's a flex container for its message child */
   flex-direction: column; /* Stack message vertically within */
-  flex-shrink: 1; /* Explicitly allow shrinking to prevent overflow */
-  flex-basis: 0; /* Crucial for better shrinking in flex containers */
 }
 
 .center-container {
@@ -1069,9 +1035,6 @@ pre span {
   position: relative;
   margin-bottom: 2.5rem; /* Add more space for the glow effect below */
   border-radius: 25px 8px 25px 25px; /* Asymmetric for AI responses */
-  word-break: break-all;
-  max-width: 100%; /* Ensure it respects parent width */
-  box-sizing: border-box; /* Include padding and border in width */
 }
 .message-agent-response::after {
   content: '';
@@ -1141,7 +1104,7 @@ pre span {
   width: 100%;
   max-width: 100%;
   overflow-wrap: break-word;
-  word-break: break-all;
+  word-break: normal;
   white-space: normal !important;
 }
 
