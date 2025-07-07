@@ -1804,11 +1804,15 @@
                                 <div id="current-path">
                                     <span id="path-text" x-text="browser.currentPath"></span>
                                 </div>
+                                <input type="text" x-model="searchTerm" @input="filterEntries()" placeholder="Search files..." class="search-input">
                             </div>
 
                             <div class="files-list">
                                 <!-- Header -->
                                 <div class="file-header">
+                                    <div class="file-cell-checkbox">
+                                        <input type="checkbox" @click="toggleSelectAll()" x-model="allFilesSelected">
+                                    </div>
                                     <div class="file-cell" @click="toggleSort('name')">
                                         Name
                                         <span x-show="browser.sortBy === 'name'"
@@ -1830,9 +1834,12 @@
                                 </div>
 
                                 <!-- File List -->
-                                <template x-if="browser.entries.length">
-                                    <template x-for="file in sortFiles(browser.entries)" :key="file.path">
+                                <template x-if="filteredEntries.length">
+                                    <template x-for="file in sortFiles(filteredEntries)" :key="file.path">
                                         <div class="file-item" :data-is-dir="file.is_dir">
+                                            <div class="file-cell-checkbox">
+                                                <input type="checkbox" :value="file.path" x-model="selectedFiles">
+                                            </div>
                                             <div class="file-name"
                                                 @click="file.is_dir ? navigateToFolder(file.path) : downloadFile(file)">
                                                 <img :src="'/public/' + (file.type === 'unknown' ? 'file' : (isArchive(file.name) ? 'archive' : file.type)) + '.svg'"
@@ -1866,7 +1873,7 @@
                                 </template>
 
                                 <!-- Empty State -->
-                                <template x-if="!browser.entries.length">
+                                <template x-if="!filteredEntries.length">
                                     <div class="no-files">
                                         No files found
                                     </div>
@@ -1886,6 +1893,7 @@
                                 <input type="file" multiple="" accept="all" @change="handleFileUpload"
                                     style="display: none;">
                             </label>
+                            <button class="btn btn-danger" @click="deleteSelectedFiles()" :disabled="selectedFiles.length === 0">Delete Selected</button>
                             <button class="btn btn-cancel" @click="handleClose()">Close Browser</button>
                         </div>
                     </div>

@@ -10,6 +10,10 @@ const fileBrowserModalProxy = {
     sortBy: "name",
     sortDirection: "asc",
   },
+  searchTerm: "",
+  filteredEntries: [],
+  selectedFiles: [],
+  allFilesSelected: false,
 
   // Initialize navigation history
   history: [],
@@ -28,6 +32,8 @@ const fileBrowserModalProxy = {
       modalAD.browser.currentPath = "$WORK_DIR";
 
     await modalAD.fetchFiles(modalAD.browser.currentPath);
+    modalAD.selectedFiles = [];
+    modalAD.allFilesSelected = false;
   },
 
   isArchive(filename) {
@@ -48,19 +54,91 @@ const fileBrowserModalProxy = {
         this.browser.entries = data.data.entries;
         this.browser.currentPath = data.data.current_path;
         this.browser.parentPath = data.data.parent_path;
+        this.filterEntries(); // Apply filter after fetching
+        this.selectedFiles = []; // Clear selection on new folder load
+        this.allFilesSelected = false; // Uncheck select all
       } else {
         console.error("Error fetching files:", await response.text());
         this.browser.entries = [];
+        this.filteredEntries = [];
       }
     } catch (error) {
       window.toastFetchError("Error fetching files", error);
       this.browser.entries = [];
+      this.filteredEntries = [];
     } finally {
       this.isLoading = false;
     }
   },
 
-  async navigateToFolder(path) {
+  filterEntries() {
+    const term = this.searchTerm.toLowerCase();
+    this.filteredEntries = this.browser.entries.filter(entry =>
+      entry.name.toLowerCase().includes(term)
+    );
+  },
+
+  toggleSelectAll() {
+    if (this.allFilesSelected) {
+      this.selectedFiles = this.filteredEntries.map(file => file.path);
+    } else {
+      this.selectedFiles = [];
+    }
+  },
+
+  async deleteFile(file) {
+    if (!confirm(`Are you sure you want to delete ${file.name}?`)) {
+      return;
+    }
+    await this._performDelete([file.path]);
+  },
+
+  async deleteSelectedFiles() {
+    if (this.selectedFiles.length === 0) {
+      alert("No files selected for deletion.");
+      return;
+    }
+    if (!confirm(`Are you sure you want to delete ${this.selectedFiles.length} selected files?`)) {
+      return;
+    }
+    await this._performDelete(this.selectedFiles);
+  },
+
+  async _performDelete(pathsToDelete) {
+    this.isLoading = true;
+    try {
+      const response = await fetch("/delete_work_dir_files", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          paths: pathsToDelete,
+          currentPath: this.browser.currentPath,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Filter out deleted files from both browser.entries and filteredEntries
+        const deletedPaths = data.data.deleted_paths;
+        this.browser.entries = this.browser.entries.filter(entry => !deletedPaths.includes(entry.path));
+        this.filterEntries(); // Re-apply filter after deletion
+        this.selectedFiles = []; // Clear selection after deletion
+        this.allFilesSelected = false; // Uncheck select all
+        alert("Selected files deleted successfully.");
+      } else {
+        alert(`Error deleting files: ${await response.text()}`);
+      }
+    } catch (error) {
+      window.toastFetchError("Error deleting files", error);
+      alert("Error deleting files");
+    } finally {
+      this.isLoading = false;
+    }
+  },
+
+  async handleFileUpload(event) {
     // Push current path to history before navigating
     if (this.browser.currentPath !== path) {
       this.history.push(this.browser.currentPath);
@@ -255,6 +333,11 @@ document.addEventListener("alpine:init", () => {
         if (value) {
           await this.fetchFiles(this.browser.currentPath);
         }
+      });
+
+      // Watch for changes in filteredEntries to update allFilesSelected
+      this.$watch('selectedFiles', (newSelectedFiles) => {
+        this.allFilesSelected = newSelectedFiles.length > 0 && newSelectedFiles.length === this.filteredEntries.length;
       });
     },
   }));

@@ -1327,7 +1327,6 @@ pre span {
   gap: 8px;
   margin-bottom: 10px;
   padding: var(--spacing-xs);
-  transition: all 0.3s ease;
   background-color: var(--color-input);
   border-radius: 8px;
   margin-bottom: var(--spacing-xs);
@@ -2781,4 +2780,238 @@ a:active {
   .responsive-screenshot-img {
     max-width: 100%; /* Full width on smaller screens */
   }
+}
+
+/* File Browser Specific Styles */
+.modal-container .path-navigator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.modal-container .path-navigator .search-input {
+    flex-grow: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    background-color: var(--color-input);
+    color: var(--color-text);
+    font-size: 0.9em;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.modal-container .path-navigator .search-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+}
+
+.files-list {
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    background-color: var(--color-panel);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.file-header,
+.file-item {
+    display: grid;
+    grid-template-columns: 30px 2.5fr 1fr 1fr 100px; /* Checkbox + Name + Size + Modified + Actions */
+    gap: 10px;
+    padding: 10px 15px;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+}
+
+.file-header {
+    background-color: rgba(0, 229, 255, 0.1);
+    font-weight: bold;
+    color: var(--color-accent);
+    cursor: pointer;
+}
+
+.file-header .file-cell,
+.file-header .file-cell-size,
+.file-header .file-cell-date {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.file-header span {
+    font-size: 0.8em;
+    vertical-align: middle;
+}
+
+.file-item {
+    background-color: var(--color-background-dark);
+    transition: background-color 0.2s ease;
+}
+
+.file-item:hover {
+    background-color: rgba(0, 229, 255, 0.05);
+}
+
+.file-item[data-is-dir="true"] {
+    background-color: rgba(0, 229, 255, 0.02);
+}
+
+.file-item[data-is-dir="true"]:hover {
+    background-color: rgba(0, 229, 255, 0.08);
+}
+
+.file-cell-checkbox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.file-cell-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary); /* Style checkbox accent color */
+}
+
+.file-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: var(--color-text);
+}
+
+.file-name .file-icon {
+    width: 20px;
+    height: 20px;
+    filter: var(--svg-filter);
+}
+
+.file-name span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-size,
+.file-date {
+    color: var(--color-text-muted);
+    font-size: 0.9em;
+}
+
+.file-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.action-button,
+.delete-button {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.action-button svg,
+.delete-button svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+}
+
+.action-button:hover {
+    background-color: rgba(0, 229, 255, 0.2);
+}
+
+.delete-button {
+    color: var(--color-red-neon); /* Red color for delete */
+}
+
+.delete-button:hover {
+    background-color: rgba(255, 0, 0, 0.2);
+}
+
+.delete-button:active,
+.action-button:active {
+    transform: scale(0.9);
+}
+
+.no-files {
+    text-align: center;
+    padding: 20px;
+    color: var(--color-text-muted);
+}
+
+/* Modal Footer Buttons */
+.modal-footer #buttons-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    width: 100%;
+}
+
+.modal-footer .btn {
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-footer .btn-upload {
+    background-color: var(--color-primary);
+    color: var(--color-background-dark);
+    border: 1px solid var(--color-primary);
+}
+
+.modal-footer .btn-upload:hover {
+    background-color: var(--color-accent);
+    box-shadow: var(--neon-glow-primary);
+}
+
+.modal-footer .btn-danger {
+    background-color: var(--color-red-neon);
+    color: var(--color-background-dark);
+    border: 1px solid var(--color-red-neon);
+}
+
+.modal-footer .btn-danger:hover {
+    background-color: #ff3366;
+    box-shadow: var(--neon-glow-red);
+}
+
+.modal-footer .btn-danger:disabled {
+    background-color: rgba(255, 0, 0, 0.1); 
+    color: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 0, 0, 0.1);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.modal-footer .btn-cancel {
+    background-color: transparent;
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+.modal-footer .btn-cancel:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-color: var(--color-primary);
+}
+
+.modal-footer .btn svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor; /* Ensure SVG icons inherit text color */
+    stroke: currentColor;
 }
