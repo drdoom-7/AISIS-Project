@@ -29,7 +29,7 @@ const fileBrowserModalProxy = {
     // Initialize currentPath to root if it's empty
     if (path) modalAD.browser.currentPath = path;
     else if (!modalAD.browser.currentPath)
-      modalAD.browser.currentPath = "$WORK_DIR";
+      modalAD.browser.currentPath = "/"; // Start at root if no path specified
 
     await modalAD.fetchFiles(modalAD.browser.currentPath);
     modalAD.selectedFiles = [];
@@ -138,7 +138,7 @@ const fileBrowserModalProxy = {
     }
   },
 
-  async handleFileUpload(event) {
+  async navigateToFolder(path) {
     // Push current path to history before navigating
     if (this.browser.currentPath !== path) {
       this.history.push(this.browser.currentPath);
@@ -185,37 +185,7 @@ const fileBrowserModalProxy = {
     }
   },
 
-  async deleteFile(file) {
-    if (!confirm(`Are you sure you want to delete ${file.name}?`)) {
-      return;
-    }
 
-    try {
-      const response = await fetch("/delete_work_dir_file", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          path: file.path,
-          currentPath: this.browser.currentPath,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        this.browser.entries = this.browser.entries.filter(
-          (entry) => entry.path !== file.path
-        );
-        alert("File deleted successfully.");
-      } else {
-        alert(`Error deleting file: ${await response.text()}`);
-      }
-    } catch (error) {
-      window.toastFetchError("Error deleting file", error);
-      alert("Error deleting file");
-    }
-  },
 
   async handleFileUpload(event) {
     try {
@@ -298,6 +268,138 @@ const fileBrowserModalProxy = {
     }
   },
 
+  // Breadcrumbs logic
+  getBreadcrumbs() {
+    const pathParts = this.browser.currentPath.split('/').filter(p => p !== '');
+    let currentPath = '';
+    const breadcrumbs = [{
+      name: 'root',
+      path: '/'
+    }]; // Always start with root
+
+    for (let i = 0; i < pathParts.length; i++) {
+      currentPath += '/' + pathParts[i];
+      breadcrumbs.push({
+        name: pathParts[i],
+        path: currentPath
+      });
+    }
+    return breadcrumbs;
+  },
+
+  // New Folder and File creation
+  async createNewFolder() {
+    const folderName = prompt('Enter new folder name:');
+    if (!folderName) return;
+
+    const newPath = `${this.browser.currentPath}${folderName}`;
+    this.isLoading = true;
+    try {
+      const response = await fetch('/create_work_dir_folder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: newPath, currentPath: this.browser.currentPath })
+      });
+      if (response.ok) {
+        await this.fetchFiles(this.browser.currentPath);
+        alert(`Folder '${folderName}' created successfully.`);
+      } else {
+        alert(`Error creating folder: ${await response.text()}`);
+      }
+    } catch (error) {
+      window.toastFetchError('Error creating folder', error);
+      alert('Error creating folder');
+    } finally {
+      this.isLoading = false;
+    }
+  },
+
+  async createNewFile() {
+    const fileName = prompt('Enter new file name:');
+    if (!fileName) return;
+
+    const newPath = `${this.browser.currentPath}${fileName}`;
+    this.isLoading = true;
+    try {
+      const response = await fetch('/create_work_dir_file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: newPath, currentPath: this.browser.currentPath })
+      });
+      if (response.ok) {
+        await this.fetchFiles(this.browser.currentPath);
+        alert(`File '${fileName}' created successfully.`);
+      } else {
+        alert(`Error creating file: ${await response.text()}`);
+      }
+    } catch (error) {
+      window.toastFetchError('Error creating file', error);
+      alert('Error creating file');
+    } finally {
+      this.isLoading = false;
+    }
+  },
+
+  // File content viewing
+  async openFileForView(filePath) {
+    this.isLoading = true;
+    try {
+      const response = await fetch(`/read_work_dir_file?path=${encodeURIComponent(filePath)}`);
+      if (response.ok) {
+        const content = await response.text();
+        window.genericModalProxy.openModal('File Content', `<pre>${escapeHTML(content)}</pre>`);
+      } else {
+        alert(`Error reading file: ${await response.text()}`);
+      }
+    } catch (error) {
+      window.toastFetchError('Error reading file', error);
+      alert('Error reading file');
+    } finally {
+      this.isLoading = false;
+    }
+  },
+
+  // Helper for dynamic file icons
+  getFileIcon(file) {
+    if (file.is_dir) {
+      return '/public/folder.svg';
+    } else if (this.isArchive(file.name)) {
+      return '/public/archive.svg';
+    } else {
+      // Map common file types to icons, default to 'file.svg'
+      const fileTypeIcons = {
+        'txt': 'document',
+        'md': 'document',
+        'pdf': 'document',
+        'json': 'code',
+        'py': 'code',
+        'js': 'code',
+        'html': 'code',
+        'css': 'code',
+        'svg': 'image',
+        'png': 'image',
+        'jpg': 'image',
+        'jpeg': 'image',
+        'gif': 'image',
+        'mp4': 'video',
+        'mov': 'video',
+        'avi': 'video',
+        'mp3': 'audio',
+        'wav': 'audio',
+        'ogg': 'audio',
+      };
+      const ext = file.name.split('.').pop().toLowerCase();
+      return `/public/${fileTypeIcons[ext] || 'file'}.svg`;
+    }
+  },
+
+  // Utility to escape HTML for safe display in <pre>
+  escapeHTML(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  },
+
   // Helper Functions
   formatFileSize(size) {
     if (size === 0) return "0 Bytes";
@@ -367,3 +469,10 @@ openFileLink = async function (path) {
   }
 };
 window.openFileLink = openFileLink;
+
+// Added for the new file creation features - need a generic modal for prompts/viewing
+function escapeHTML(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}

@@ -1,17 +1,26 @@
 /* File Browser Styles */
 
 .files-list,
+.files-list,
 .file-header,
 .file-item {
   width: 100%;
-  border-radius: 8px; /* Slightly more rounded corners */
+  border-radius: 8px;
   overflow: hidden;
 }
+
+.file-browser-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
 
 /* Header Styles */
 .file-header {
   display: grid;
-  grid-template-columns: 2fr 0.6fr 1fr 80px;
+  grid-template-columns: 30px 2fr 0.6fr 1fr 100px; /* Checkbox, Name, Size, Date, Actions */
   background: var(--color-panel-header); /* Use header background color */
   padding: 10px 0; /* More vertical padding */
   font-weight: bold;
@@ -20,18 +29,37 @@
   box-shadow: inset 0 -2px 8px rgba(0, 229, 255, 0.1); /* Inner glow */
 }
 
-.file-cell,
+.file-cell-checkbox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 5px;
+}
+
+.file-cell-name {
+  padding: 8px;
+}
+
 .file-cell-size,
 .file-cell-date {
+  padding: 8px;
+}
+
+.file-cell {
   color: var(--color-primary); /* Consistent primary color for cell text */
   padding: 8px; /* More padding */
   cursor: pointer;
 }
 
+.file-cell-actions {
+  text-align: center;
+  padding: 8px;
+}
+
 /* File Item Styles */
 .file-item {
   display: grid;
-  grid-template-columns: 2fr 0.6fr 1fr 80px;
+  grid-template-columns: 30px 2fr 0.6fr 1fr 100px; /* Checkbox, Name, Size, Date, Actions */
   align-items: center;
   padding: 10px 0; /* More vertical padding */
   font-size: 0.9rem; /* Slightly larger font */
@@ -81,10 +109,20 @@
 
 /* No Files Message */
 .no-files {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 32px;
   text-align: center;
   color: var(--color-text-muted); /* Muted text */
   font-style: italic;
+  gap: 10px;
+}
+
+.no-files .fas {
+  font-size: 3rem;
+  color: var(--color-primary);
 }
 
 /* Light Mode Adjustments */
@@ -99,63 +137,105 @@
   gap: 15px; /* Adjusted gap */
   background-color: var(--color-panel); /* Glassmorphism background */
   padding: 0.8rem 1rem; /* More padding */
-  margin-bottom: 0.8rem; /* More margin */
   border: var(--glass-border-width) solid var(--glass-border-color); /* Glassmorphism border */
   border-radius: var(--border-radius); /* Match panel border radius */
   box-shadow: var(--glass-shadow); /* Glassmorphism shadow */
   backdrop-filter: blur(calc(var(--glass-blur) / 2)); /* Subtle blur */
   -webkit-backdrop-filter: blur(calc(var(--glass-blur) / 2));
   transition: all 0.3s ease; /* Smooth transitions */
+  flex-grow: 1;
 }
 
 .path-navigator:hover {
   box-shadow: var(--neon-glow-primary-hover-sm); /* Subtle neon glow on hover */
-  transform: translateY(-2px); /* Slight lift */
+  /* transform: translateY(-2px); */ /* Removed slight lift as it affects overall layout */
 }
 
-.nav-button {
-  padding: 6px 14px; /* More padding */
-  border: 1px solid var(--color-border); /* Consistent border */
-  border-radius: 6px; /* More rounded */
-  background: var(--color-input); /* Input-like background */
-  color: var(--color-text); /* Consistent text color */
+.text-button.back-button {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-input);
+  color: var(--color-text);
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Inner shadow */
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.nav-button:hover {
-  background: rgba(0, 229, 255, 0.08); /* Subtle neon background */
-  border-color: var(--color-accent); /* Neon accent border */
-  box-shadow: 0 0 5px var(--color-accent); /* Subtle neon glow */
+.text-button.back-button:hover {
+  background: rgba(0, 229, 255, 0.08);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 5px var(--color-accent);
 }
 
-.nav-button.back-button {
-  background-color: var(--color-primary); /* Primary color for back button */
-  color: var(--color-background-dark); /* Dark text */
-  box-shadow: var(--neon-glow-primary); /* Neon glow */
-  border: none; /* No border for primary button */
+.text-button.back-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  background-color: var(--color-input);
+  border-color: var(--color-border);
 }
 
-.nav-button.back-button:hover {
-  background-color: var(--color-accent); /* Neon accent on hover */
-  box-shadow: 0 0 10px var(--color-accent), 0 0 25px var(--color-primary); /* Stronger neon glow */
-  transform: translateY(-2px); /* Subtle lift */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.9em;
+  color: var(--color-text-muted);
 }
 
-#current-path {
-  opacity: 0.9;
-  color: var(--color-primary); /* Highlight current path */
+.breadcrumb-item a {
+  color: var(--color-primary);
+  text-decoration: none;
   font-weight: 500;
 }
 
-#path-text {
-  font-family: 'Roboto Mono', monospace;
-  font-optical-sizing: auto;
-  -webkit-font-optical-sizing: auto;
-  opacity: 0.9;
-  color: var(--color-text-muted); /* Muted path text */
+.breadcrumb-item a:hover {
+  text-decoration: underline;
+  color: var(--color-accent);
 }
+
+.breadcrumb-item span {
+  margin: 0 5px;
+}
+
+.file-actions-top {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.file-actions-top .search-input {
+  flex-grow: 1;
+  min-width: 150px; /* Ensure search input is not too small */
+}
+
+.file-actions-top .btn {
+  padding: 8px 15px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.file-actions-top .btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-background-dark);
+  border: none;
+  box-shadow: var(--neon-glow-primary);
+}
+
+.file-actions-top .btn-primary:hover {
+  background-color: var(--color-accent);
+  box-shadow: 0 0 10px var(--color-accent), 0 0 25px var(--color-primary);
+  transform: translateY(-2px);
+}
+
+
 
 /* Folder Specific Styles */
 .file-item[data-is-dir="true"] {
@@ -207,36 +287,11 @@
   opacity: 0.8;
 }
 
-/* Delete Button Styles */
-.delete-button {
-  background: transparent;
-  border: none;
-  color: var(--color-red-neon); /* Neon red for delete */
-  cursor: pointer;
-  width: 36px; /* Larger button */
-  height: 36px;
-  padding: 6px; /* Adjusted padding */
-  border-radius: 50%; /* Circular button */
-  transition: all 0.2s;
-  font-size: 1.5rem; /* Larger 'X' if text */
-}
-
-.delete-button:hover {
-  background-color: rgba(255, 7, 58, 0.1); /* Subtle red background */
-  color: var(--color-red-neon); /* Stronger red */
-  box-shadow: var(--neon-glow-red); /* Red neon glow */
-  transform: scale(1.1); /* Enlarge on hover */
-}
-
-.delete-button:active {
-  opacity: 0.6;
-  transform: scale(0.95);
-}
-
-/* File Actions */
+/* Action Buttons */
 .file-actions {
   display: flex;
-  gap: 8px; /* Consistent gap */
+  gap: 8px;
+  justify-content: center; /* Center actions in their grid cell */
 }
 
 .action-button {
@@ -267,6 +322,23 @@
   transform: translateY(-2px); /* Slight lift */
 }
 
+/* Delete Button specific styles */
+.action-button.delete-button {
+  color: var(--color-red-neon); /* Neon red for delete */
+  border-color: var(--color-red-neon);
+}
+
+.action-button.delete-button:hover {
+  background-color: rgba(255, 7, 58, 0.1); /* Subtle red background */
+  box-shadow: var(--neon-glow-red);
+}
+
+.action-button:active,
+.action-button.delete-button:active {
+  opacity: 0.6;
+  transform: scale(0.95);
+}
+
 .light-mode .download-button:hover {
   background-color: #c6d4de;
 }
@@ -275,7 +347,7 @@
 @media (max-width: 768px) {
   .file-header,
   .file-item {
-    grid-template-columns: 1fr 0.5fr 80px;
+    grid-template-columns: 30px 1.5fr 0.5fr 80px; /* Checkbox, Name, Size, Actions (Date hidden) */
   }
 
   .file-cell-date,
@@ -287,7 +359,7 @@
 @media (max-width: 540px) {
   .file-header,
   .file-item {
-    grid-template-columns: 1fr 80px;
+    grid-template-columns: 30px 1fr 80px; /* Checkbox, Name, Actions (Size and Date hidden) */
   }
 
   .file-cell-size,
