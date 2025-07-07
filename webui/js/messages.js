@@ -507,19 +507,21 @@ export function drawMessageError(
 
 function drawKvps(container, kvps, latex) {
   if (kvps) {
-    const table = document.createElement("table");
-    table.classList.add("msg-kvps");
+    const dl = document.createElement("dl");
+    dl.classList.add("message-details");
     for (let [key, value] of Object.entries(kvps)) {
-      const row = table.insertRow();
-      row.classList.add("kvps-row");
+      const divItem = document.createElement("div");
+      divItem.classList.add("detail-item");
       if (key === "thoughts" || key === "reflection")
-        row.classList.add("msg-thoughts");
+        divItem.classList.add("msg-thoughts");
 
-      const th = row.insertCell();
-      th.textContent = convertToTitleCase(key);
-      th.classList.add("kvps-key");
+      const dt = document.createElement("dt");
+      dt.textContent = convertToTitleCase(key);
+      dt.classList.add("detail-key");
+      divItem.appendChild(dt);
 
-      const td = row.insertCell();
+      const dd = document.createElement("dd");
+      dd.classList.add("detail-value");
 
       if (Array.isArray(value)) {
         for (const item of value) {
@@ -535,29 +537,25 @@ function drawKvps(container, kvps, latex) {
         if (typeof value === "string" && value.startsWith("img://")) {
           const imgElement = document.createElement("img");
           imgElement.classList.add("kvps-img");
-          imgElement.classList.add("responsive-screenshot-img"); // Add new class here
+          imgElement.classList.add("responsive-screenshot-img");
           imgElement.src = value.replace("img://", "/image_get?path=");
           imgElement.alt = "Image Attachment";
-          td.appendChild(imgElement);
+          dd.appendChild(imgElement);
 
-          // Add click handler and cursor change
           imgElement.style.cursor = "pointer";
           imgElement.addEventListener("click", () => {
             openImageModal(imgElement.src, 1000);
           });
-
-          td.appendChild(imgElement);
         } else {
           const pre = document.createElement("pre");
-          pre.classList.add("kvps-val");
-          //   if (row.classList.contains("msg-thoughts")) {
+          pre.classList.add("detail-content");
+
           const span = document.createElement("span");
           span.innerHTML = convertHTML(value);
           pre.appendChild(span);
-          td.appendChild(pre);
-          addCopyButtonToElement(row);
+          dd.appendChild(pre);
+          addCopyButtonToElement(dd);
 
-          // Add click handler
           span.addEventListener("click", () => {
             copyText(span.textContent, span);
           });
@@ -570,19 +568,10 @@ function drawKvps(container, kvps, latex) {
           }
         }
       }
-      //   } else {
-      //     pre.textContent = value;
-
-      //     // Add click handler
-      //     pre.addEventListener("click", () => {
-      //       copyText(value, pre);
-      //     });
-
-      //     td.appendChild(pre);
-      //     addCopyButtonToElement(row);
-      //   }
+      divItem.appendChild(dd);
+      dl.appendChild(divItem);
     }
-    container.appendChild(table);
+    container.appendChild(dl);
   }
 }
 

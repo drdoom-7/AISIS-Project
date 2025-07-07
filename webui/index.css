@@ -975,7 +975,9 @@ pre span {
   border: 1px solid rgba(0, 229, 255, 0.3);
 }
 
-.message:hover .copy-button {
+.message:hover .copy-button,
+.detail-item:hover .copy-button, /* Show copy button on detail-item hover */
+.message-text:hover .copy-button { /* Show copy button on message-text hover */
   opacity: 1;
   pointer-events: auto;
 }
@@ -1210,45 +1212,62 @@ pre span {
   opacity: 0.7;
 }
 
-/* Key-Value Pair (KVPS) Styling */
-.msg-kvps {
+/* Key-Value Pair (KVPS) Styling - New DL Structure */
+.message-details {
   font-size: 0.9em;
   margin: 0.5rem 0 0.55rem 0;
-  border-collapse: separate; /* Use separate to control spacing better */
-  border-spacing: 0 8px; /* Vertical spacing between rows */
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Vertical spacing between detail items */
 }
 
-.msg-kvps th,
-.msg-kvps td {
-  align-content: center;
-  padding: 0.8rem 1.2rem; /* Slightly increased padding for more space */
-  text-align: left;
-  border-bottom: none; /* Remove individual row borders */
-}
-
-.msg-kvps th {
-  color: var(--color-primary); /* Primary color for key */
-  width: 40%;
-  font-weight: bold;
-  font-size: 0.9em; /* Slightly smaller font for keys */
-  background-color: transparent; /* No specific background for key */
-}
-
-.msg-kvps tr {
-  display: table-row;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
-  border-radius: 12px; /* Slight rounding for each key-value pair row */
+.detail-item {
+  display: flex;
+  flex-direction: column; /* Stack key and value */
   background-color: rgba(26, 26, 34, 0.2); /* Subtle background for individual KVPs */
   border: 1px solid rgba(0, 229, 255, 0.1);
+  border-radius: 12px; /* Slight rounding for each key-value pair */
+  padding: 0.8rem 1.2rem; /* Consistent padding */
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
 }
 
-.msg-kvps tr:hover {
+.detail-item:hover {
   background-color: rgba(0, 229, 255, 0.08); /* Highlight on hover */
-  box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); /* Subtle row glow */
+  box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); /* Subtle glow */
 }
 
-.msg-kvps .msg-thoughts {
+.detail-key {
+  color: var(--color-primary); /* Primary color for key */
+  font-weight: bold;
+  font-size: 0.9em; /* Slightly smaller font for keys */
+  margin-bottom: 0.2rem; /* Small space between key and value */
+}
+
+.detail-value {
+  font-size: var(--font-size-small);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal; /* Ensure text wraps normally */
+  position: relative; /* For copy button positioning */
+}
+
+.detail-content {
+  font-family: 'Roboto Mono', monospace;
+  font-optical-sizing: auto;
+  -webkit-font-optical-sizing: auto;
+  font-size: 0.75rem;
+  white-space: pre-wrap !important;
+  word-wrap: break-word;
+  overflow-wrap: anywhere !important;
+  overflow-x: auto !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.msg-thoughts {
     background-color: var(--color-futuristic-thoughts-blue); /* Light, elegant blue for thoughts */
     border-radius: 30px 30px 30px 10px; /* More rounded corners for bubble effect, slight asymmetry */
     padding: 1rem 1.5rem; /* Increased padding for spacious feel */
@@ -1258,7 +1277,7 @@ pre span {
     font-style: italic; /* Make thoughts visually distinct as internal monologue */
     font-size: 0.95rem; /* Slightly larger for thoughts */
 }
-.msg-kvps .msg-thoughts::after {
+.msg-thoughts::after {
   content: '';
   position: absolute;
   bottom: -15px; /* Position the tail further below the bubble */
@@ -2156,7 +2175,7 @@ color: var(--color-text); /* Ensure text color */
 
   .msg-thoughts span::after,
   .msg-content span::after,
-  .kvps-val::after,
+  .detail-content span::after,
   .message-text.copied::after {
     content: 'Copied!';
     position: absolute;
@@ -2175,7 +2194,7 @@ color: var(--color-text); /* Ensure text color */
 
   .msg-thoughts span.copied::after,
   .msg-content span.copied::after,
-  .kvps-val.copied::after,
+  .detail-content span.copied::after,
   .message-text.copied::after {
     opacity: 1;
   }
@@ -2406,28 +2425,25 @@ color: var(--color-text); /* Ensure text color */
     padding-bottom: 0;
   }
 
-  .msg-kvps th,
-  .msg-kvps td {
-    display: block;
-    width: 100%;
+    .detail-item {
+    flex-direction: column; /* Stack key and value on small screens */
+    padding: 0.6rem 0.8rem; /* Adjusted padding for mobile */
+  }
+
+  .detail-key {
+    margin-bottom: 0.15rem;
+  }
+
+  .detail-value {
+    padding-left: 0;
     text-align: left;
-    border-bottom: none;
-    padding: 0.25rem 0;
-    padding-left: 0 !important;
-    white-space: normal; /* Ensure text wraps normally */
-    word-break: normal; /* Prevent character-level breaking */
   }
 
-  .msg-kvps th {
-    color: var(--color-primary);
-    margin-bottom: 0.25rem;
-  }
-
-  .kvps-val {
-  margin: 0 0 0.4rem 0;
-  white-space: pre-wrap !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
+  .detail-content {
+    margin: 0 0 0.4rem 0;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
   }
 }
 
