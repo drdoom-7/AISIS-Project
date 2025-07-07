@@ -34,9 +34,9 @@
   --color-futuristic-final-response-shadow: rgba(46, 204, 113, 0.6);
   --color-futuristic-final-response-glow-cyan: rgba(0, 229, 255, 0.6); /* User requested "cool cyan effect blow final response" */
 
-  --color-futuristic-thoughts-blue: rgba(255, 160, 90, 0.2); /* Muted Orange #FFA05A */
-  --color-futuristic-thoughts-border: rgba(255, 160, 90, 0.4);
-  --color-futuristic-thoughts-shadow: rgba(255, 160, 90, 0.5);
+  --color-futuristic-thoughts-blue: rgba(255, 160, 90, 0.08); /* Muted Orange, very low opacity */
+  --color-futuristic-thoughts-border: rgba(255, 160, 90, 0.15); /* Very low opacity border */
+  --color-futuristic-thoughts-shadow: rgba(255, 160, 90, 0.2); /* Very low opacity shadow */
 
   --color-futuristic-agent-purple: rgba(142, 68, 173, 0.25); /* #8e44ad */
   --color-futuristic-agent-border: rgba(142, 68, 173, 0.5);
@@ -1222,7 +1222,7 @@ pre span {
 .msg-kvps th,
 .msg-kvps td {
   align-content: center;
-  padding: 0.8rem 1rem; /* More generous padding */
+  padding: 0.8rem 1.2rem; /* Slightly increased padding for more space */
   text-align: left;
   border-bottom: none; /* Remove individual row borders */
 }
@@ -1253,7 +1253,7 @@ pre span {
     border-radius: 30px 30px 30px 10px; /* More rounded corners for bubble effect, slight asymmetry */
     padding: 1rem 1.5rem; /* Increased padding for spacious feel */
     margin-bottom: 1.5rem; /* More space below thoughts */
-    box-shadow: 0 0 20px var(--color-futuristic-thoughts-shadow), inset 0 0 12px rgba(255, 160, 90, 0.3); /* Enhanced glow */
+    box-shadow: 0 0 20px var(--color-futuristic-thoughts-shadow), inset 0 0 12px rgba(255, 160, 90, 0.08); /* Enhanced glow, very subtle inset */
     position: relative;
     font-style: italic; /* Make thoughts visually distinct as internal monologue */
     font-size: 0.95rem; /* Slightly larger for thoughts */
