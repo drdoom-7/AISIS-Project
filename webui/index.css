@@ -231,6 +231,21 @@
     }
 }
 
+
+
+@keyframes mobile-logo-line-glow {
+  0%, 100% {
+    width: 60%;
+    opacity: 0.6;
+    filter: blur(2px);
+  }
+  50% {
+    width: 80%;
+    opacity: 1;
+    filter: blur(5px);
+  }
+}
+
 /* Reset and Base Styles */
 body,
 html {
@@ -2150,6 +2165,24 @@ color: var(--color-text); /* Ensure text color */
     -webkit-backdrop-filter: none;
     padding: 0;
   }
+
+  #logo-container.logo-active {
+    animation: none; /* Disable the main logo glitch/glow on mobile */
+    box-shadow: none; /* Ensure no residual box-shadow */
+  }
+
+  #logo-container.logo-active::after {
+    content: '';
+    position: absolute;
+    bottom: -5px; /* Position slightly up from below the logo */
+    left: 50%;
+    transform: translateX(-50%);
+    height: 3px; /* Thin line */
+    background: var(--color-accent-dark); /* Use accent color for glow */
+    border-radius: 5px; /* Rounded ends for the line */
+    animation: mobile-logo-line-glow 1.8s infinite alternate ease-in-out;
+  }
+
   
   #right-panel {
     margin-left: 0; /* Remove margin when stacked */
