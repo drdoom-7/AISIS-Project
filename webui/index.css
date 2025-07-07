@@ -295,7 +295,7 @@ body {
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   box-shadow: 0 0px 30px rgba(0, 0, 0, 0.4); /* Adjusted to remove top component (double bar effect) */
-  transition: all var(--transition-speed) ease-in-out, box-shadow 0.5s ease; /* Add box-shadow transition */
+  transition: all 0.4s ease, box-shadow 0.5s ease; /* Add box-shadow transition */
 }
 
 .panel:hover {
@@ -3030,4 +3030,9 @@ a:active {
     height: 18px;
     fill: currentColor; /* Ensure SVG icons inherit text color */
     stroke: currentColor;
+}
+
+/* NEW RULE FOR .msg-json */
+.msg-json {
+    display: block;
 }
