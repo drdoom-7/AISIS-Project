@@ -44,11 +44,22 @@ class RecallMemories(Extension):
             heading="Searching memories...",
         )
 
-        # get system message and chat history for util llm
-        # msgs_text = self.agent.concat_messages(
-        #     self.agent.history[-RecallMemories.HISTORY :]
-        # )  # only last X messages
-        msgs_text = self.agent.history.output_text()[-RecallMemories.HISTORY:]
+        # Filter history for query generation to avoid verbose tool outputs
+        # Only include human messages (ai=False) for contextual history
+        contextual_history_messages = []
+        # Get the full history as a flat list of OutputMessage
+        full_history_outputs = self.agent.history.output()
+
+        # Import output_text from python.helpers.history for correct formatting
+        from python.helpers.history import output_text 
+        for output_msg in full_history_outputs[-RecallMemories.HISTORY:]:
+            if not output_msg['ai']:  # Only human messages
+                # Use output_text to get the string representation of the content
+                # output_text expects a list of OutputMessage, so wrap the single output_msg
+                contextual_history_messages.append(output_text([output_msg], human_label="USER", ai_label="AI"))
+        
+        msgs_text = "\n".join(contextual_history_messages)
+
         system = self.agent.read_prompt(
             "memory.memories_query.sys.md", history=msgs_text
         )
@@ -58,11 +69,20 @@ class RecallMemories(Extension):
             log_item.stream(query=content)
 
         # call util llm to summarize conversation
-        query = await self.agent.call_utility_model(
+        query_raw = await self.agent.call_utility_model(
             system=system,
-            message=loop_data.user_message.output_text(),
+            message=loop_data.user_message.output_text(), # This is the current user message
             callback=log_callback,
         )
+        # Ensure the query is a plain string, not JSON, in case utility model misbehaves
+        try:
+            parsed_query = self.agent.dirty_json.parse_string(query_raw)
+            if isinstance(parsed_query, dict) or isinstance(parsed_query, list):
+                query = self.agent.dirty_json.stringify(parsed_query) # Convert JSON back to string
+            else:
+                query = query_raw # Use as is if not JSON
+        except Exception:
+            query = query_raw # Fallback if parsing fails
 
         # get solutions database
         db = await Memory.get(self.agent)
