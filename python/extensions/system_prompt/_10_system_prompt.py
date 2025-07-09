@@ -9,9 +9,10 @@ from python.helpers.localization import Localization
 class SystemPrompt(Extension):
 
     async def execute(self, system_prompt: list[str] = [], loop_data: LoopData = LoopData(), **kwargs: Any):
-        # If this is a subordinate agent, do not append the default system prompt.
-        if self.agent.get_data(Agent.DATA_NAME_SUPERIOR):
-            return
+        # Removed the check for self.agent.get_data(Agent.DATA_NAME_SUPERIOR) and the early return.
+        # This allows all agents, including subordinates, to load their system prompts
+        # using self.agent.config.prompts_subdir, which agent.read_prompt already handles.
+        
         # append main system prompt and tools
         main = get_main_prompt(self.agent)
         tools = get_tools_prompt(self.agent)
@@ -43,4 +44,3 @@ def get_mcp_tools_prompt(agent: Agent):
         agent.context.log.set_progress(pre_progress) # return original progress
         return tools
     return ""
-        

@@ -1,11 +1,18 @@
 from agent import Agent, UserMessage, AgentContext, AgentContextType, AgentConfig
 from python.helpers.tool import Tool, Response
 from copy import deepcopy
-
+import os
+from datetime import datetime
 
 class DeepResearchAgent(Tool):
 
     async def execute(self, message="", reset="", **kwargs):
+        log_file_path = "/root/deep_research_agent_tool_debug.log"
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        with open(log_file_path, "a") as f:
+            f.write(f"[{timestamp}] deep_research_agent_tool execution started (reset={reset})\n")
+
         # create subordinate agent using the data object on this agent and set superior agent to his data object
         if (
             self.agent.get_data(Agent.DATA_NAME_SUBORDINATE) is None
@@ -16,6 +23,9 @@ class DeepResearchAgent(Tool):
             sub_config = deepcopy(self.agent.config)
             # Set the prompts_subdir for the deep research agent
             sub_config.prompts_subdir = "deep-research-agent3"
+
+            with open(log_file_path, "a") as f:
+                f.write(f"[{timestamp}] Subordinate AgentConfig.prompts_subdir set to: {sub_config.prompts_subdir}\n")
 
             # Create a new AgentContext but pass the superior's log object
             # This allows the subordinate to have its own context (for history, etc.)
@@ -30,6 +40,9 @@ class DeepResearchAgent(Tool):
 
         # add user message to subordinate agent
         subordinate: Agent = self.agent.get_data(Agent.DATA_NAME_SUBORDINATE)
+
+        with open(log_file_path, "a") as f:
+            f.write(f"[{timestamp}] Message passed to subordinate: {message}\n")
 
         # No need to set a one-time system prompt; it will be loaded from prompts_subdir
         # subordinate.set_data("_one_time_system_prompt", subordinate_system_prompt)
@@ -47,6 +60,9 @@ class DeepResearchAgent(Tool):
 
         # Append debug info to the result message (as a separate section)
         response_message = f"Subordinate response: {result}\n\n[SUBORDINATE_DEBUG]: {debug_info}"
+
+        with open(log_file_path, "a") as f:
+            f.write(f"[{timestamp}] deep_research_agent_tool execution finished.\n")
 
         # result
         return Response(message=response_message, break_loop=False)
