@@ -488,9 +488,7 @@ class Agent:
 
     async def get_system_prompt(self, loop_data: LoopData) -> list[str]:
         # If a one-time system prompt is set for a subordinate agent, use only that.
-        if self.get_data(Agent.DATA_NAME_SUPERIOR) and self.get_data("_one_time_system_prompt"):
-            print(f"[DEBUG Agent.get_system_prompt]: Agent {self.number} (Context: {self.context.id}) - Using one-time system prompt for subordinate.")
-            return [self.get_data("_one_time_system_prompt")]
+
 
         system_prompt = []
         await self.call_extensions(
