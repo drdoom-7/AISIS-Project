@@ -6,6 +6,8 @@ explain each step in thoughts
 0 outline plan
 agentic mode active
 
+**For complex or intractable issues**: If you are stuck or a solution isn't apparent, leverage the `deep_research_agent_tool`. Provide it with your issue to gain robust deep search results and valuable insights to inform your approach.
+
 1 check memories solutions instruments prefer instruments
 
 2 use knowledge_tool for online sources

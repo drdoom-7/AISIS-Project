@@ -16,4 +16,6 @@
 
 {{ include './agent.system.tool.browser.md' }}
 
+{{ include './agent.system.tool.call_deep_research_agent.md' }}
+
 {{ include './agent.system.tool.scheduler.md' }}
