@@ -242,6 +242,12 @@
     }
 }
 
+@keyframes cybernetic-text-scale {
+  0% { transform: scale(1); opacity: 0.8; text-shadow: none; }
+  50% { transform: scale(1.05); opacity: 1; text-shadow: 0 0 8px var(--color-primary), 0 0 15px var(--color-accent); }
+  100% { transform: scale(1); opacity: 0.8; text-shadow: none; }
+}
+
 
 
 @keyframes mobile-logo-line-glow {
@@ -884,12 +890,20 @@ pre {
   font-weight: bold;
   padding-right: 0.5em;
   color: var(--color-secondary);
-  transition: color 0.3s ease;
+  transition: color 0.3s ease; /* Keep transition for color changes */
 }
 
 #progress-bar {
   color: var(--color-primary); /* Default text color when not active/shining */
   transition: color 0.3s ease; /* Smooth transition for color */
+  font-weight: bold; /* Ensure it's bold */
+}
+
+/* Apply cybernetic-text-scale animation and text-shadow when progress-bar-box is active */
+#progress-bar-box.progress-active #progress-bar-i,
+#progress-bar-box.progress-active #progress-bar {
+  animation: cybernetic-text-scale 2s infinite alternate ease-in-out;
+  text-shadow: 0 0 8px var(--color-primary), 0 0 15px var(--color-accent);
 }
 #progress-bar-h.shiny-text #progress-bar,
 #progress-bar-h.shiny-text #progress-bar-i {
@@ -897,7 +911,7 @@ pre {
   background: none; /* Remove gradient */
   -webkit-background-clip: unset; /* Reset clip */
   background-clip: unset; /* Reset clip */
-  animation: none; /* Remove animation */
+  /* animation: none; */ /* Remove animation */
 }
 
 .progress-bar h4 {
