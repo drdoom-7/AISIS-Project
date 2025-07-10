@@ -541,12 +541,14 @@ function updateProgress(progress, active) {
         removeClassFromElement(progressBar.parentElement, "shiny-text") // Apply to parent h4 for text effect
         removeClassFromElement(rightPanel, "panel-active-glow") // Remove glow from right panel
         removeClassFromElement(logoContainer, "logo-active") // Remove glow from logo
-        removeClassFromElement(progressBar.closest('#progress-bar-box'), "status-active-glow") // Remove glow from progress bar box
+        removeClassFromElement(progressBar.closest('#progress-bar-box'), "progress-active") // Remove glow from progress bar box
+
     } else {
         addClassToElement(progressBar.parentElement, "shiny-text") // Apply to parent h4 for text effect
         addClassToElement(rightPanel, "panel-active-glow") // Add glow to right panel
         addClassToElement(logoContainer, "logo-active") // Add glow to logo
-        addClassToElement(progressBar.closest('#progress-bar-box'), "status-active-glow") // Add glow to progress bar box
+        addClassToElement(progressBar.closest('#progress-bar-box'), "progress-active") // Add glow to progress bar box
+
     }
 
     if (progressBar.innerHTML != progress) {

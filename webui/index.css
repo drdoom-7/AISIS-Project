@@ -217,6 +217,17 @@
   100% { background-position: 0 100%; }
 }
 
+@keyframes progress-active-subtle-pulse {
+  0% { border-color: rgba(0, 229, 255, 0.15); box-shadow: 0 0 5px rgba(0, 229, 255, 0.08); transform: scale(1); }
+  50% { border-color: rgba(0, 229, 255, 0.4); box-shadow: 0 0 10px rgba(0, 229, 255, 0.2); transform: scale(1.002); }
+  100% { border-color: rgba(0, 229, 255, 0.15); box-shadow: 0 0 5px rgba(0, 229, 255, 0.08); transform: scale(1); }
+}
+
+@keyframes cybernetic-scanline {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -837,6 +848,7 @@ pre {
   padding-bottom: 0;
   display: flex;
   justify-content: space-between;
+  align-items: center; /* Align items vertically */
   z-index: 1001;
   border-top: var(--glass-border-width) solid var(--glass-border-color);
   backdrop-filter: blur(var(--glass-blur));
@@ -844,10 +856,17 @@ pre {
   transition: all var(--transition-speed) ease-in-out, border-color 0.5s ease, box-shadow 0.5s ease;
 }
 
-#progress-bar-box.status-active-glow {
-    animation: status-pulse-glow 1.5s infinite alternate ease-in-out;
+#progress-bar-box:hover {
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.3); /* Subtle glow on hover */
 }
 
+#progress-bar-box.progress-active {
+  animation: progress-active-subtle-pulse 2s infinite alternate ease-in-out,
+             cybernetic-scanline 3s linear infinite;
+  background-image: linear-gradient(90deg, rgba(0, 229, 255, 0) 0%, rgba(0, 229, 255, 0.2) 25%, rgba(0, 229, 255, 0.2) 75%, rgba(0, 229, 255, 0) 100%);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+}
 
 #progress-bar-h {
   color: var(--color-primary);
@@ -868,48 +887,22 @@ pre {
   transition: color 0.3s ease;
 }
 
-/* FIX: Apply shiny effect to progress-bar text */
 #progress-bar {
   color: var(--color-primary); /* Default text color when not active/shining */
   transition: color 0.3s ease; /* Smooth transition for color */
 }
-
-#progress-bar-h.shiny-text #progress-bar {
-  background: linear-gradient(
-      to right,
-      var(--color-primary-dark) 20%,
-      var(--color-accent-dark) 40%,
-      var(--color-accent-dark) 60%,
-      var(--color-primary-dark) 80%
-  );
-  background-size: 200% auto;
-  color: transparent; /* Make text transparent so gradient can show through */
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shiny 1s linear infinite;
-}
-
-/* Ensure #progress-bar-i also gets the shine as it's part of the 'progress' visual. */
-/* If it should *not* shine when text shines, then the user meant only the span content. */
-/* For now, making sure *text* shines includes the 'text' of the indicator. */
+#progress-bar-h.shiny-text #progress-bar,
 #progress-bar-h.shiny-text #progress-bar-i {
-  background: linear-gradient(
-      to right,
-      var(--color-primary-dark) 20%,
-      var(--color-accent-dark) 40%,
-      var(--color-accent-dark) 60%,
-      var(--color-primary-dark) 80%
-  );
-  background-size: 200% auto;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shiny 1s linear infinite;
+  color: var(--color-primary); /* Revert to default color */
+  background: none; /* Remove gradient */
+  -webkit-background-clip: unset; /* Reset clip */
+  background-clip: unset; /* Reset clip */
+  animation: none; /* Remove animation */
 }
 
 .progress-bar h4 {
   margin-left: 1em;
-  margin-right: 1.2em;
+  margin-right: 0;
 }
 
 
@@ -1090,26 +1083,7 @@ pre span {
   max-width: 100%; /* Ensure it respects parent width */
   box-sizing: border-box; /* Include padding and border in width */
 }
-.message-agent-response::after {
-  content: '';
-  position: absolute;
-  bottom: -25px; /* Position further below the message */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%; /* Wider glow */
-  height: 15px; /* Taller glow */
-  background: var(--color-futuristic-final-response-glow-cyan); /* Cool Cyan for glow */
-  border-radius: 50%; /* Make it a soft, elongated circle */
-  filter: blur(20px); /* Soften the glow more */
-  opacity: 0.9; /* More visible glow */
-  animation: response-glow 2.5s infinite alternate ease-in-out; /* Slower, more sophisticated pulse */
-  z-index: -1; /* Ensure it's behind the message */
-}
-@keyframes response-glow {
-  0% { transform: translateX(-50%) scale(0.9); opacity: 0.7; filter: blur(15px); }
-  50% { transform: translateX(-50%) scale(1.1); opacity: 1; filter: blur(30px); }
-  100% { transform: translateX(-50%) scale(0.9); opacity: 0.7; filter: blur(15px); }
-}
+
 
 .message-center {
   align-self: center;
