@@ -1,4 +1,3 @@
-
 from pathlib import Path
 import subprocess
 from python.helpers import files
@@ -16,6 +15,12 @@ def get_playwright_cache_dir():
     return files.get_abs_path("tmp/playwright")
 
 def ensure_playwright_binary():
+    # Check for system-installed Google Chrome first
+    system_chrome_path = Path("/usr/bin/google-chrome")
+    if system_chrome_path.exists():
+        return str(system_chrome_path)
+
+    # If system Chrome is not found, proceed with Playwright's bundled Chromium
     bin = get_playwright_binary()
     if not bin:
         cache = get_playwright_cache_dir()
