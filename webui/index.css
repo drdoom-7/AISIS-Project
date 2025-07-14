@@ -726,7 +726,7 @@ pre {
   white-space: pre-wrap !important; /* Force text to wrap within pre tags */
   word-wrap: break-word; /* Ensure long words break within pre tags */
   overflow-wrap: anywhere !important; /* Stronger word breaking to prevent overflow */
-  overflow-x: auto !important; /* Force horizontal scrolling for overflowing content */
+  overflow-x: hidden !important; /* Force horizontal overflow to be hidden */
   max-width: 100% !important; /* Force pre tags respect parent width */
   box-sizing: border-box; /* Include padding and border in width */
   min-width: 0; /* Ensure pre can shrink in flex contexts */
@@ -2831,6 +2831,18 @@ a:active {
 /* Screenshot image resizing */
 .responsive-screenshot-img {
   max-width: 400px; /* Default max-width for desktop */
+  height: auto; /* Maintain aspect ratio */
+  display: block; /* Remove extra space below image */
+}
+
+/* Image viewer specific styles */
+#image-viewer-container {
+  max-width: 100%; /* Ensure container respects parent width */
+  overflow: hidden; /* Hide any overflow within the container */
+}
+
+.image-viewer-img {
+  max-width: 100%; /* Make image responsive */
   height: auto; /* Maintain aspect ratio */
   display: block; /* Remove extra space below image */
 }
