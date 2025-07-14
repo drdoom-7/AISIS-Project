@@ -75,7 +75,7 @@
   --color-secondary-light: #e8e4f6;
   --color-accent-light: #b00020;
   --color-message-bg-light: #ffffff;
-  --color-message-text-light: #333333;
+  --color-message-text: #333333;
   --color-panel-light: #f0f0f0;
   --color-border-light: #e0e0e0c7;
   --color-input-light: #e4e4e4;
@@ -855,7 +855,7 @@ pre {
   display: flex;
   justify-content: space-between;
   align-items: center; /* Align items vertically */
-  z-index: 1001;
+  z-index: 1002;
   border-top: var(--glass-border-width) solid var(--glass-border-color);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -1327,10 +1327,30 @@ pre span {
   z-index: 1001;
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
-  transition: all 0.3s ease-out, transform 0.3s ease-out, opacity 0.3s ease-out; /* Added transform and opacity transitions */
+  transition: all 0.3s ease-out, transform 0.3s ease-out, opacity 0.3s ease-out, filter 0.3s ease-out; /* Added transform, opacity, and filter transitions */
 }
 
 /* This class will be applied by Alpine.js when `isInputSectionHidden` is true */
+#input-section.input-section-collapsed {
+    transform: translateY(100%); /* Slide down out of view */
+    opacity: 0;
+    pointer-events: none; /* Disable interactions when hidden */
+    max-height: 0; /* Ensures physical collapse */
+    padding-top: 0; /* Collapse padding */
+    padding-bottom: 0; /* Collapse padding */
+    border-top-width: 0; /* Collapse border */
+    overflow: hidden; /* Hide content when collapsed */
+}
+
+/* New class to obscure the input section when agent is thinking */
+#input-section.input-section-obscured {
+    filter: blur(5px); /* Apply blur effect */
+    opacity: 0.5; /* Grey out effect */
+    pointer-events: auto; /* Re-enable pointer events for the entire section so it can be clicked */
+    transition: filter 0.3s ease-out, opacity 0.3s ease-out; /* Smooth transition for blur/opacity */
+}
+
+/* Input Section */
 #input-section.input-section-collapsed {
     transform: translateY(100%); /* Slide down out of view */
     opacity: 0;
@@ -1952,19 +1972,19 @@ color: var(--color-text); /* Ensure text color */
 
 /* Bottom text buttons row for smartphones */
 .text-buttons-row {
-    position: relative; /* Establish a new stacking context for the button row */
-    z-index: 10000; /* Ensure it stacks clearly above the input area and other elements */
+    position: relative; /* Ensure it stays in normal flow */
+    z-index: 1000; /* Stacking context */
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start; /* Items start from left */
     align-items: center; /* Vertically align items */
     width: 100%;
     padding: 0 var(--spacing-sm) var(--spacing-xs) 0;
-
     overflow: visible !important; /* Allow glow to extend beyond bounds */
     overflow-x: auto; /* Allow horizontal scrolling if content overflows */
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     scrollbar-width: none; /* Hide scrollbar for Firefox */
+    transition: filter 0.3s ease-out, opacity 0.3s ease-out; /* Add transition for blur/opacity */
 }
 
 .text-buttons-row::-webkit-scrollbar {
@@ -3056,4 +3076,32 @@ a:active {
 /* NEW RULE FOR .msg-json */
 .msg-json {
     display: block;
+}
+
+/* Styles for obscuring input-row when progress bar is active */
+#input-section.input-section-obscured .input-row {
+    filter: blur(3px); /* Apply blur to the input row itself */
+    opacity: 0.5; /* Dim the input row */
+    pointer-events: none; /* Disable interaction with elements inside input-row by default */
+}
+
+/* Allow tapping on the input section when obscured to reveal it */
+#input-section.input-section-obscured {
+    cursor: pointer; /* Indicate it's clickable */
+}
+
+#input-section.input-section-obscured .input-row > *,
+#input-section.input-section-obscured .text-buttons-row > * {
+    pointer-events: none; /* Explicitly disable pointer events for children to ensure click only on parent */
+}
+
+/* Apply blur and opacity to text-buttons-row when input-section is obscured, instead of hiding it */
+#input-section.input-section-obscured .text-buttons-row {
+    filter: blur(3px); /* Apply blur effect */
+    opacity: 0.5; /* Grey out effect */
+    /* Ensure it remains in its normal flow and doesn't get positioned off-screen */
+    position: relative; 
+    bottom: 0;
+    pointer-events: none; /* Disable interactions */
+    transition: filter 0.3s ease-out, opacity 0.3s ease-out; /* Smooth transition for blur/opacity */
 }

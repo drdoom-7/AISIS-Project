@@ -320,7 +320,7 @@
 </div>
 <div id="progress-bar-box" x-data="{ isSpeaking: false }" x-init="
             // Watch the speech synthesis status to update isSpeaking
-            setInterval(() =&gt; isSpeaking = window.speech.isSpeaking(), 100)
+            setInterval(() => isSpeaking = window.speech.isSpeaking(), 100)
         ">
 <h4 id="progress-bar-h" style="display: flex; align-items: center;">
 
@@ -330,11 +330,12 @@
 <span @click="window.speech.stop()" id="stop-speech" style="cursor: pointer">Stop Speech</span>
 </h4>
 </div>
-<div class="transition ease-out duration-300 transform-gpu" id="input-section" x-data="{
+<div class="transition ease-out duration-300 transform-gpu" id="input-section" x-bind:class="{'input-section-obscured': isAgentActive && !isInputSectionHidden}" x-data="{
             paused: false,
+            isAgentActive: false, // New variable to track if the agent is thinking (i.e., progress-bar is active)
             attachments: [],
             hasAttachments: false,
-            showButtons: window.innerWidth &gt; 768, // Initialize based on window width
+            showButtons: window.innerWidth > 768, // Initialize based on window width
             isInputSectionHidden: false, // New variable to hide the entire section
             startY: 0,
             currentSwipeY: 0, // Current Y position during swipe relative to start
@@ -346,10 +347,33 @@
                 this.inputSectionElement = this.$el;
                 const progressBarBox = document.getElementById('progress-bar-box');
                 if (progressBarBox) {
+                    // Watch for the 'progress-active' class on progress-bar-box
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.attributeName === 'class') {
+                                this.isAgentActive = progressBarBox.classList.contains('progress-active');
+                            }
+                        });
+                    });
+                    observer.observe(progressBarBox, { attributes: true });
+                    // Set initial state
+                    this.isAgentActive = progressBarBox.classList.contains('progress-active');
+
                     progressBarBox.addEventListener('touchstart', this.handleTouchStart.bind(this));
                     progressBarBox.addEventListener('touchmove', this.handleTouchMove.bind(this));
                     progressBarBox.addEventListener('touchend', this.handleTouchEnd.bind(this));
                 }
+
+                // Add click listener to the input-section itself to reveal it when obscured and agent is active
+                this.inputSectionElement.addEventListener('click', () => {
+                    if (this.isAgentActive && !this.isInputSectionHidden) {
+                        // Only reveal if agent is active and input is currently obscured (not fully hidden)
+                        this.inputSectionElement.classList.remove('input-section-obscured');
+                        this.inputSectionElement.style.pointerEvents = 'auto'; // Re-enable pointer events for actual interaction
+                        this.inputSectionElement.style.opacity = '1';
+                        this.inputSectionElement.style.filter = 'none';
+                    }
+                });
 
                 // Add touch listeners to the input-section itself
                 this.inputSectionElement.addEventListener('touchstart', this.handleTouchStart.bind(this));
@@ -360,10 +384,10 @@
                 this.calculateFullInputSectionHeight();
 
                 // Recalculate on window resize
-                window.addEventListener('resize', () =&gt; {
+                window.addEventListener('resize', () => {
                     this.calculateFullInputSectionHeight(); // Recalculate full height
-                    // Re-evaluate showButtons based on width on resize if desktop size is crossed
-                    const newShowButtons = window.innerWidth &gt; 768;
+                    // Re-evaluate showButtons based on window width on resize
+                    const newShowButtons = window.innerWidth > 768;
                     if (this.showButtons !== newShowButtons) {
                         this.showButtons = newShowButtons;
                     }
@@ -371,8 +395,8 @@
                 });
 
                 // Watch for changes in isInputSectionHidden and showButtons to apply/remove class and update handle
-                this.$watch('isInputSectionHidden', (val) =&gt; {
-                    this.$nextTick(() =&gt; {
+                this.$watch('isInputSectionHidden', (val) => {
+                    this.$nextTick(() => {
                         if (val) {
                             this.inputSectionElement.classList.add('input-section-collapsed');
                         } else {
@@ -381,7 +405,18 @@
                         this.updateSwipeHandleVisibility(); // Update handle after state change
                     });
                 });
-                this.$watch('showButtons', () =&gt; this.$nextTick(() =&gt; { this.updateSwipeHandleVisibility(); }));
+                this.$watch('showButtons', () => this.$nextTick(() => { this.updateSwipeHandleVisibility(); }));
+
+                // Watch for changes in isAgentActive to apply/remove the obscured class
+                this.$watch('isAgentActive', (val) => {
+                    this.$nextTick(() => {
+                        if (val && !this.isInputSectionHidden) { // Only obscure if not explicitly hidden by user
+                            this.inputSectionElement.classList.add('input-section-obscured');
+                        } else {
+                            this.inputSectionElement.classList.remove('input-section-obscured');
+                        }
+                    });
+                });
 
 
                 this.updateSwipeHandleVisibility(); // Initial handle visibility
@@ -417,7 +452,7 @@
                 this.showButtons = true; // Temporarily show buttons to get full height
                 
                 // Use $nextTick to ensure Alpine has processed showButtons update before measuring
-                this.$nextTick(() =&gt; {
+                this.$nextTick(() => {
                     document.body.offsetHeight; // Force reflow
                     this.inputSectionHeight = this.inputSectionElement.offsetHeight;
 
@@ -443,13 +478,13 @@
                 if (swipeHandle) {
                     // Show swipe handle only on mobile, when the main input section is visible and buttons are hidden
                     // This handle is specifically for opening the buttons when input is active.
-                    swipeHandle.style.display = (window.innerWidth &lt;= 768 &amp;&amp; !this.isInputSectionHidden &amp;&amp; !this.showButtons) ? 'flex' : 'none';
+                    swipeHandle.style.display = (window.innerWidth <= 768 && !this.isInputSectionHidden && !this.showButtons) ? 'flex' : 'none';
                 }
                 // The reveal-input-button handles the case where isInputSectionHidden is true.
             },
 
             handleTouchStart(event) {
-                if (window.innerWidth &lt;= 768) {
+                if (window.innerWidth <= 768) {
                     this.startY = event.touches[0].clientY;
                     this.currentSwipeY = 0;
                     this.isDragging = true;
@@ -477,12 +512,12 @@
             },
 
             handleTouchMove(event) {
-                if (this.isDragging &amp;&amp; window.innerWidth &lt;= 768) {
+                if (this.isDragging && window.innerWidth <= 768) {
                     const deltaY = event.touches[0].clientY - this.startY;
                     this.currentSwipeY = deltaY; // Update currentSwipeY with the full delta
 
                     // Only prevent native scroll if vertical movement is significant to allow taps and horizontal scrolls
-                    if (Math.abs(deltaY) &gt; 5) { // Small dead zone to allow tap/focus
+                    if (Math.abs(deltaY) > 5) { // Small dead zone to allow tap/focus
                         event.preventDefault();
                     }
 
@@ -515,7 +550,7 @@
             },
 
             handleTouchEnd() {
-                if (this.isDragging &amp;&amp; window.innerWidth &lt;= 768) {
+                if (this.isDragging && window.innerWidth <= 768) {
                     this.isDragging = false;
 
                     // Re-enable CSS transition immediately for smooth snap-back
@@ -536,7 +571,7 @@
 
                     // Determine the new state based on swipe distance and direction
                     if (this.isInputSectionHidden) { // If currently logically hidden (was swiping up to reveal)
-                        if (this.currentSwipeY &lt; swipeThresholdFullShow) { // Swiped up enough to fully reveal
+                        if (this.currentSwipeY < swipeThresholdFullShow) { // Swiped up enough to fully reveal
                             this.isInputSectionHidden = false;
                             this.showButtons = true; // Show buttons by default when fully revealing
                         } else { // Not enough swipe up, snap back to hidden
@@ -544,15 +579,15 @@
                             this.showButtons = false; // Buttons are hidden when input section is hidden
                         }
                     } else { // If currently logically visible (was swiping down to hide)
-                        if (this.currentSwipeY &gt; swipeThresholdFullHide) { // Swiped down enough to fully hide
+                        if (this.currentSwipeY > swipeThresholdFullHide) { // Swiped down enough to fully hide
                             this.isInputSectionHidden = true;
                             this.showButtons = false;
                         } else { // Not enough swipe down, snap back to visible
                             this.isInputSectionHidden = false;
                             // For small swipes when visible, toggle showButtons based on swipe direction
-                            if (this.currentSwipeY &gt; swipeThresholdButtons) { // Swiped down a little
+                            if (this.currentSwipeY > swipeThresholdButtons) { // Swiped down a little
                                 this.showButtons = false; // Hide buttons
-                            } else if (this.currentSwipeY &lt; -swipeThresholdButtons) { // Swiped up a little
+                            } else if (this.currentSwipeY < -swipeThresholdButtons) { // Swiped up a little
                                 this.showButtons = true; // Show buttons
                             }
                             // If swipe is within small threshold, showButtons state remains as it was
@@ -569,12 +604,12 @@
             },
             handleFileUpload(event) {
                 const files = event.fromEvent(event.target.files);
-                Array.from(files).forEach(file =&gt; {
+                Array.from(files).forEach(file => {
                     const ext = file.name.split('.').pop().toLowerCase();
                     const isImage = ['jpg', 'jpeg', 'png', 'bmp'].includes(ext);
                     if (isImage) {
                         const reader = new FileReader();
-                        reader.onload = e =&gt; {
+                        reader.onload = e => {
                             this.attachments.push({
                                 file: file,
                                 url: e.target.result,
@@ -610,7 +645,7 @@
 <span class="extension" x-text="attachment.extension.toUpperCase()"></span>
 </div>
 </template>
-<button @click="attachments.splice(index, 1); hasAttachments = attachments.length &gt; 0" class="remove-attachment">×</button>
+<button @click="attachments.splice(index, 1); hasAttachments = attachments.length > 0" class="remove-attachment">×</button>
 </div>
 </template>
 </div>
@@ -704,7 +739,7 @@
 </div>
 </div>
 <!-- Swipe handle / indicator -->
-<div @click="showButtons = !showButtons" class="swipe-handle" x-show="!showButtons &amp;&amp; window.innerWidth &lt;= 768 &amp;&amp; !isInputSectionHidden">
+<div @click="showButtons = !showButtons" class="swipe-handle" x-show="!showButtons && window.innerWidth <= 768 && !isInputSectionHidden">
 <i class="ri-arrow-up-s-line"></i>
 </div>
 </div>
@@ -714,7 +749,7 @@
 <button @click="document.getElementById('input-section').__x.$data.isInputSectionHidden = false" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white p-3 rounded-full shadow-lg z-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" id="reveal-input-button" x-data="{ isInputSectionHidden: false }" x-init="
         // Directly observe the isInputSectionHidden property from the #input-section component
         // This is a common pattern to link Alpine.js component states without a global store
-        $watch(() =&gt; document.getElementById('input-section').__x.$data.isInputSectionHidden, (value) =&gt; {
+        $watch(() => document.getElementById('input-section').__x.$data.isInputSectionHidden, (value) => {
             this.isInputSectionHidden = value;
         });
     " x-show="isInputSectionHidden">
@@ -765,7 +800,7 @@
 <div :id="'section' + (sectionIndex + 1)" class="section">
 <div class="section-title" x-text="section.title"></div>
 <div class="section-description" x-html="section.description"></div>
-<template :key="fieldIndex" x-for="(field, fieldIndex) in section.fields.filter(f =&gt; !f.hidden)">
+<template :key="fieldIndex" x-for="(field, fieldIndex) in section.fields.filter(f => !f.hidden)">
 <div :class="{'field': true, 'field-full': field.type === 'textarea'}">
 <div class="field-label">
 <div class="field-title" x-text="field.title"></div>
@@ -976,7 +1011,7 @@
 <div class="scheduler-plan-todo">
 <span class="scheduler-plan-label">Upcoming Executions</span>
 <div class="scheduler-todo-list">
-<template x-if="editingTask.plan &amp;&amp; Array.isArray(editingTask.plan.todo) &amp;&amp; editingTask.plan.todo.length &gt; 0">
+<template x-if="editingTask.plan && Array.isArray(editingTask.plan.todo) && editingTask.plan.todo.length > 0">
 <template :key="index" x-for="(time, index) in editingTask.plan.todo">
 <div class="scheduler-todo-item">
 <span x-text="formatDate(time)"></span>
@@ -1012,7 +1047,7 @@
 
                                                                 // Get date from Flatpickr if available
                                                                 let selectedDate;
-                                                                if (input._flatpickr &amp;&amp; input._flatpickr.selectedDates.length &gt; 0) {
+                                                                if (input._flatpickr && input._flatpickr.selectedDates.length > 0) {
                                                                     selectedDate = input._flatpickr.selectedDates[0];
                                                                 } else if (input.value) {
                                                                     selectedDate = new Date(input.value);
@@ -1139,7 +1174,7 @@
 </div>
 </div>
 <!-- Schedule (for scheduled tasks) -->
-<div class="scheduler-form-field full-width" x-show="editingTask &amp;&amp; editingTask.type === 'scheduled'">
+<div class="scheduler-form-field full-width" x-show="editingTask && editingTask.type === 'scheduled'">
 <div class="label-help-wrapper">
 <label class="scheduler-form-label">Schedule (Cron Expression)</label>
 <div class="scheduler-form-help">Format: minute hour day month weekday (e.g., "* * * * *" for every minute)</div>
@@ -1177,7 +1212,7 @@
 <div class="scheduler-plan-todo">
 <span class="scheduler-plan-label">Upcoming Executions</span>
 <div class="scheduler-todo-list">
-<template x-if="editingTask.plan &amp;&amp; Array.isArray(editingTask.plan.todo) &amp;&amp; editingTask.plan.todo.length &gt; 0">
+<template x-if="editingTask.plan && Array.isArray(editingTask.plan.todo) && editingTask.plan.todo.length > 0">
 <template :key="index" x-for="(time, index) in editingTask.plan.todo">
 <div class="scheduler-todo-item">
 <span x-text="formatDate(time)"></span>
@@ -1213,7 +1248,7 @@
 
                                                                 // Get date from Flatpickr if available
                                                                 let selectedDate;
-                                                                if (input._flatpickr &amp;&amp; input._flatpickr.selectedDates.length &gt; 0) {
+                                                                if (input._flatpickr && input._flatpickr.selectedDates.length > 0) {
                                                                     selectedDate = input._flatpickr.selectedDates[0];
                                                                 }
 
@@ -1283,7 +1318,7 @@
 </div>
 </div>
 <!-- Task List View -->
-<div class="scheduler-container" x-show="!isCreating &amp;&amp; !isEditing &amp;&amp; viewMode === 'list'">
+<div class="scheduler-container" x-show="!isCreating && !isEditing && viewMode === 'list'">
 <!-- Header with Actions -->
 <div class="scheduler-header">
 <h2>Task Management</h2>
@@ -1320,13 +1355,13 @@
                                         Loading tasks...
                                     </div> -->
 <!-- Empty State -->
-<div class="scheduler-empty" x-effect="$el.style.display = (!isLoading &amp;&amp; filteredTasks.length === 0) ? '' : 'none'" x-show="!isLoading &amp;&amp; filteredTasks.length === 0">
+<div class="scheduler-empty" x-effect="$el.style.display = (!isLoading && filteredTasks.length === 0) ? '' : 'none'" x-show="!isLoading && filteredTasks.length === 0">
 <!-- <div class="scheduler-empty-icon">📋</div> -->
 <div class="scheduler-empty-text">No tasks found</div>
 <button @click="startCreateTask()" class="btn btn-ok">Create your first task</button>
 </div>
 <!-- Task List Table -->
-<table class="scheduler-task-list" x-effect="$el.style.display = (!isLoading &amp;&amp; filteredTasks.length &gt; 0) ? '' : 'none'" x-show="!isLoading &amp;&amp; filteredTasks.length &gt; 0">
+<table class="scheduler-task-list" x-effect="$el.style.display = (!isLoading && filteredTasks.length > 0) ? '' : 'none'" x-show="!isLoading && filteredTasks.length > 0">
 <thead>
 <tr>
 <th @click="changeSort('name')">
@@ -1384,7 +1419,7 @@
 </table>
 </div>
 <!-- Task Detail View -->
-<div class="scheduler-detail-view" x-show="!isCreating &amp;&amp; !isEditing &amp;&amp; viewMode === 'detail' &amp;&amp; selectedTaskForDetail">
+<div class="scheduler-detail-view" x-show="!isCreating && !isEditing && viewMode === 'detail' && selectedTaskForDetail">
 <div class="scheduler-detail-header">
 <h2 class="scheduler-detail-title" x-text="selectedTaskForDetail ? selectedTaskForDetail.name : ''"></h2>
 <div :class="selectedTaskForDetail ? getStateBadgeClass(selectedTaskForDetail.state) : ''" class="scheduler-status-badge" x-text="selectedTaskForDetail ? selectedTaskForDetail.state : ''">
@@ -1401,15 +1436,15 @@
 <div class="scheduler-details-value" x-text="selectedTaskForDetail ? formatDate(selectedTaskForDetail.updated_at) : ''"></div>
 <div class="scheduler-details-label">Last Run:</div>
 <div class="scheduler-details-value" x-text="selectedTaskForDetail ? formatDate(selectedTaskForDetail.last_run) : ''"></div>
-<div class="scheduler-details-label" x-show="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.type === 'scheduled'">Schedule:</div>
-<div class="scheduler-details-value" x-show="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.type === 'scheduled'" x-text="selectedTaskForDetail ? formatSchedule(selectedTaskForDetail) : ''"></div>
-<div class="scheduler-details-label" x-show="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.type === 'adhoc'">Token:</div>
-<div class="scheduler-details-value" x-show="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.type === 'adhoc'" x-text="selectedTaskForDetail ? selectedTaskForDetail.token : ''"></div>
-<div class="scheduler-details-label" x-show="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.type === 'planned'">Plan:</div>
-<div class="scheduler-details-value" x-show="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.type === 'planned'">
-<div x-show="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.plan">
+<div class="scheduler-details-label" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'scheduled'">Schedule:</div>
+<div class="scheduler-details-value" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'scheduled'" x-text="selectedTaskForDetail ? formatSchedule(selectedTaskForDetail) : ''"></div>
+<div class="scheduler-details-label" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'adhoc'">Token:</div>
+<div class="scheduler-details-value" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'adhoc'" x-text="selectedTaskForDetail ? selectedTaskForDetail.token : ''"></div>
+<div class="scheduler-details-label" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'planned'">Plan:</div>
+<div class="scheduler-details-value" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'planned'">
+<div x-show="selectedTaskForDetail && selectedTaskForDetail.plan">
 <div><strong>Upcoming:</strong></div>
-<template x-if="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.plan &amp;&amp; selectedTaskForDetail.plan.todo &amp;&amp; selectedTaskForDetail.plan.todo.length &gt; 0">
+<template x-if="selectedTaskForDetail && selectedTaskForDetail.plan && selectedTaskForDetail.plan.todo && selectedTaskForDetail.plan.todo.length > 0">
 <div>
 <template :key="index" x-for="(time, index) in selectedTaskForDetail.plan.todo">
 <div x-text="formatDate(time)"></div>
@@ -1420,9 +1455,9 @@
 <div>No upcoming executions</div>
 </template>
 <div><strong>In Progress:</strong></div>
-<div x-text="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.plan &amp;&amp; selectedTaskForDetail.plan.in_progress ? formatDate(selectedTaskForDetail.plan.in_progress) : 'None'"></div>
+<div x-text="selectedTaskForDetail && selectedTaskForDetail.plan && selectedTaskForDetail.plan.in_progress ? formatDate(selectedTaskForDetail.plan.in_progress) : 'None'"></div>
 <div><strong>Completed:</strong></div>
-<template x-if="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.plan &amp;&amp; selectedTaskForDetail.plan.done &amp;&amp; selectedTaskForDetail.plan.done.length &gt; 0">
+<template x-if="selectedTaskForDetail && selectedTaskForDetail.plan && selectedTaskForDetail.plan.done && selectedTaskForDetail.plan.done.length > 0">
 <div>
 <template :key="index" x-for="(time, index) in selectedTaskForDetail.plan.done">
 <div x-text="formatDate(time)"></div>
@@ -1435,14 +1470,14 @@
 </div>
 </div>
 <div class="scheduler-details-label">Last Result:</div>
-<div class="scheduler-details-value" x-text="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.last_result ? selectedTaskForDetail.last_result : 'No results yet'"></div>
+<div class="scheduler-details-value" x-text="selectedTaskForDetail && selectedTaskForDetail.last_result ? selectedTaskForDetail.last_result : 'No results yet'"></div>
 <div class="scheduler-details-label">System Prompt:</div>
 <div class="scheduler-details-value" x-text="selectedTaskForDetail ? selectedTaskForDetail.system_prompt : ''"></div>
 <div class="scheduler-details-label">User Prompt:</div>
 <div class="scheduler-details-value" x-text="selectedTaskForDetail ? selectedTaskForDetail.prompt : ''"></div>
 <div class="scheduler-details-label">Attachments:</div>
 <div class="scheduler-details-value">
-<template x-if="selectedTaskForDetail &amp;&amp; selectedTaskForDetail.attachments &amp;&amp; selectedTaskForDetail.attachments.length &gt; 0">
+<template x-if="selectedTaskForDetail && selectedTaskForDetail.attachments && selectedTaskForDetail.attachments.length > 0">
 <div>
 <template :key="index" x-for="(attachment, index) in selectedTaskForDetail.attachments">
 <div x-text="attachment"></div>
@@ -1494,7 +1529,7 @@
 <template :key="index" x-for="(part, index) in getBreadcrumbs()">
 <span class="breadcrumb-item">
 <a @click.prevent="navigateToFolder(part.path)" href="#" x-text="part.name"></a>
-<span x-show="index &lt; getBreadcrumbs().length - 1"> / </span>
+<span x-show="index < getBreadcrumbs().length - 1"> / </span>
 </span>
 </template>
 </div>
