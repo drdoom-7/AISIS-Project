@@ -1344,12 +1344,10 @@ pre span {
 
 /* New class to obscure the input section when agent is thinking */
 #input-section.input-section-obscured {
-    filter: blur(2px); /* Apply blur effect */
-    opacity: 0.7; /* Reduced grey out effect */
+    filter: blur(5px); /* Apply blur effect */
+    opacity: 0.5; /* Grey out effect */
     pointer-events: auto; /* Re-enable pointer events for the entire section so it can be clicked */
-    height: 60px; /* New: Shrink height when obscured */
-    overflow: hidden; /* New: Hide content when obscured */
-    transition: filter 0.3s ease-out, opacity 0.3s ease-out, height 0.3s ease-out; /* Add height transition */
+    transition: filter 0.3s ease-out, opacity 0.3s ease-out; /* Smooth transition for blur/opacity */
 }
 
 /* Input Section */
@@ -3082,19 +3080,14 @@ a:active {
 
 /* Styles for obscuring input-row when progress bar is active */
 #input-section.input-section-obscured .input-row {
-    filter: blur(1px); /* Apply less blur to the input row itself */
-    opacity: 0.7; /* Less dim for the input row */
+    filter: blur(3px); /* Apply blur to the input row itself */
+    opacity: 0.5; /* Dim the input row */
     pointer-events: none; /* Disable interaction with elements inside input-row by default */
 }
 
 /* Allow tapping on the input section when obscured to reveal it */
 #input-section.input-section-obscured {
-    filter: blur(2px); /* Apply blur effect */
-    opacity: 0.7; /* Reduced grey out effect */
-    pointer-events: auto; /* Re-enable pointer events for the entire section so it can be clicked */
-    height: 60px; /* New: Shrink height when obscured */
-    overflow: hidden; /* New: Hide content when obscured */
-    transition: filter 0.3s ease-out, opacity 0.3s ease-out, height 0.3s ease-out; /* Add height transition */
+    cursor: pointer; /* Indicate it's clickable */
 }
 
 #input-section.input-section-obscured .input-row > *,
