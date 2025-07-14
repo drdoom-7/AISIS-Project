@@ -44,7 +44,7 @@ class State:
         self.browser_session = browser_use.BrowserSession(
             browser_profile=browser_use.BrowserProfile(
                 headless=True,
-                disable_security=True,
+                # disable_security=True, # Removed to make it appear more normal
                 chromium_sandbox=False,
                 accept_downloads=True,
                 downloads_dir=files.get_abs_path("tmp/downloads"),
@@ -54,8 +54,13 @@ class State:
                 minimum_wait_page_load_time=1.0,
                 wait_for_network_idle_page_load_time=2.0,
                 maximum_wait_page_load_time=10.0,
-                screen={"width": 1024, "height": 2048},
-                viewport={"width": 1024, "height": 2048},
+                screen={"width": 1920, "height": 1080},
+                viewport={"width": 1920, "height": 1080},
+                user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+                locale='en-US',
+                timezone_id='America/New_York',
+                device_scale_factor=1.0,
+                slow_mo=50, # Add a small delay for human-like interaction
                 args=["--headless=new"],
             )
         )
