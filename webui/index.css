@@ -1139,7 +1139,7 @@ pre span {
 }
 
 .message-ai {
-  border-bottom-left-radius: var(--spacing-xs); /* Default for AI messages */
+  border-bottom-left-radius: unset;
   max-width: 100%;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -1329,6 +1329,17 @@ pre span {
   max-width: 100% !important;
   box-sizing: border-box;
   min-width: 0;
+  background-color: transparent !important; /* Explicitly ensure no background color */
+}
+
+/* New rule to make code/pre blocks within .detail-content transparent */
+.detail-content pre,
+.detail-content code {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 .msg-thoughts {
@@ -3151,6 +3162,15 @@ a:active {
 /* NEW RULE FOR .msg-json */
 .msg-json {
     display: block;
+}
+
+/* New rule to make .msg-content pre transparent */
+.message .msg-content {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 /* Styles for obscuring input-row when progress bar is active */
