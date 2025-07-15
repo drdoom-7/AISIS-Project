@@ -450,8 +450,8 @@ body {
   color: var(--color-primary);
   cursor: pointer;
   position: absolute; /* Relative to its parent, which is container */
-  top: var(--spacing-sm);
-  left: var(--spacing-sm);
+  top: var(--spacing-sm); /* Adjusted to align with other elements */
+  left: var(--spacing-sm); /* Adjusted to align with other elements */
   z-index: 1004;
   transition: all var(--transition-speed) ease-in-out;
   box-shadow: var(--glass-shadow);
@@ -943,6 +943,7 @@ pre {
   transition: all 0.4s ease; /* Smooth transitions for hover/focus effects */
   position: relative;
   max-width: 100% !important; /* Force max-width */
+  overflow: hidden !important; /* Force overflow hidden */
   overflow-wrap: break-word;
   word-wrap: break-word;
   min-width: 0;
@@ -951,37 +952,6 @@ pre {
   display: flex; /* Make the message bubble itself a flex container */
   flex-direction: column; /* Stack its direct children vertically */
   flex-shrink: 1; /* Allow the message bubble to shrink */
-  max-height: 400px; /* Set a reasonable maximum height for message bubbles */
-  overflow-y: auto; /* Enable vertical scrolling if content exceeds max-height */
-  /* Ensure horizontal overflow is handled if text is very long and doesn't wrap */
-  overflow-x: hidden;
-  /* Add custom scrollbar styling for these individual message bubbles for consistency */
-  scrollbar-width: thin; /* For Firefox */
-  scrollbar-color: var(--color-border) transparent; /* For Firefox */
-}
-
-.message::-webkit-scrollbar {
-    width: 5px;
-}
-
-.message::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
-    border-radius: 3px;
-}
-
-.message::-webkit-scrollbar-thumb {
-    border-radius: 3px;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
-    background-color: var(--color-border);
-    transition: background-color var(--transition-speed) ease-in-out;
-}
-
-.message::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-primary);
-}
-
-.message::-webkit-scrollbar-thumb:active {
-    background-color: var(--color-accent);
 }
 
 .message:hover {
@@ -1007,37 +977,6 @@ pre span {
     overflow-wrap: anywhere !important; /* Stronger word breaking to prevent overflow */
     white-space: pre-wrap !important; /* Force text to wrap within span inside pre */
     box-sizing: border-box; /* Essential */
-}
-
-/* Enhanced Formatting for pre and code blocks within messages */
-.message pre,
-.message code {
-    background-color: rgba(15, 15, 20, 0.7); /* Darker background for code blocks */
-    border: 1px solid rgba(0, 229, 255, 0.2); /* Subtle cyan border */
-    border-left: 4px solid var(--color-primary); /* Prominent left border for distinction */
-    padding: 1rem; /* Increased padding */
-    border-radius: 8px; /* Slightly rounded corners */
-    font-family: 'Roboto Mono', monospace; /* Ensure monospaced font */
-    font-size: 0.8em; /* Slightly smaller font for compactness */
-    color: var(--color-text-dark); /* Light text color for contrast */
-    box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.1); /* Subtle inner glow */
-    margin-top: 0.5rem; /* Space from previous content */
-    margin-bottom: 0.5rem; /* Space from next content */
-    overflow-x: auto; /* Allow horizontal scrolling for very long lines of code */
-    white-space: pre-wrap; /* Ensure wrapping for long lines if needed */
-    word-wrap: break-word; /* Ensure words break */
-    max-width: 100%; /* Ensure it respects parent width */
-    box-sizing: border-box; /* Include padding and border in width */
-}
-
-/* Specific styling for inline code elements, if any */
-.message :not(pre) > code {
-    background-color: rgba(0, 229, 255, 0.1);
-    border: 1px solid rgba(0, 229, 255, 0.3);
-    padding: 0.2em 0.4em;
-    border-radius: 4px;
-    font-size: 0.85em; /* Slightly larger for inline code */
-    color: var(--color-accent-dark);
 }
 
 /* Copy button styling (for desktop) */

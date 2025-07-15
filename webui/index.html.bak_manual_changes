@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport"/>
+<title>A.I.S.I.S.</title>
+<link href="public/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="index.css" rel="stylesheet"/>
+<link href="css/chat-pin.css" rel="stylesheet"/>
+<link href="css/toast.css" rel="stylesheet"/>
+<link href="css/settings.css" rel="stylesheet"/>
+<link href="css/file_browser.css" rel="stylesheet"/>
+<link href="css/modals.css" rel="stylesheet"/>
+<link href="css/modals2.css" rel="stylesheet"/>
+<link href="css/speech.css" rel="stylesheet"/>
+<link href="css/history.css" rel="stylesheet"/>
+<link href="css/scheduler-datepicker.css" rel="stylesheet"/>
+<link href="css/tunnel.css" rel="stylesheet"/>
+<!-- Remix Icon for icons -->
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"/>
+<!-- Flatpickr for datetime picker -->
+<link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+        window.safeCall = function (name, ...args) {
+            if (window[name]) window[name](...args)
+        }
+    </script>
+<!-- Pre-initialize schedulerSettings to ensure Alpine doesn't miss it -->
+<script>
+        // Pre-define schedulerSettings skeleton to ensure it's available to Alpine
+        window.schedulerSettings = function() {
+            return {
+                tasks: [],
+                isLoading: true,
+                selectedTask: null,
+                expandedTaskId: null,
+                sortField: 'name',
+                sortDirection: 'asc',
+                filterType: 'all',
+                filterState: 'all',
+                pollingInterval: null,
+                pollingActive: false,
+                editingTask: {
+                    name: '',
+                    type: 'scheduled',
+                    state: 'idle',
+                    schedule: {
+                        minute: '*',
+                        hour: '*',
+                        day: '*',
+                        month: '*',
+                        weekday: '*',
+                        timezone: ''
+                    },
+                    token: '',
+                    plan: {
+                        todo: [],
+                        in_progress: null,
+                        done: []
+                    },
+                    system_prompt: '',
+                    prompt: '',
+                    attachments: []
+                },
+                isCreating: false,
+                isEditing: false,
+                showLoadingState: false,
+                viewMode: 'list',
+                selectedTaskForDetail: null,
+                attachmentsText: '',
+                filteredTasks: [],
+                // Minimal init to avoid errors
+                init() {
+                    console.log('Basic schedulerSettings initialized');
+                    // Watch for task type changes
+                    this.$watch('editingTask.type', (newType) => {
+                        if (newType === 'planned') {
+                            // When switching to planned task type, initialize the datetime picker
+                            this.$nextTick(() => {
+                                if (this.initFlatpickr) {
+                                    if (this.isCreating) {
+                                        this.initFlatpickr('create');
+                                    } else if (this.isEditing) {
+                                        this.initFlatpickr('edit');
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            };
+        };
+    </script>
+<!-- Load module scripts first -->
+<script src="js/scheduler.js" type="module"></script>
+<script src="js/speech.js" type="module"></script>
+<script src="js/history.js" type="module"></script>
+<script src="index.js" type="module"></script>
+<!-- Then load Alpine.js -->
+<script defer="" src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.14.3/dist/cdn.min.js"></script>
+<!-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script> -->
+<script src="js/initFw.js" type="module"></script>
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.36.5/src-noconflict/ace.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/ace-builds@1.36.5/css/ace.min.css" rel="stylesheet"/>
+<!-- KaTeX CSS -->
+<link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" rel="stylesheet"/>
+<!-- KaTeX javascript -->
+<script crossorigin="anonymous" defer="" src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<script crossorigin="anonymous" defer="" src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+<!-- Non-module scripts after Alpine.js -->
+<script src="js/settings.js" type="text/javascript"></script>
+<script src="js/file_browser.js" type="text/javascript"></script>
+<script src="js/modal.js" type="text/javascript"></script>
+<script src="js/tunnel.js" type="text/javascript"></script>
+</head>
+<body class="dark-mode">
+<div id="background-overlay"></div>
+<div class="container">
+<div class="sidebar-overlay hidden" id="sidebar-overlay"></div>
+<div class="icons-section" id="hide-button" x-data="{ connected: true }">
+<!--Sidebar-->
+<!-- Sidebar Toggle Button -->
+<button aria-expanded="false" aria-label="Toggle Sidebar" class="toggle-sidebar-button" id="toggle-sidebar">
+<span aria-hidden="true">
+<!-- Hamburger Icon -->
+<i class="ri-menu-line"></i>
+</span>
+</button>
+<div id="logo-container">
+<span class="logo-text"><span class="logo-char">A</span><span class="logo-char logo-status-dot"><svg style="vertical-align: bottom; display: inline-block; width: 10px; height: 10px;" viewbox="0 0 10 10"><circle cx="5" cy="1.5" r="2.5" x-bind:fill="connected ? '#00c340' : 'none'" x-bind:opacity="connected ? 1 : 0"></circle><circle cx="5" cy="1.5" fill="#e40138" r="2.5" x-bind:opacity="connected ? 0 : 1"></circle></svg></span><span class="logo-char"> </span><span class="logo-char">I</span><span class="logo-char logo-status-dot"><svg style="vertical-align: bottom; display: inline-block; width: 10px; height: 10px;" viewbox="0 0 10 10"><circle cx="5" cy="1.5" r="2.5" x-bind:fill="connected ? '#00c340' : 'none'" x-bind:opacity="connected ? 1 : 0"></circle><circle cx="5" cy="1.5" fill="#e40138" r="2.5" x-bind:opacity="connected ? 0 : 1"></circle></svg></span><span class="logo-char"> </span><span class="logo-char">S</span><span class="logo-char logo-status-dot"><svg style="vertical-align: bottom; display: inline-block; width: 10px; height: 10px;" viewbox="0 0 10 10"><circle cx="5" cy="1.5" r="2.5" x-bind:fill="connected ? '#00c340' : 'none'" x-bind:opacity="connected ? 1 : 0"></circle><circle cx="5" cy="1.5" fill="#e40138" r="2.5" x-bind:opacity="connected ? 0 : 1"></circle></svg></span><span class="logo-char"> </span><span class="logo-char">I</span><span class="logo-char logo-status-dot"><svg style="vertical-align: bottom; display: inline-block; width: 10px; height: 10px;" viewbox="0 0 10 10"><circle cx="5" cy="1.5" r="2.5" x-bind:fill="connected ? '#00c340' : 'none'" x-bind:opacity="connected ? 1 : 0"></circle><circle cx="5" cy="1.5" fill="#e40138" r="2.5" x-bind:opacity="connected ? 0 : 1"></circle></svg></span><span class="logo-char"> </span><span class="logo-char">S</span></span>
+</div>
+</div>
+<div class="panel" id="left-panel">
+<!--Sidebar upper elements-->
+<div class="left-panel-top">
+<div class="config-section" x-data="{ showQuickActions: true }">
+<div class="chat-control-buttons">
+<button @click="resetChat()" class="config-button" id="resetChat">Clear Chat</button>
+<button @click="newChat()" class="config-button" id="newChat">Start New Chat</button>
+<button @click="loadChats()" class="config-button" id="loadChats">Open Chat</button>
+<button @click="saveChat()" class="config-button" id="loadChat">Export Chat</button>
+<button @click="restart()" class="config-button" id="restart">Restart Agent</button>
+<button @click="settingsModalProxy.openModal()" class="config-button" id="settings"><i class="ri-settings-3-line"></i> Control Panel</button>
+</div>
+</div>
+<!-- Tabs container -->
+<div class="tabs-container">
+<div class="tabs">
+<div class="tab active" id="chats-tab">Chats</div>
+<div class="tab" id="tasks-tab">Tasks</div>
+</div>
+</div>
+<!-- Chats List -->
+<div class="config-section" id="chats-section" x-data="{ contexts: [], selected: '' }" x-show="contexts.length &gt; 0 || true">
+<div class="chats-list-container">
+<ul class="config-list" x-show="contexts.length &gt; 0">
+<template :key="context.id" x-for="context in contexts">
+<li :class="{'pinned-chat': context.isPinned}" x-data="{ clickCount: 0, doubleClickTimer: null }">
+<div :class="{'chat-list-button': true, 'font-bold': context.id === selected}" @mousedown.prevent="
+                                            clearTimeout(doubleClickTimer);
+                                            clickCount++;
+                                            if (clickCount === 1) {
+                                                doubleClickTimer = setTimeout(() =&gt; {
+                                                    selected = context.id;
+                                                    selectChat(context.id);
+                                                    clickCount = 0;
+                                                    doubleClickTimer = null;
+                                                }, 400); // Increased interval for double-click
+                                            } else if (clickCount === 2) {
+                                                window.togglePinChat(context.id);
+                                                event.stopPropagation(); // Prevent event bubbling for pin action
+                                                clickCount = 0;
+                                                doubleClickTimer = null;
+                                            }
+                                        " @touchstart.prevent="
+                                            clearTimeout(doubleClickTimer);
+                                            clickCount++;
+                                            if (clickCount === 1) {
+                                                doubleClickTimer = setTimeout(() =&gt; {
+                                                    selected = context.id;
+                                                    selectChat(context.id);
+                                                    clickCount = 0;
+                                                    doubleClickTimer = null;
+                                                }, 400); // Increased interval for double-tap
+                                            } else if (clickCount === 2) {
+                                                window.togglePinChat(context.id);
+                                                clickCount = 0;
+                                                doubleClickTimer = null;
+                                            }
+                                        ">
+<span class="pin-icon" title="Pinned Chat" x-show="context.isPinned">📌</span>
+<span :title="context.name ? context.name : 'Chat #' + context.no" class="chat-name" style="font-size: 0.85rem;" x-text="context.name ? context.name : 'Chat #' + context.no"></span>
+</div>
+<button @click="killChat(context.id)" class="edit-button">X</button>
+</li>
+</template>
+</ul>
+<div class="empty-list-message" x-show="contexts.length === 0">
+<p><i>No chats to list.</i></p>
+</div>
+</div>
+</div>
+<!-- Tasks List -->
+<div class="config-section" id="tasks-section" style="display: none;" x-data="{
+                    tasks: [],
+                    selected: '',
+                    openTaskDetail(taskId) {
+                        window.openTaskDetail(taskId);
+                    }
+                }">
+<div class="tasks-list-container">
+<ul class="config-list" x-show="tasks.length &gt; 0">
+<template x-for="task in tasks">
+<li>
+<div :class="{'chat-list-button': true, 'font-bold': task.id === selected, 'has-task-container': true}" @click="selected = task.id; selectChat(task.id)">
+<!-- Task container with a vertical layout -->
+<div class="task-container task-container-vertical">
+<!-- Task name on its own line with full width -->
+<span :data-task-id="task.id" :title="(task.task_name || `Task #${task.no}`) + ' (' + (task.name || `Chat #${task.no}`) + ')'" class="task-name" style="font-size: 0.85rem;" x-text="(task.task_name || `Task #${task.no}`) + ' (' + (task.name || `Chat #${task.no}`) + ')'"></span>
+<!-- Second line with status badge and action button -->
+<div class="task-info-line">
+<!-- Status badge (reusing scheduler styling) -->
+<span :class="task.state ? `scheduler-status-${task.state}` : 'scheduler-status-idle'" class="scheduler-status-badge scheduler-status-badge-small" x-text="task.state || 'idle'"></span>
+<!-- Action buttons -->
+<button @click.stop="openTaskDetail(task.id)" class="edit-button" style="margin-left: auto; margin-right: 5px;" title="View task details">
+<i class="ri-eye-line"></i>
+</button>
+<button @click.stop="resetChat(task.id)" class="edit-button" style="margin-right: 5px;" title="Clear task chat">
+<i class="ri-chat-delete-line"></i>
+</button>
+<button @click.stop="deleteTaskGlobal(task.id)" class="edit-button" title="Delete task">X</button>
+</div>
+</div>
+</div>
+</li>
+</template>
+</ul>
+<div class="empty-list-message" x-show="tasks.length === 0">
+<p><i>No tasks to list.</i></p>
+</div>
+</div>
+</div>
+</div>
+<!--Sidebar lower elements-->
+<div class="left-panel-bottom">
+<!-- Preferences -->
+<div class="pref-section" x-data="{ prefOpen: false }">
+<span>
+<h3 @click="prefOpen = !prefOpen" class="pref-header">
+                            Preferences
+                            <i class="ri-arrow-right-s-line"></i>
+</h3>
+<ul class="config-list" id="pref-list" x-collapse="" x-show="prefOpen" x-transition="">
+<!-- Preferences Items -->
+<li x-data="{ autoScroll: true }">
+<span>Autoscroll</span>
+<label class="switch">
+<input id="auto-scroll-switch" type="checkbox" x-effect="window.safeCall('toggleAutoScroll',autoScroll)" x-model="autoScroll"/>
+<span class="slider"></span>
+</label>
+</li>
+<li x-data="{ darkMode: localStorage.getItem('darkMode') != 'false' }" x-init="$watch('darkMode', val =&gt; toggleDarkMode(val))">
+<span class="switch-label">Dark mode</span>
+<label class="switch">
+<input type="checkbox" x-model="darkMode"/>
+<span class="slider"></span>
+</label>
+</li>
+<li x-data="{ speech: localStorage.getItem('speech') == 'true' }" x-init="$watch('speech', val =&gt; toggleSpeech(val))">
+<span class="switch-label">Speech</span>
+<label class="switch">
+<input type="checkbox" x-model="speech"/>
+<span class="slider"></span>
+</label>
+</li>
+<li x-data="{ showThoughts: true }">
+<span>Show thoughts</span>
+<label class="switch">
+<input type="checkbox" x-effect="window.safeCall('toggleThoughts',showThoughts)" x-model="showThoughts"/>
+<span class="slider"></span>
+</label>
+</li>
+<li x-data="{ showJson: false }">
+<span>Show JSON</span>
+<label class="switch">
+<input type="checkbox" x-effect="window.safeCall('toggleJson',showJson)" x-model="showJson"/>
+<span class="slider"></span>
+</label>
+</li>
+<li x-data="{ showUtils: false }">
+<span>Show utility messages</span>
+<label class="switch">
+<input type="checkbox" x-effect="window.safeCall('toggleUtils',showUtils)" x-model="showUtils"/>
+<span class="slider"></span>
+</label>
+</li>
+</ul>
+</span>
+</div>
+<!-- Version Info -->
+<div class="version-info">
+<span id="a0version">AISIS v0.1</span>
+</div>
+</div>
+</div>
+<div class="panel" id="right-panel">
+<!--Chat-->
+<div id="chat-history">
+</div>
+<div class="toast" id="toast">
+<div class="toast__content">
+<div class="toast__title"></div>
+<div class="toast__separator"></div>
+<div class="toast__message"></div>
+</div>
+<button class="toast__copy" style="display: none;">Copy</button>
+<button class="toast__close">Close</button>
+</div>
+<div id="progress-bar-box" x-data="{ isSpeaking: false }" x-init="
+            // Watch the speech synthesis status to update isSpeaking
+            setInterval(() => isSpeaking = window.speech.isSpeaking(), 100)
+        ">
+<h4 id="progress-bar-h" style="display: flex; align-items: center;">
+
+<span id="progress-bar-i">|&gt;</span><span id="progress-bar"></span>
+</h4>
+<h4 id="progress-bar-stop-speech" x-show="isSpeaking">
+<span @click="window.speech.stop()" id="stop-speech" style="cursor: pointer">Stop Speech</span>
+</h4>
+</div>
+<div class="transition ease-out duration-300 transform-gpu" id="input-section" x-bind:class="{'input-section-obscured': isAgentActive && !isInputSectionHidden}" x-data="{
+            paused: false,
+            isAgentActive: false, // New variable to track if the agent is thinking (i.e., progress-bar is active)
+            attachments: [],
+            hasAttachments: false,
+            showButtons: window.innerWidth > 768, // Initialize based on window width
+            isInputSectionHidden: false, // New variable to hide the entire section
+            startY: 0,
+            currentSwipeY: 0, // Current Y position during swipe relative to start
+            isDragging: false, // New state for active dragging
+            inputSectionElement: null, // Reference to the element
+            inputSectionHeight: 0, // Dynamic height of input section for calculations
+
+            init() {
+                this.inputSectionElement = this.$el;
+                const progressBarBox = document.getElementById('progress-bar-box');
+                if (progressBarBox) {
+                    // Watch for the 'progress-active' class on progress-bar-box
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.attributeName === 'class') {
+                                this.isAgentActive = progressBarBox.classList.contains('progress-active');
+                            }
+                        });
+                    });
+                    observer.observe(progressBarBox, { attributes: true });
+                    // Set initial state
+                    this.isAgentActive = progressBarBox.classList.contains('progress-active');
+
+                    progressBarBox.addEventListener('touchstart', this.handleTouchStart.bind(this));
+                    progressBarBox.addEventListener('touchmove', this.handleTouchMove.bind(this));
+                    progressBarBox.addEventListener('touchend', this.handleTouchEnd.bind(this));
+                }
+
+                // Add click listener to the input-section itself to reveal it when obscured and agent is active
+                this.inputSectionElement.addEventListener('click', () => {
+                    if (this.isAgentActive && !this.isInputSectionHidden) {
+                        // Only reveal if agent is active and input is currently obscured (not fully hidden)
+                        this.inputSectionElement.classList.remove('input-section-obscured');
+                        this.inputSectionElement.style.pointerEvents = 'auto'; // Re-enable pointer events for actual interaction
+                        this.inputSectionElement.style.opacity = '1';
+                        this.inputSectionElement.style.filter = 'none';
+                    }
+                });
+
+                // Add touch listeners to the input-section itself
+                this.inputSectionElement.addEventListener('touchstart', this.handleTouchStart.bind(this));
+                this.inputSectionElement.addEventListener('touchmove', this.handleTouchMove.bind(this));
+                this.inputSectionElement.addEventListener('touchend', this.handleTouchEnd.bind(this));
+
+                // Calculate full height once on init and on resize
+                this.calculateFullInputSectionHeight();
+
+                // Recalculate on window resize
+                window.addEventListener('resize', () => {
+                    this.calculateFullInputSectionHeight(); // Recalculate full height
+                    // Re-evaluate showButtons based on window width on resize
+                    const newShowButtons = window.innerWidth > 768;
+                    if (this.showButtons !== newShowButtons) {
+                        this.showButtons = newShowButtons;
+                    }
+                    this.updateSwipeHandleVisibility();
+                });
+
+                // Watch for changes in isInputSectionHidden and showButtons to apply/remove class and update handle
+                this.$watch('isInputSectionHidden', (val) => {
+                    this.$nextTick(() => {
+                        if (val) {
+                            this.inputSectionElement.classList.add('input-section-collapsed');
+                        } else {
+                            this.inputSectionElement.classList.remove('input-section-collapsed');
+                        }
+                        this.updateSwipeHandleVisibility(); // Update handle after state change
+                    });
+                });
+                this.$watch('showButtons', () => this.$nextTick(() => { this.updateSwipeHandleVisibility(); }));
+
+                // Watch for changes in isAgentActive to apply/remove the obscured class
+                this.$watch('isAgentActive', (val) => {
+                    this.$nextTick(() => {
+                        if (val && !this.isInputSectionHidden) { // Only obscure if not explicitly hidden by user
+                            this.inputSectionElement.classList.add('input-section-obscured');
+                        } else {
+                            this.inputSectionElement.classList.remove('input-section-obscured');
+                        }
+                    });
+                });
+
+
+                this.updateSwipeHandleVisibility(); // Initial handle visibility
+            },
+
+            calculateFullInputSectionHeight() {
+                // To get the true full height, we need to temporarily un-collapse it and show buttons
+                // This method should *not* be called during an active drag.
+                if (this.isDragging) return; // Prevent interference during drag
+
+                const originalClasses = this.inputSectionElement.classList.contains('input-section-collapsed');
+                const originalShowButtons = this.showButtons;
+                const originalDisplay = this.inputSectionElement.style.display;
+                const originalMaxHeight = this.inputSectionElement.style.maxHeight;
+                const originalPaddingTop = this.inputSectionElement.style.paddingTop;
+                const originalPaddingBottom = this.inputSectionElement.style.paddingBottom;
+                const originalBorderTopWidth = this.inputSectionElement.style.borderTopWidth;
+                const originalTransition = this.inputSectionElement.style.transition; // Store transition
+                const originalPointerEvents = this.inputSectionElement.style.pointerEvents; // Store original pointer-events
+
+                // Temporarily force full visibility to measure actual height
+                this.inputSectionElement.style.transition = 'none'; // Disable transition for measurement
+                this.inputSectionElement.style.transform = 'translateY(0px)';
+                this.inputSectionElement.style.opacity = '1';
+                this.inputSectionElement.style.pointerEvents = 'auto';
+                this.inputSectionElement.style.maxHeight = ''; // Remove max-height constraint
+                this.inputSectionElement.style.paddingTop = '';
+                this.inputSectionElement.style.paddingBottom = '';
+                this.inputSectionElement.style.borderTopWidth = '';
+                this.inputSectionElement.classList.remove('input-section-collapsed');
+                this.inputSectionElement.style.display = 'flex'; // Ensure it's rendered as flex
+                
+                this.showButtons = true; // Temporarily show buttons to get full height
+                
+                // Use $nextTick to ensure Alpine has processed showButtons update before measuring
+                this.$nextTick(() => {
+                    document.body.offsetHeight; // Force reflow
+                    this.inputSectionHeight = this.inputSectionElement.offsetHeight;
+
+                    // Restore original state immediately
+                    this.inputSectionElement.style.transition = originalTransition; // Restore transition
+                    this.inputSectionElement.style.transform = ''; // Clear temporary transform/opacity
+                    this.inputSectionElement.style.opacity = '';
+                    this.inputSectionElement.style.pointerEvents = originalPointerEvents; // Restore original pointer-events
+                    this.inputSectionElement.style.display = originalDisplay;
+                    if (originalClasses) { // If it was originally collapsed, re-add the class
+                        this.inputSectionElement.classList.add('input-section-collapsed');
+                    }
+                    this.inputSectionElement.style.maxHeight = originalMaxHeight; // Restore original max-height
+                    this.inputSectionElement.style.paddingTop = originalPaddingTop;
+                    this.inputSectionElement.style.paddingBottom = originalPaddingBottom;
+                    this.inputSectionElement.style.borderTopWidth = originalBorderTopWidth;
+                    this.showButtons = originalShowButtons; // Restore original showButtons state
+                });
+            },
+
+            updateSwipeHandleVisibility() {
+                const swipeHandle = document.querySelector('.swipe-handle');
+                if (swipeHandle) {
+                    // Show swipe handle only on mobile, when the main input section is visible and buttons are hidden
+                    // This handle is specifically for opening the buttons when input is active.
+                    swipeHandle.style.display = (window.innerWidth <= 768 && !this.isInputSectionHidden && !this.showButtons) ? 'flex' : 'none';
+                }
+                // The reveal-input-button handles the case where isInputSectionHidden is true.
+            },
+
+            handleTouchStart(event) {
+                if (window.innerWidth <= 768) {
+                    this.startY = event.touches[0].clientY;
+                    this.currentSwipeY = 0;
+                    this.isDragging = true;
+                    // Do NOT preventDefault here. Allow clicks/focus on initial touch.
+
+                    // Temporarily remove CSS transition for direct DOM manipulation
+                    this.inputSectionElement.style.transition = 'none';
+
+                    // Set initial transform/opacity based on current logical state for smooth drag start
+                    if (this.isInputSectionHidden) {
+                        // If starting from hidden, visually place it at its collapsed position (bottom)
+                        this.inputSectionElement.style.transform = `translateY(${this.inputSectionHeight}px)`;
+                        this.inputSectionElement.style.opacity = '0';
+                        // Temporarily remove collapsed class to allow dragging it up visibly
+                        this.inputSectionElement.classList.remove('input-section-collapsed');
+                        // Ensure it's display flex to be draggable
+                        this.inputSectionElement.style.display = 'flex';
+                    } else {
+                        // If starting from visible, place it at top (no transform)
+                        this.inputSectionElement.style.transform = 'translateY(0px)';
+                        this.inputSectionElement.style.opacity = '1';
+                    }
+                    this.inputSectionElement.style.pointerEvents = 'auto'; // Enable interaction during drag
+                }
+            },
+
+            handleTouchMove(event) {
+                if (this.isDragging && window.innerWidth <= 768) {
+                    const deltaY = event.touches[0].clientY - this.startY;
+                    this.currentSwipeY = deltaY; // Update currentSwipeY with the full delta
+
+                    // Only prevent native scroll if vertical movement is significant to allow taps and horizontal scrolls
+                    if (Math.abs(deltaY) > 5) { // Small dead zone to allow tap/focus
+                        event.preventDefault();
+                    }
+
+                    let targetTransformY;
+                    let targetOpacity;
+
+                    if (this.isInputSectionHidden) {
+                        // Swiping UP to reveal (deltaY is negative)
+                        // targetTransformY starts from inputSectionHeight and goes towards 0
+                        targetTransformY = this.inputSectionHeight + deltaY;
+                        // Clamp transformY to be between 0 (fully visible) and inputSectionHeight (fully hidden)
+                        targetTransformY = Math.max(0, Math.min(this.inputSectionHeight, targetTransformY));
+
+                        // Opacity fades in from 0 to 1 as it comes up
+                        targetOpacity = 1 - (targetTransformY / this.inputSectionHeight);
+                    } else {
+                        // Swiping DOWN to hide (deltaY is positive)
+                        // targetTransformY starts from 0 and goes towards inputSectionHeight
+                        targetTransformY = deltaY;
+                        // Clamp transformY to be between 0 (fully visible) and inputSectionHeight (fully hidden)
+                        targetTransformY = Math.max(0, Math.min(this.inputSectionHeight, targetTransformY));
+
+                        // Opacity fades out from 1 to 0 as it goes down
+                        targetOpacity = 1 - (targetTransformY / this.inputSectionHeight); // Fade out as it goes down
+                    }
+
+                    this.inputSectionElement.style.transform = `translateY(${targetTransformY}px)`;
+                    this.inputSectionElement.style.opacity = Math.max(0, Math.min(targetOpacity, 1));
+                }
+            },
+
+            handleTouchEnd() {
+                if (this.isDragging && window.innerWidth <= 768) {
+                    this.isDragging = false;
+
+                    // Re-enable CSS transition immediately for smooth snap-back
+                    this.inputSectionElement.style.transition = ''; // Restore CSS transition from index.css
+
+                    const swipeThresholdButtons = 30; // Threshold for toggling buttons (small swipe)
+                    const swipeThresholdFullHide = 100; // Threshold for full hide (larger swipe down)
+                    const swipeThresholdFullShow = -100; // Threshold for full show (larger swipe up, negative deltaY)
+
+                    // Clear inline styles that were manually set during drag, let CSS and Alpine govern
+                    this.inputSectionElement.style.transform = '';
+                    this.inputSectionElement.style.opacity = '';
+                    this.inputSectionElement.style.pointerEvents = ''; // Restore default pointer-events
+                    // Also reset display if it was temporarily set to 'flex' for dragging from hidden state
+                    if (this.isInputSectionHidden) {
+                        this.inputSectionElement.style.display = ''; // Let x-show control it
+                    }
+
+                    // Determine the new state based on swipe distance and direction
+                    if (this.isInputSectionHidden) { // If currently logically hidden (was swiping up to reveal)
+                        if (this.currentSwipeY < swipeThresholdFullShow) { // Swiped up enough to fully reveal
+                            this.isInputSectionHidden = false;
+                            this.showButtons = true; // Show buttons by default when fully revealing
+                        } else { // Not enough swipe up, snap back to hidden
+                            this.isInputSectionHidden = true;
+                            this.showButtons = false; // Buttons are hidden when input section is hidden
+                        }
+                    } else { // If currently logically visible (was swiping down to hide)
+                        if (this.currentSwipeY > swipeThresholdFullHide) { // Swiped down enough to fully hide
+                            this.isInputSectionHidden = true;
+                            this.showButtons = false;
+                        } else { // Not enough swipe down, snap back to visible
+                            this.isInputSectionHidden = false;
+                            // For small swipes when visible, toggle showButtons based on swipe direction
+                            if (this.currentSwipeY > swipeThresholdButtons) { // Swiped down a little
+                                this.showButtons = false; // Hide buttons
+                            } else if (this.currentSwipeY < -swipeThresholdButtons) { // Swiped up a little
+                                this.showButtons = true; // Show buttons
+                            }
+                            // If swipe is within small threshold, showButtons state remains as it was
+                        }
+                    }
+                    // Alpine.js will react to changes in isInputSectionHidden and showButtons
+                    // and apply the `input-section-collapsed` class and `x-show` accordingly,
+                    // which will trigger the CSS transitions.
+
+                    this.startY = 0;
+                    this.currentSwipeY = 0;
+                    this.updateSwipeHandleVisibility(); // Update visibility after state change
+                }
+            },
+            handleFileUpload(event) {
+                const files = event.fromEvent(event.target.files);
+                Array.from(files).forEach(file => {
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    const isImage = ['jpg', 'jpeg', 'png', 'bmp'].includes(ext);
+                    if (isImage) {
+                        const reader = new FileReader();
+                        reader.onload = e => {
+                            this.attachments.push({
+                                file: file,
+                                url: e.target.result,
+                                type: 'image',
+                                name: file.name,
+                                extension: ext
+                            });
+                            this.hasAttachments = true;
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        this.attachments.push({
+                            file: file,
+                            type: 'file',
+                            name: file.name,
+                            extension: ext
+                        });
+                        this.hasAttachments = true;
+                    }
+                });
+            }
+        }">
+<!-- Preview section -->
+<div class="preview-section" x-show="hasAttachments">
+<template :key="index" x-for="(attachment, index) in attachments">
+<div :class="{'image-preview': attachment.type === 'image'}" class="preview-item">
+<template x-if="attachment.type === 'image'">
+<img :alt="attachment.name" :src="attachment.url"/>
+</template>
+<template x-if="attachment.type === 'file'">
+<div class="file-preview">
+<span class="filename" x-text="attachment.name"></span>
+<span class="extension" x-text="attachment.extension.toUpperCase()"></span>
+</div>
+</template>
+<button @click="attachments.splice(index, 1); hasAttachments = attachments.length > 0" class="remove-attachment">×</button>
+</div>
+</template>
+</div>
+<!-- Top row with input and buttons -->
+<div class="input-row">
+<!-- Attachment icon with tooltip -->
+<div class="attachment-wrapper" x-data="{ showTooltip: false }">
+<label @mouseleave="showTooltip = false" @mouseover="showTooltip = true" class="attachment-icon" for="file-input">
+<i class="ri-attachment-line"></i>
+</label>
+<input @change="handleFileUpload($event)" accept="*" id="file-input" multiple="" style="display: none" type="file"/>
+<div class="tooltip" x-show="showTooltip">
+                            Add attachments to the message
+                        </div>
+</div>
+<!-- Container for textarea and button -->
+<div id="chat-input-container" style="position: relative;">
+<textarea id="chat-input" placeholder="Type your message here..." rows="1"></textarea>
+<!-- Expand button inside the textarea container -->
+<button @click="$store.fullScreenInputModal.openModal()" aria-label="Expand input" id="expand-button">
+<i class="ri-fullscreen-line"></i>
+</button>
+</div>
+<div id="chat-buttons-wrapper">
+<!-- Send button -->
+<button aria-label="Send message" class="chat-button" id="send-button">
+<i class="ri-send-plane-line"></i>
+</button>
+<!-- Microphone button -->
+<button aria-label="Start/Stop recording" class="chat-button mic-inactive" id="microphone-button">
+<template x-if="!window.speech.isSpeaking()"><i class="ri-mic-line"></i></template>
+<template x-if="window.speech.isSpeaking()"><i class="ri-mic-off-line"></i></template>
+</button>
+</div>
+</div>
+<!-- The actual buttons that will be hidden/shown -->
+<div class="text-buttons-row" x-collapse.duration.300ms="" x-show="showButtons">
+<!-- New dropdown for prompt subdirectories -->
+<div class="prompt-selector-container" x-data="{ open: false, selectedPrompt: localStorage.getItem('selectedPromptSubdirectory') || 'default', promptSubdirectories: ['deep-research-agent', 'deep-research-agent2', 'deep-research-agent3', 'default', 'hacker', 'research_agent'] }">
+<button @click="open = !open" @click.outside="open = false" class="text-button">
+<i class="ri-user-settings-line"></i>
+<span x-text="selectedPrompt ? 'Personality: ' + selectedPrompt : 'Select Personality'"></span>
+<i class="ri-arrow-right-s-line"></i>
+</button>
+<div class="prompt-dropdown-menu" x-collapse.duration.200ms="" x-show="open">
+<template :key="promptDir" x-for="promptDir in promptSubdirectories">
+<button @click="selectedPrompt = promptDir; localStorage.setItem('selectedPromptSubdirectory', promptDir); open = false; console.log('Selected prompt subdirectory:', promptDir); window.updateAgentPromptSubdirectory(promptDir);" class="dropdown-item">
+<span x-text="promptDir"></span>
+</button>
+</template>
+</div>
+</div>
+<button @click="pauseAgent(!paused)" class="text-button">
+<!-- Dynamic path that switches between pause and play icons -->
+<template x-if="!paused"><i class="ri-pause-fill"></i></template>
+<template x-if="paused"><i class="ri-play-fill"></i></template>
+<span x-text="paused ? 'Resume Agent' : 'Pause Agent'"></span>
+</button>
+<button @click="loadKnowledge()" class="text-button"><i class="ri-database-2-line"></i>
+<p>Load Knowledge Base</p>
+</button>
+<button @click="fileBrowserModalProxy.openModal()" class="text-button" id="work_dir_browser">
+<i class="ri-folder-open-line"></i>
+<p>Workspace Files</p>
+</button>
+<button @click="window.openHistoryModal()" class="text-button" id="history_inspect">
+<i class="ri-history-line"></i>
+<p>History</p>
+</button>
+<button @click="window.openCtxWindowModal()" class="text-button" id="ctx_window">
+<i class="ri-window-line"></i>
+<p>Context</p>
+</button>
+<button @click="nudge()" class="text-button" id="nudges_window">
+<i class="ri-lightbulb-line"></i>
+<p>Suggestions</p>
+</button>
+<div id="time-date-container">
+<div id="time-date">
+<span id="current-time">4:51:09 am</span>
+<span id="user-date">3 Jul 2025</span>
+</div>
+<div class="status-icon" x-data="{ connected: true }">
+<svg viewbox="0 0 30 30">
+<!-- Connected State (filled circle) -->
+<circle class="connected-circle" cx="15" cy="15" r="8" x-bind:fill="connected ? '#00c340' : 'none'" x-bind:opacity="connected ? 1 : 0"></circle>
+<!-- Disconnected State (outline circle) -->
+<circle class="disconnected-circle" cx="15" cy="15" fill="none" r="12" stroke="#e40138" stroke-width="3" x-bind:opacity="connected ? 0 : 1"></circle>
+</svg>
+</div>
+</div>
+</div>
+<!-- Swipe handle / indicator -->
+<div @click="showButtons = !showButtons" class="swipe-handle" x-show="!showButtons && window.innerWidth <= 768 && !isInputSectionHidden">
+<i class="ri-arrow-up-s-line"></i>
+</div>
+</div>
+</div>
+</div>
+<!-- New button to reveal the input section when fully hidden -->
+<button @click="document.getElementById('input-section').__x.$data.isInputSectionHidden = false" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white p-3 rounded-full shadow-lg z-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" id="reveal-input-button" x-data="{ isInputSectionHidden: false }" x-init="
+        // Directly observe the isInputSectionHidden property from the #input-section component
+        // This is a common pattern to link Alpine.js component states without a global store
+        $watch(() => document.getElementById('input-section').__x.$data.isInputSectionHidden, (value) => {
+            this.isInputSectionHidden = value;
+        });
+    " x-show="isInputSectionHidden">
+<i class="ri-arrow-up-line"></i>
+        Show Input
+    </button>
+<div id="settingsModal" x-data="settingsModalProxy">
+<template x-teleport="body">
+<div @click.self="handleCancel()" @keydown.escape.window="handleCancel()" class="modal-overlay" x-show="isOpen" x-transition="">
+<div class="modal-container">
+<div class="modal-header">
+<h2 x-text="settings.title"></h2>
+<button @click="handleCancel()" class="modal-close">×</button>
+</div>
+<div class="modal-content">
+<!-- Tab Navigation -->
+<div class="settings-tabs-container">
+<div class="settings-tabs">
+<div :class="{'active': activeTab === 'agent'}" @click="switchTab('agent')" class="settings-tab" title="Agent Settings">Agent Settings</div>
+<div :class="{'active': activeTab === 'external'}" @click="switchTab('external')" class="settings-tab" title="External Services">External Services</div>
+<div :class="{'active': activeTab === 'mcp'}" @click="switchTab('mcp')" class="settings-tab" title="MCP">MCP</div>
+<div :class="{'active': activeTab === 'developer'}" @click="switchTab('developer')" class="settings-tab" title="Developer">Developer</div>
+<div :class="{'active': activeTab === 'scheduler'}" @click="switchTab('scheduler')" class="settings-tab" title="Task Scheduler">Task Scheduler</div>
+</div>
+</div>
+<!-- Display settings sections for agent, external, developer tabs -->
+<div id="settings-sections" x-show="activeTab !== 'scheduler'">
+<nav>
+<ul>
+<template :key="section.title" x-for="(section, index) in filteredSections">
+<li>
+<a :href="'#section' + (index + 1)">
+<img :alt="section.title" :src="'/public/' + section.id +'.svg'"/>
+<span x-text="section.title"></span>
+</a>
+</li>
+</template>
+<!-- Tunnel navigation entry - only visible in the External Services tab -->
+<li x-show="activeTab === 'external'">
+<a href="#section-tunnel">
+<img alt="Tunnel" src="/public/tunnel.svg"/>
+<span>Flare Tunnel</span>
+</a>
+</li>
+</ul>
+</nav>
+<template :key="sectionIndex" x-for="(section, sectionIndex) in filteredSections">
+<div :id="'section' + (sectionIndex + 1)" class="section">
+<div class="section-title" x-text="section.title"></div>
+<div class="section-description" x-html="section.description"></div>
+<template :key="fieldIndex" x-for="(field, fieldIndex) in section.fields.filter(f => !f.hidden)">
+<div :class="{'field': true, 'field-full': field.type === 'textarea'}">
+<div class="field-label">
+<div class="field-title" x-text="field.title"></div>
+<div class="field-description" x-html="field.description || ''"></div>
+</div>
+<div class="field-control">
+<!-- Input field -->
+<template x-if="field.type === 'text'">
+<input :class="field.classes" :readonly="field.readonly === true" :value="field.value" @input="field.value = $event.target.value" type="text"/>
+</template>
+<!-- Number field -->
+<template x-if="field.type === 'number'">
+<input :class="field.classes" :max="field.max" :min="field.min" :readonly="field.readonly === true" :step="field.step" :value="field.value" @input="field.value = $event.target.value" type="number"/>
+</template>
+<!-- Password field -->
+<template x-if="field.type === 'password'">
+<input :class="field.classes" :readonly="field.readonly === true" :value="field.value" @input="field.value = $event.target.value" type="password"/>
+</template>
+<!-- Textarea field -->
+<template x-if="field.type === 'textarea'">
+<textarea :class="field.classes" :readonly="field.readonly === true" :value="field.value" @input="field.value = $event.target.value"></textarea>
+</template>
+<!-- Switch field -->
+<template x-if="field.type === 'switch'">
+<label class="toggle">
+<input :checked="field.value" :disabled="field.readonly === true" @change="field.value = $event.target.checked" type="checkbox"/>
+<span class="toggler"></span>
+</label>
+</template>
+<!-- Range field -->
+<template x-if="field.type === 'range'">
+<div class="field-control">
+<input :class="field.classes" :disabled="field.readonly === true" :max="field.max" :min="field.min" :step="field.step" :value="field.value" @input="field.value = $event.target.value" type="range"/>
+<span class="range-value" x-text="field.value"></span>
+</div>
+</template>
+<!-- Button field -->
+<template x-if="field.type === 'button'">
+<button :class="field.classes" :disabled="field.readonly === true" @click="handleFieldButton(field)" class="btn btn-field" x-text="field.value"></button>
+</template>
+<!-- Select field -->
+<template x-if="field.type === 'select'">
+<select :class="field.classes" :disabled="field.readonly === true" x-model="field.value">
+<template :key="option.value" x-for="option in field.options">
+<option :selected="option.value === field.value" :value="option.value" x-text="option.label"></option>
+</template>
+</select>
+</template>
+</div>
+</div>
+</template>
+</div>
+</template>
+<!-- Tunnel section content - only visible in External Services tab -->
+<div class="section" id="section-tunnel" x-show="activeTab === 'external'">
+<div class="section-title">Flare Tunnel</div>
+<div class="section-description">Create a secure public URL to access your A.I.S.I.S. (An Impressive, Super, Intelligent, System) instance anytime, anywhere.</div>
+<div class="tunnel-container" x-data="tunnelSettings">
+<!-- Loading spinner for tunnel operations -->
+<div class="loading-spinner" x-show="isLoading">
+<i class="ri-loader-4-line ri-spin"></i>
+<span x-text="loadingText || 'Processing tunnel request...'"></span>
+</div>
+<!-- Tunnel content when not loading -->
+<div x-show="!isLoading">
+<!-- Tunnel link display when generated -->
+<div class="tunnel-link-container" x-show="linkGenerated">
+<div class="tunnel-link-field">
+<input :value="tunnelLink" class="tunnel-link-input" readonly="" type="text"/>
+<div class="buttons-row">
+<button @click="copyToClipboard()" class="copy-link-button" title="Copy to clipboard">
+<i class="ri-file-copy-line"></i> Copy
+                                                    </button>
+<button @click="refreshLink()" class="refresh-link-button" title="Generate new URL">
+<i class="ri-refresh-line"></i> Refresh
+                                                    </button>
+</div>
+</div>
+<div class="tunnel-link-info">
+                                                Share this URL to allow others to access your A.I.S.I.S. (An Impressive, Super, Intelligent, System) instance.
+                                            </div>
+<div class="tunnel-link-persistence">
+                                                This URL will persist until you stop the tunnel or restart the Docker container.
+                                            </div>
+<div class="stop-tunnel-container">
+<button @click="stopTunnel()" class="btn btn-danger">
+<i class="ri-stop-circle-line"></i> Stop Tunnel
+                                                </button>
+</div>
+</div>
+<!-- Generate tunnel button when no link exists -->
+<div class="tunnel-actions" x-show="!linkGenerated">
+<button @click="generateLink()" class="btn btn-ok">
+<i class="ri-play-circle-line"></i> Create Tunnel
+                                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Task Scheduler Tab Content -->
+<div id="scheduler-tab-content" x-cloak="" x-show="activeTab === 'scheduler'">
+<!-- Settings section structure for task scheduler -->
+<nav>
+<ul>
+<li>
+<a href="#section-task-scheduler">
+<img alt="Task Scheduler" src="/public/task_scheduler.svg"/>
+<span>Task Scheduler</span>
+</a>
+</li>
+</ul>
+</nav>
+<div class="section" id="section-task-scheduler" x-data="schedulerSettings">
+<div class="section-title">Task Scheduler</div>
+<div class="section-description">Manage scheduled tasks and automated processes for A.I.S.I.S. (An Impressive, Super, Intelligent, System).</div>
+<!-- Create Task Form -->
+<div class="scheduler-form" x-show="isCreating">
+<div class="scheduler-form-header">
+<div class="scheduler-form-title">Create New Task</div>
+<div class="scheduler-form-actions">
+<button @click="saveTask()" class="btn btn-ok btn-field">
+                                                Save
+                                            </button>
+<button @click="cancelEdit()" class="btn btn-cancel">
+                                                Cancel
+                                            </button>
+</div>
+</div>
+<div class="scheduler-form-grid">
+<!-- Task Name -->
+<div class="scheduler-form-field">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Task Name</label>
+<div class="scheduler-form-help">A unique name to identify this task</div>
+</div>
+<input placeholder="Enter task name" type="text" x-model="editingTask.name"/>
+</div>
+<!-- Task Type Selection -->
+<div class="scheduler-form-field">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Type</label>
+<div class="scheduler-form-help">Task execution method</div>
+</div>
+<select x-model="editingTask.type">
+<option value="scheduled">Scheduled (Cron)</option>
+<option value="adhoc">Ad-hoc (Manual)</option>
+<option value="planned">Planned (Specific Times)</option>
+</select>
+</div>
+<!-- Task State in Create Form - Add after Task Type -->
+<div class="scheduler-form-field" x-show="isCreating">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">State</label>
+<div class="scheduler-form-help">Select the initial state of the task</div>
+</div>
+<div>
+<div class="scheduler-state-selector">
+<span :class="{'scheduler-status-selected': editingTask.state === 'idle'}" @click="editingTask.state = 'idle'" class="scheduler-status-badge scheduler-status-idle">idle</span>
+<span :class="{'scheduler-status-selected': editingTask.state === 'running'}" @click="editingTask.state = 'running'" class="scheduler-status-badge scheduler-status-running">running</span>
+<span :class="{'scheduler-status-selected': editingTask.state === 'disabled'}" @click="editingTask.state = 'disabled'" class="scheduler-status-badge scheduler-status-disabled">disabled</span>
+<span :class="{'scheduler-status-selected': editingTask.state === 'error'}" @click="editingTask.state = 'error'" class="scheduler-status-badge scheduler-status-error">error</span>
+</div>
+<div class="scheduler-state-explanation">
+<span x-show="editingTask.state === 'idle'"><strong>idle</strong>: ready to run</span>
+<span x-show="editingTask.state === 'running'"><strong>running</strong>: currently executing</span>
+<span x-show="editingTask.state === 'disabled'"><strong>disabled</strong>: won't execute automatically</span>
+<span x-show="editingTask.state === 'error'"><strong>error</strong>: task encountered an error</span>
+</div>
+</div>
+</div>
+<!-- Schedule (only for scheduled tasks) -->
+<div class="scheduler-form-field full-width" x-show="editingTask.type === 'scheduled'">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Schedule</label>
+<div class="scheduler-form-help">Cron schedule for automated execution (minute hour day month weekday)</div>
+</div>
+<div class="scheduler-schedule-builder">
+<div class="scheduler-schedule-field">
+<span class="scheduler-schedule-label">Minute</span>
+<input maxlength="9" placeholder="*" type="text" x-model="editingTask.schedule.minute"/>
+</div>
+<div class="scheduler-schedule-field">
+<span class="scheduler-schedule-label">Hour</span>
+<input maxlength="9" placeholder="*" type="text" x-model="editingTask.schedule.hour"/>
+</div>
+<div class="scheduler-schedule-field">
+<span class="scheduler-schedule-label">Day</span>
+<input maxlength="9" placeholder="*" type="text" x-model="editingTask.schedule.day"/>
+</div>
+<div class="scheduler-schedule-field">
+<span class="scheduler-schedule-label">Month</span>
+<input maxlength="9" placeholder="*" type="text" x-model="editingTask.schedule.month"/>
+</div>
+<div class="scheduler-schedule-field">
+<span class="scheduler-schedule-label">Weekday</span>
+<input maxlength="9" placeholder="*" type="text" x-model="editingTask.schedule.weekday"/>
+</div>
+</div>
+</div>
+<!-- Plan (for planned tasks) -->
+<div class="scheduler-form-field full-width" x-show="editingTask.type === 'planned'">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Plan</label>
+<div class="scheduler-form-help">Specific execution times for this task</div>
+</div>
+<div class="scheduler-plan-builder">
+<div class="scheduler-plan-todo">
+<span class="scheduler-plan-label">Upcoming Executions</span>
+<div class="scheduler-todo-list">
+<template x-if="editingTask.plan && Array.isArray(editingTask.plan.todo) && editingTask.plan.todo.length > 0">
+<template :key="index" x-for="(time, index) in editingTask.plan.todo">
+<div class="scheduler-todo-item">
+<span x-text="formatDate(time)"></span>
+<button @click.prevent="editingTask.plan.todo.splice(index, 1)" class="scheduler-todo-remove">
+<i class="ri-close-line"></i>
+</button>
+</div>
+</template>
+</template>
+<template x-if="!editingTask.plan || !Array.isArray(editingTask.plan.todo) || editingTask.plan.todo.length === 0">
+<div class="scheduler-empty-plan">
+                                                                No scheduled execution times yet. Add one below.
+                                                            </div>
+</template>
+<div class="scheduler-add-todo">
+<!-- Create form planned task input -->
+<input class="scheduler-flatpickr-input" id="newPlannedTime-create" placeholder="Select date and time" type="text" x-ref="plannedTimeCreate"/>
+<!-- Create Task Form Add Time Button -->
+<button @click.prevent="
+                                                                const input = $refs.plannedTimeCreate;
+                                                                if (!input) {
+                                                                    console.error('Input reference not found for plannedTimeCreate');
+                                                                    return;
+                                                                }
+
+                                                                // Ensure plan structure exists
+                                                                if (!editingTask.plan) {
+                                                                    editingTask.plan = { todo: [], in_progress: null, done: [] };
+                                                                }
+                                                                if (!Array.isArray(editingTask.plan.todo)) {
+                                                                    editingTask.plan.todo = [];
+                                                                }
+
+                                                                // Get date from Flatpickr if available
+                                                                let selectedDate;
+                                                                if (input._flatpickr && input._flatpickr.selectedDates.length > 0) {
+                                                                    selectedDate = input._flatpickr.selectedDates[0];
+                                                                } else if (input.value) {
+                                                                    selectedDate = new Date(input.value);
+                                                                }
+
+                                                                if (!selectedDate || isNaN(selectedDate.getTime())) {
+                                                                    alert('Please select a valid date and time');
+                                                                    return;
+                                                                }
+
+                                                                // Convert to ISO string and add to plan
+                                                                editingTask.plan.todo.push(selectedDate.toISOString());
+
+                                                                // Sort by date (earliest first)
+                                                                editingTask.plan.todo.sort();
+
+                                                                // Clear the input
+                                                                if (input._flatpickr) {
+                                                                    input._flatpickr.clear();
+                                                                } else {
+                                                                    input.value = '';
+                                                                }
+                                                            " class="scheduler-add-todo-button">
+<i class="ri-add-line" style="margin-right: 4px;"></i>
+                                                                Add Time
+                                                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Token (for ad-hoc tasks) -->
+<div class="scheduler-form-field full-width" x-show="editingTask.type === 'adhoc'">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Token</label>
+<div class="scheduler-form-help">Token used to trigger this task externally</div>
+</div>
+<div class="input-group">
+<input placeholder="Token for ad-hoc task" type="text" x-model="editingTask.token"/>
+<button @click="editingTask.token = generateRandomToken()" class="scheduler-task-action">
+                                                    Generate
+                                                </button>
+</div>
+</div>
+<!-- System Prompt -->
+<div class="scheduler-form-field full-width">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">System Prompt</label>
+<div class="scheduler-form-help">System-level instructions for the assistant</div>
+</div>
+<textarea placeholder="System instructions for the AI" x-model="editingTask.system_prompt"></textarea>
+</div>
+<!-- User Prompt -->
+<div class="scheduler-form-field full-width">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">User Prompt</label>
+<div class="scheduler-form-help">The main task prompt that will be executed</div>
+</div>
+<textarea placeholder="User message for the AI" x-model="editingTask.prompt"></textarea>
+</div>
+<!-- Attachments Field -->
+<div class="scheduler-form-field full-width">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Attachments</label>
+<div class="scheduler-form-help">Container file paths or URLs, one per line</div>
+</div>
+<textarea placeholder="Enter file paths or URLs, one per line" x-model="attachmentsText"></textarea>
+</div>
+</div>
+</div>
+<!-- Edit Task Form -->
+<div class="scheduler-form" x-show="isEditing">
+<div class="scheduler-form-header">
+<div class="scheduler-form-title">Edit Task</div>
+<div class="scheduler-form-actions">
+<button @click="saveTask()" class="btn btn-ok btn-field">
+                                                Save
+                                            </button>
+<button @click="cancelEdit()" class="btn btn-cancel">
+                                                Cancel
+                                            </button>
+</div>
+</div>
+<div class="scheduler-form-grid">
+<!-- Task Name -->
+<div class="scheduler-form-field">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Task Name</label>
+<div class="scheduler-form-help">A unique name to identify this task</div>
+</div>
+<input placeholder="Enter task name" type="text" x-model="editingTask.name"/>
+</div>
+<!-- Task Type (disabled when editing) -->
+<div class="scheduler-form-field">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Task Type</label>
+<div class="scheduler-form-help">Task type cannot be changed after creation</div>
+</div>
+<select disabled="" x-model="editingTask.type">
+<option value="scheduled">Scheduled Task</option>
+<option value="adhoc">Ad-hoc Task</option>
+<option value="planned">Planned Task</option>
+</select>
+</div>
+<!-- Task State in Edit Form - Add after Task Type -->
+<div class="scheduler-form-field" x-show="isEditing">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">State</label>
+<div class="scheduler-form-help">Change the task's state</div>
+</div>
+<div>
+<div class="scheduler-state-selector">
+<span :class="{'scheduler-status-selected': editingTask.state === 'idle'}" @click="editingTask.state = 'idle'" class="scheduler-status-badge scheduler-status-idle">idle</span>
+<span :class="{'scheduler-status-selected': editingTask.state === 'running'}" @click="editingTask.state = 'running'" class="scheduler-status-badge scheduler-status-running">running</span>
+<span :class="{'scheduler-status-selected': editingTask.state === 'disabled'}" @click="editingTask.state = 'disabled'" class="scheduler-status-badge scheduler-status-disabled">disabled</span>
+<span :class="{'scheduler-status-selected': editingTask.state === 'error'}" @click="editingTask.state = 'error'" class="scheduler-status-badge scheduler-status-error">error</span>
+</div>
+<div class="scheduler-state-explanation">
+<span x-show="editingTask.state === 'idle'"><strong>idle</strong>: ready to run</span>
+<span x-show="editingTask.state === 'running'"><strong>running</strong>: currently executing</span>
+<span x-show="editingTask.state === 'disabled'"><strong>disabled</strong>: won't execute automatically</span>
+<span x-show="editingTask.state === 'error'"><strong>error</strong>: task encountered an error</span>
+</div>
+</div>
+</div>
+<!-- Schedule (for scheduled tasks) -->
+<div class="scheduler-form-field full-width" x-show="editingTask && editingTask.type === 'scheduled'">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Schedule (Cron Expression)</label>
+<div class="scheduler-form-help">Format: minute hour day month weekday (e.g., "* * * * *" for every minute)</div>
+</div>
+<div class="scheduler-schedule-builder">
+<div class="scheduler-schedule-field">
+<span class="scheduler-schedule-label">Minute</span>
+<input maxlength="9" placeholder="*" type="text" x-model="editingTask.schedule.minute"/>
+</div>
+<div class="scheduler-schedule-field">
+<span class="scheduler-schedule-label">Hour</span>
+<input maxlength="9" placeholder="*" type="text" x-model="editingTask.schedule.hour"/>
+</div>
+<div class="scheduler-schedule-field">
+<span class="scheduler-schedule-label">Day</span>
+<input maxlength="9" placeholder="*" type="text" x-model="editingTask.schedule.day"/>
+</div>
+<div class="scheduler-schedule-field">
+<span class="scheduler-schedule-label">Month</span>
+<input maxlength="9" placeholder="*" type="text" x-model="editingTask.schedule.month"/>
+</div>
+<div class="scheduler-schedule-field">
+<span class="scheduler-schedule-label">Weekday</span>
+<input maxlength="9" placeholder="*" type="text" x-model="editingTask.schedule.weekday"/>
+</div>
+</div>
+</div>
+<!-- Plan (for planned tasks) -->
+<div class="scheduler-form-field full-width" x-show="editingTask.type === 'planned'">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Plan</label>
+<div class="scheduler-form-help">Specific execution times for this task</div>
+</div>
+<div class="scheduler-plan-builder">
+<div class="scheduler-plan-todo">
+<span class="scheduler-plan-label">Upcoming Executions</span>
+<div class="scheduler-todo-list">
+<template x-if="editingTask.plan && Array.isArray(editingTask.plan.todo) && editingTask.plan.todo.length > 0">
+<template :key="index" x-for="(time, index) in editingTask.plan.todo">
+<div class="scheduler-todo-item">
+<span x-text="formatDate(time)"></span>
+<button @click.prevent="editingTask.plan.todo.splice(index, 1)" class="scheduler-todo-remove">
+<i class="ri-close-line"></i>
+</button>
+</div>
+</template>
+</template>
+<template x-if="!editingTask.plan || !Array.isArray(editingTask.plan.todo) || editingTask.plan.todo.length === 0">
+<div class="scheduler-empty-plan">
+                                                                No scheduled execution times yet. Add one below.
+                                                            </div>
+</template>
+<div class="scheduler-add-todo">
+<!-- Edit form planned task input -->
+<input class="scheduler-flatpickr-input" id="newPlannedTime-edit" placeholder="Select date and time" type="text" x-ref="plannedTimeEdit"/>
+<!-- Edit Task Form Add Time Button -->
+<button @click.prevent="
+                                                                const input = $refs.plannedTimeEdit;
+                                                                if (!input) {
+                                                                    console.error('Input reference not found for plannedTimeEdit');
+                                                                    return;
+                                                                }
+
+                                                                // Ensure plan structure exists
+                                                                if (!editingTask.plan) {
+                                                                    editingTask.plan = { todo: [], in_progress: null, done: [] };
+                                                                }
+                                                                if (!Array.isArray(editingTask.plan.todo)) {
+                                                                    editingTask.plan.todo = [];
+                                                                }
+
+                                                                // Get date from Flatpickr if available
+                                                                let selectedDate;
+                                                                if (input._flatpickr && input._flatpickr.selectedDates.length > 0) {
+                                                                    selectedDate = input._flatpickr.selectedDates[0];
+                                                                }
+
+                                                                if (!selectedDate || isNaN(selectedDate.getTime())) {
+                                                                    alert('Please select a valid date and time');
+                                                                    return;
+                                                                }
+
+                                                                // Convert to ISO string and add to plan
+                                                                editingTask.plan.todo.push(selectedDate.toISOString());
+
+                                                                // Sort by date (earliest first)
+                                                                editingTask.plan.todo.sort();
+
+                                                                // Clear the input
+                                                                if (input._flatpickr) {
+                                                                    input._flatpickr.clear();
+                                                                } else {
+                                                                    input.value = '';
+                                                                }
+                                                            " class="scheduler-add-todo-button">
+<i class="ri-add-line" style="margin-right: 4px;"></i>
+                                                                Add Time
+                                                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Token (for ad-hoc tasks) -->
+<div class="scheduler-form-field full-width" x-show="editingTask.type === 'adhoc'">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Token</label>
+<div class="scheduler-form-help">Token used to trigger this task externally</div>
+</div>
+<div class="input-group">
+<input placeholder="Token for ad-hoc task" type="text" x-model="editingTask.token"/>
+<button @click="editingTask.token = generateRandomToken()" class="scheduler-task-action">
+                                                    Generate
+                                                </button>
+</div>
+</div>
+<!-- System Prompt -->
+<div class="scheduler-form-field full-width">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">System Prompt</label>
+<div class="scheduler-form-help">System-level instructions for the assistant</div>
+</div>
+<textarea placeholder="System instructions for the AI" x-model="editingTask.system_prompt"></textarea>
+</div>
+<!-- User Prompt -->
+<div class="scheduler-form-field full-width">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">User Prompt</label>
+<div class="scheduler-form-help">The main task prompt that will be executed</div>
+</div>
+<textarea placeholder="User message for the AI" x-model="editingTask.prompt"></textarea>
+</div>
+<!-- Attachments Field -->
+<div class="scheduler-form-field full-width">
+<div class="label-help-wrapper">
+<label class="scheduler-form-label">Attachments</label>
+<div class="scheduler-form-help">Container file paths or URLs, one per line</div>
+</div>
+<textarea placeholder="Enter file paths or URLs, one per line" x-model="attachmentsText"></textarea>
+</div>
+</div>
+</div>
+<!-- Task List View -->
+<div class="scheduler-container" x-show="!isCreating && !isEditing && viewMode === 'list'">
+<!-- Header with Actions -->
+<div class="scheduler-header">
+<h2>Task Management</h2>
+<div class="scheduler-actions">
+<button @click="startCreateTask()" class="btn btn-ok">
+                                                New Task
+                                            </button>
+</div>
+</div>
+<!-- Filters -->
+<div class="scheduler-filters">
+<div class="scheduler-filter-group">
+<span class="scheduler-filter-label">Type:</span>
+<select class="scheduler-filter-select" x-model="filterType">
+<option value="all">All Types</option>
+<option value="scheduled">Scheduled</option>
+<option value="adhoc">Ad-hoc</option>
+<option value="planned">Planned</option>
+</select>
+</div>
+<div class="scheduler-filter-group">
+<span class="scheduler-filter-label">State:</span>
+<select class="scheduler-filter-select" x-model="filterState">
+<option value="all">All States</option>
+<option value="idle">Idle</option>
+<option value="running">Running</option>
+<option value="disabled">Disabled</option>
+<option value="error">Error</option>
+</select>
+</div>
+</div>
+<!-- Loading State -->
+<!-- <div class="scheduler-loading" x-show="isLoading">
+                                        Loading tasks...
+                                    </div> -->
+<!-- Empty State -->
+<div class="scheduler-empty" x-effect="$el.style.display = (!isLoading && filteredTasks.length === 0) ? '' : 'none'" x-show="!isLoading && filteredTasks.length === 0">
+<!-- <div class="scheduler-empty-icon">📋</div> -->
+<div class="scheduler-empty-text">No tasks found</div>
+<button @click="startCreateTask()" class="btn btn-ok">Create your first task</button>
+</div>
+<!-- Task List Table -->
+<table class="scheduler-task-list" x-effect="$el.style.display = (!isLoading && filteredTasks.length > 0) ? '' : 'none'" x-show="!isLoading && filteredTasks.length > 0">
+<thead>
+<tr>
+<th @click="changeSort('name')">
+                                                    Name
+                                                    <span :class="{'scheduler-sort-desc': sortDirection === 'desc'}" class="scheduler-sort-indicator" x-show="sortField === 'name'">↑</span>
+</th>
+<th @click="changeSort('state')">
+                                                    State
+                                                    <span :class="{'scheduler-sort-desc': sortDirection === 'desc'}" class="scheduler-sort-indicator" x-show="sortField === 'state'">↑</span>
+</th>
+<th>Type</th>
+<th>Schedule</th>
+<th @click="changeSort('last_run')">
+                                                    Last Run
+                                                    <span :class="{'scheduler-sort-desc': sortDirection === 'desc'}" class="scheduler-sort-indicator" x-show="sortField === 'last_run'">↑</span>
+</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+<template :key="task.uuid" x-for="task in filteredTasks">
+<tr @click="showTaskDetail(task.uuid)">
+<td>
+<span x-text="task.name"></span>
+</td>
+<td>
+<span :class="getStateBadgeClass(task.state)" class="scheduler-status-badge" x-text="task.state"></span>
+</td>
+<td x-text="task.type"></td>
+<td>
+<span x-show="task.type === 'scheduled'" x-text="formatSchedule(task)"></span>
+<span class="scheduler-no-schedule" x-show="task.type === 'adhoc'">—</span>
+<span x-html="formatPlan(task).replace(/\n/g, '&lt;br&gt;')" x-show="task.type === 'planned'"></span>
+</td>
+<td x-text="formatDate(task.last_run)"></td>
+<td @click.stop="">
+<div class="scheduler-task-actions">
+<button @click="runTask(task.uuid)" class="scheduler-task-action" title="Run Task">
+<i class="ri-play-line"></i>
+</button>
+<button @click="resetTaskState(task.uuid)" class="scheduler-task-action" title="Reset State">
+<i class="ri-restart-line"></i>
+</button>
+<button @click="startEditTask(task.uuid)" class="scheduler-task-action" title="Edit Task">
+<i class="ri-edit-line"></i>
+</button>
+<button @click="deleteTask(task.uuid)" class="scheduler-task-action" title="Delete Task">
+<i class="ri-delete-bin-line"></i>
+</button>
+</div>
+</td>
+</tr>
+</template>
+</tbody>
+</table>
+</div>
+<!-- Task Detail View -->
+<div class="scheduler-detail-view" x-show="!isCreating && !isEditing && viewMode === 'detail' && selectedTaskForDetail">
+<div class="scheduler-detail-header">
+<h2 class="scheduler-detail-title" x-text="selectedTaskForDetail ? selectedTaskForDetail.name : ''"></h2>
+<div :class="selectedTaskForDetail ? getStateBadgeClass(selectedTaskForDetail.state) : ''" class="scheduler-status-badge" x-text="selectedTaskForDetail ? selectedTaskForDetail.state : ''">
+</div>
+<button @click="closeTaskDetail()" class="btn btn-cancel">Close</button>
+</div>
+<div class="scheduler-detail-content">
+<div class="scheduler-details-grid">
+<div class="scheduler-details-label">Type:</div>
+<div class="scheduler-details-value" x-text="selectedTaskForDetail ? selectedTaskForDetail.type : ''"></div>
+<div class="scheduler-details-label">Created:</div>
+<div class="scheduler-details-value" x-text="selectedTaskForDetail ? formatDate(selectedTaskForDetail.created_at) : ''"></div>
+<div class="scheduler-details-label">Last Updated:</div>
+<div class="scheduler-details-value" x-text="selectedTaskForDetail ? formatDate(selectedTaskForDetail.updated_at) : ''"></div>
+<div class="scheduler-details-label">Last Run:</div>
+<div class="scheduler-details-value" x-text="selectedTaskForDetail ? formatDate(selectedTaskForDetail.last_run) : ''"></div>
+<div class="scheduler-details-label" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'scheduled'">Schedule:</div>
+<div class="scheduler-details-value" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'scheduled'" x-text="selectedTaskForDetail ? formatSchedule(selectedTaskForDetail) : ''"></div>
+<div class="scheduler-details-label" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'adhoc'">Token:</div>
+<div class="scheduler-details-value" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'adhoc'" x-text="selectedTaskForDetail ? selectedTaskForDetail.token : ''"></div>
+<div class="scheduler-details-label" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'planned'">Plan:</div>
+<div class="scheduler-details-value" x-show="selectedTaskForDetail && selectedTaskForDetail.type === 'planned'">
+<div x-show="selectedTaskForDetail && selectedTaskForDetail.plan">
+<div><strong>Upcoming:</strong></div>
+<template x-if="selectedTaskForDetail && selectedTaskForDetail.plan && selectedTaskForDetail.plan.todo && selectedTaskForDetail.plan.todo.length > 0">
+<div>
+<template :key="index" x-for="(time, index) in selectedTaskForDetail.plan.todo">
+<div x-text="formatDate(time)"></div>
+</template>
+</div>
+</template>
+<template x-if="!selectedTaskForDetail || !selectedTaskForDetail.plan || !selectedTaskForDetail.plan.todo || selectedTaskForDetail.plan.todo.length === 0">
+<div>No upcoming executions</div>
+</template>
+<div><strong>In Progress:</strong></div>
+<div x-text="selectedTaskForDetail && selectedTaskForDetail.plan && selectedTaskForDetail.plan.in_progress ? formatDate(selectedTaskForDetail.plan.in_progress) : 'None'"></div>
+<div><strong>Completed:</strong></div>
+<template x-if="selectedTaskForDetail && selectedTaskForDetail.plan && selectedTaskForDetail.plan.done && selectedTaskForDetail.plan.done.length > 0">
+<div>
+<template :key="index" x-for="(time, index) in selectedTaskForDetail.plan.done">
+<div x-text="formatDate(time)"></div>
+</template>
+</div>
+</template>
+<template x-if="!selectedTaskForDetail || !selectedTaskForDetail.plan || !selectedTaskForDetail.plan.done || selectedTaskForDetail.plan.done.length === 0">
+<div>No completed executions</div>
+</template>
+</div>
+</div>
+<div class="scheduler-details-label">Last Result:</div>
+<div class="scheduler-details-value" x-text="selectedTaskForDetail && selectedTaskForDetail.last_result ? selectedTaskForDetail.last_result : 'No results yet'"></div>
+<div class="scheduler-details-label">System Prompt:</div>
+<div class="scheduler-details-value" x-text="selectedTaskForDetail ? selectedTaskForDetail.system_prompt : ''"></div>
+<div class="scheduler-details-label">User Prompt:</div>
+<div class="scheduler-details-value" x-text="selectedTaskForDetail ? selectedTaskForDetail.prompt : ''"></div>
+<div class="scheduler-details-label">Attachments:</div>
+<div class="scheduler-details-value">
+<template x-if="selectedTaskForDetail && selectedTaskForDetail.attachments && selectedTaskForDetail.attachments.length > 0">
+<div>
+<template :key="index" x-for="(attachment, index) in selectedTaskForDetail.attachments">
+<div x-text="attachment"></div>
+</template>
+</div>
+</template>
+<template x-if="!selectedTaskForDetail || !selectedTaskForDetail.attachments || selectedTaskForDetail.attachments.length === 0">
+<div>No attachments</div>
+</template>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<div id="buttons-container">
+<template :key="button.id" x-for="button in settings.buttons">
+<button :class="button.classes" @click="handleButton(button.id)" x-text="button.title"></button>
+</template>
+</div>
+</div>
+</div>
+</div>
+</template>
+</div>
+<!-- work_dir Browser Modal -->
+<div id="fileBrowserModal" x-data="fileBrowserModalProxy">
+<template x-teleport="body">
+<div @click.self="handleClose()" @keydown.escape.window="handleClose()" class="modal-overlay" x-show="isOpen" x-transition="">
+<div class="modal-container">
+<div class="modal-header">
+<h2 class="modal-title">Workspace File Explorer</h2>
+<button @click="handleClose()" class="modal-close">×</button>
+</div>
+<div class="modal-content">
+<div class="loading-spinner" x-show="isLoading">
+                            Loading...
+                        </div>
+<div x-show="!isLoading">
+<div class="file-browser-controls">
+<div class="path-navigator">
+<button @click="navigateUp()" aria-label="Navigate Up" class="text-button back-button" x-bind:disabled="browser.currentPath === '/' || browser.currentPath === 'root/'">
+<i class="ri-arrow-up-line"></i>
+                                        Up
+                                    </button>
+<div class="breadcrumbs">
+<template :key="index" x-for="(part, index) in getBreadcrumbs()">
+<span class="breadcrumb-item">
+<a @click.prevent="navigateToFolder(part.path)" href="#" x-text="part.name"></a>
+<span x-show="index < getBreadcrumbs().length - 1"> / </span>
+</span>
+</template>
+</div>
+</div>
+<div class="file-actions-top">
+<input @input="filterEntries()" class="search-input" placeholder="Search files..." type="text" x-model="searchTerm"/>
+<button @click="createNewFolder()" class="btn btn-primary">
+<i class="ri-folder-add-line"></i> New Folder
+                                    </button>
+<button @click="createNewFile()" class="btn btn-primary">
+<i class="ri-file-add-line"></i> New File
+                                    </button>
+</div>
+</div>
+<div class="files-list">
+<!-- Header -->
+<div class="file-header">
+<div class="file-cell-checkbox">
+<input @click="toggleSelectAll()" type="checkbox" x-model="allFilesSelected"/>
+</div>
+<div @click="toggleSort('name')" class="file-cell file-cell-name">
+                                        Name
+                                        <span x-show="browser.sortBy === 'name'" x-text="browser.sortDirection === 'asc' ? '↑' : '↓'">
+</span>
+</div>
+<div @click="toggleSort('size')" class="file-cell file-cell-size">
+                                        Size
+                                        <span x-show="browser.sortBy === 'size'" x-text="browser.sortDirection === 'asc' ? '↑' : '↓'">
+</span>
+</div>
+<div @click="toggleSort('date')" class="file-cell file-cell-date">
+                                        Modified
+                                        <span x-show="browser.sortBy === 'date'" x-text="browser.sortDirection === 'asc' ? '↑' : '↓'">
+</span>
+</div>
+<div class="file-cell-actions">Actions</div>
+</div>
+<!-- File List Entries -->
+<template x-if="filteredEntries.length">
+<template :key="file.path" x-for="file in sortFiles(filteredEntries)">
+<div :data-is-dir="file.is_dir" class="file-item">
+<div class="file-cell-checkbox">
+<input :value="file.path" type="checkbox" x-model="selectedFiles"/>
+</div>
+<div @click="file.is_dir ? navigateToFolder(file.path) : openFileForView(file.path)" class="file-name">
+<img :alt="file.type" :src="getFileIcon(file)" class="file-icon"/>
+<span x-text="file.name"></span>
+</div>
+<div class="file-size" x-text="formatFileSize(file.size)"></div>
+<div class="file-date" x-text="formatDate(file.modified)"></div>
+<div class="file-actions">
+<button @click.stop="downloadFile(file)" class="action-button" title="Download">
+<i class="ri-download-line"></i>
+</button>
+<button @click.stop="deleteFile(file)" class="action-button" title="Delete">
+<i class="ri-delete-bin-line"></i>
+</button>
+</div>
+</div>
+</template>
+</template>
+<!-- Empty State -->
+<template x-if="!filteredEntries.length">
+<div class="no-files">
+<i class="ri-folder-open-line"></i>
+<span>No files or folders found in this directory.</span>
+</div>
+</template>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<div id="buttons-container">
+<label class="btn btn-upload">
+<i class="ri-upload-line"></i>
+                            Upload Files
+                            <input @change="handleFileUpload" accept="all" multiple="" style="display: none;" type="file"/>
+</label>
+<button :disabled="selectedFiles.length === 0" @click="deleteSelectedFiles()" class="btn btn-danger">Delete Selected</button>
+<button @click="handleClose()" class="btn btn-cancel">Close</button>
+</div>
+</div>
+</div>
+</div></template>
+</div>
+<!-- generic modal -->
+<div id="genericModal" x-data="genericModalProxy">
+<template x-teleport="body">
+<div @click.self="handleClose()" @keydown.escape.window="handleClose()" class="modal-overlay" x-show="isOpen" x-transition="">
+<div class="modal-container">
+<div class="modal-header">
+<h2 class="modal-title" x-text="title"></h2>
+<button @click="handleClose()" class="modal-close">×</button>
+</div>
+<div class="modal-description" x-text="description"></div>
+<div class="modal-content" id="viewer">
+<div class="html-pre" x-html="html"></div>
+</div>
+<!-- <div class="modal-footer">
+                    <div id="buttons-container">
+                        <button class="btn btn-cancel" @click="handleClose()">Close</button>
+                    </div>
+                </div> -->
+</div>
+</div></template>
+</div>
+<!-- Full Screen Input Modal -->
+<div id="fullScreenInputModal" x-data="fullScreenInputModalProxy">
+<template x-teleport="body">
+<div class="modal-container full-screen-input-modal" x-show="isOpen">
+<div class="modal-content">
+<button @click="handleClose()" class="modal-close">×</button>
+<!-- Add toolbar -->
+<div class="editor-toolbar">
+<div class="toolbar-group">
+<button :disabled="!canUndo" @click="undo()" class="toolbar-button" title="Undo (Ctrl+Z)">
+<i class="ri-arrow-go-back-line"></i>
+</button>
+<button :disabled="!canRedo" @click="redo()" class="toolbar-button" title="Redo (Ctrl+Shift+Z)">
+<i class="ri-arrow-go-forward-line"></i>
+</button>
+</div>
+<div class="toolbar-group">
+<button @click="clearText()" class="toolbar-button" title="Clear Text">
+<i class="ri-eraser-line"></i>
+</button>
+<button :class="{ active: wordWrap }" @click="toggleWrap()" class="toolbar-button" title="Toggle Word Wrap">
+<i class="ri-text-wrap"></i>
+</button>
+</div>
+</div>
+<textarea :style="{ 'white-space': wordWrap ? 'pre-wrap' : 'pre' }" @input="updateHistory()" @keydown.ctrl.enter="handleClose()" @keydown.ctrl.shift.z.prevent="redo()" @keydown.ctrl.z.prevent="undo()" id="full-screen-input" placeholder="Type your message here..." x-model="inputText"></textarea>
+</div>
+<div class="modal-footer">
+<div id="buttons-container">
+<button @click="handleClose()" class="btn btn-ok">Done (Ctrl+Enter)</button>
+</div>
+</div>
+</div>
+</template></div>
+<!-- Drag and Drop Overlay -->
+<div class="dragdrop-overlay" id="dragdrop-overlay" x-cloak="" x-data="{ isVisible: false }" x-show="isVisible" x-transition:enter="transition ease-out duration-300" x-transition:enter-end="opacity-100" x-transition:enter-start="opacity-0" x-transition:leave="transition ease-in duration-300" x-transition:leave-end="opacity-0" x-transition:leave-start="opacity-100">
+<img alt="Drop files" class="dragdrop-icon" src="public/dragndrop.svg"/>
+<div class="dragdrop-text">Drop files to attach them to your message</div>
+<div class="dragdrop-subtext"></div>
+</div>
+</body>
+</html>
