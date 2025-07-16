@@ -814,6 +814,7 @@ pre {
   padding: 0 0.5rem;
   white-space: nowrap;
   letter-spacing: 0.1em; /* Add some spacing between letters for AISIS */
+  position: relative; /* Ensure absolute positioning context for child */
 }
 
 .logo-char {
@@ -3204,4 +3205,18 @@ a:active {
     bottom: 0;
     pointer-events: none; /* Disable interactions */
     transition: filter 0.3s ease-out, opacity 0.3s ease-out; /* Smooth transition for blur/opacity */
+}
+
+#glitchy-logo-text {
+  position: absolute;
+  font-size: 0.45rem; /* Very small */
+  color: var(--color-red-neon); /* Using a neon-red color for 'glitchy' effect */
+  bottom: 0px; /* Position at the bottom relative to logo-text */
+  right: -5px; /* Adjust right to slightly overlap the last 'S' */
+  opacity: 0.9; /* Slightly transparent */
+  letter-spacing: 0.02em; /* Small letter spacing for distinct look */
+  text-shadow: 0 0 2px var(--color-red-neon), 0 0 5px rgba(255, 0, 0, 0.5); /* Subtle glow */
+  transform: rotate(-7deg); /* Slightly rotate for a "glitchy" feel */
+  pointer-events: none; /* Make sure it doesn't interfere with clicks */
+  z-index: 1005; /* Ensure it's above other elements if needed */
 }
