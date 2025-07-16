@@ -85,58 +85,182 @@ export function _drawMessage(
   contentClasses = [],
   latex = false
 ) {
-  const messageDiv = document.createElement("div");
-  messageDiv.classList.add("message", ...messageClasses);
+  let messageDiv = messageContainer.querySelector('.message');
+  let headingElement = messageDiv ? messageDiv.querySelector('h4') : null;
+  let preElement = messageDiv ? messageDiv.querySelector('pre.msg-content') : null;
+  let spanElement = preElement ? preElement.querySelector('span') : null;
+  let kvpsDl = messageDiv ? messageDiv.querySelector('dl.message-details') : null;
 
-  if (heading) {
-    const headingElement = document.createElement("h4");
-        if (heading === "Agent 0: Generating") {
+  // If the inner messageDiv doesn't exist, create the full structure.
+  if (!messageDiv) {
+    messageContainer.innerHTML = ''; // Clear potential old content if messageContainer was reused for a new message type
+    messageDiv = document.createElement("div");
+    messageDiv.classList.add("message", ...messageClasses);
+    messageContainer.appendChild(messageDiv);
+
+    headingElement = document.createElement("h4");
+    messageDiv.appendChild(headingElement);
+
+    // Create KVPs container if needed
+    if (kvps) {
+        kvpsDl = document.createElement("dl");
+        kvpsDl.classList.add("message-details");
+        messageDiv.appendChild(kvpsDl);
+    }
+
+    preElement = document.createElement("pre");
+    preElement.classList.add("msg-content", ...contentClasses);
+    preElement.style.whiteSpace = "pre-wrap";
+    preElement.style.wordBreak = "break-word";
+
+    spanElement = document.createElement("span");
+    preElement.appendChild(spanElement);
+    addCopyButtonToElement(preElement);
+    messageDiv.appendChild(preElement);
+
+    // Add click handler for small screens only on creation
+    spanElement.addEventListener("click", () => {
+      copyText(spanElement.textContent, spanElement);
+    });
+  } else {
+      // Ensure messageDiv has correct classes, especially if type changed
+      messageDiv.classList.remove(...messageDiv.classList);
+      messageDiv.classList.add("message", ...messageClasses);
+
+      // If KVPs are updated or appear, and no existing KVPs DL, redraw.
+      // This might be imperfect if KVPs *change* rather than just appear/append.
+      if (kvps && !kvpsDl) {
+          kvpsDl = document.createElement("dl");
+          kvpsDl.classList.add("message-details");
+          // Insert before preElement if it exists, otherwise append
+          if (preElement) {
+              messageDiv.insertBefore(kvpsDl, preElement);
+          } else {
+              messageDiv.appendChild(kvpsDl);
+          }
+      }
+  }
+
+  // Update heading content
+  if (headingElement) {
+    if (heading === "Agent 0: Generating") {
         headingElement.textContent = "Initiating Directive Protocol";
     } else if (heading === "Agent 0: Responding") {
         headingElement.textContent = "AISIS: Transmitting Acknowledgment";
     } else {
         headingElement.textContent = heading;
     }
-    messageDiv.appendChild(headingElement);
   }
 
-  drawKvps(messageDiv, kvps, latex);
-
-  if (content && content.trim().length > 0) {
-    const preElement = document.createElement("pre");
-    preElement.classList.add("msg-content", ...contentClasses);
-    preElement.style.whiteSpace = "pre-wrap";
-    preElement.style.wordBreak = "break-word";
-
-    const spanElement = document.createElement("span");
+  // Update main content
+  if (spanElement) {
     spanElement.innerHTML = convertHTML(content);
-
-    // Add click handler for small screens
-    spanElement.addEventListener("click", () => {
-      copyText(spanElement.textContent, spanElement);
-    });
-
-    preElement.appendChild(spanElement);
-    addCopyButtonToElement(preElement);
-    messageDiv.appendChild(preElement);
-
-    // Render LaTeX math within the span
-    if (window.renderMathInElement && latex) {
-      renderMathInElement(spanElement, {
-        delimiters: [{ left: "$", right: "$", display: true }],
-        throwOnError: false,
-      });
-    }
   }
 
-  messageContainer.appendChild(messageDiv);
+  // Redraw KVPs if kvpsDl exists (either just created or already existed)
+  // This will clear and redraw KVPs on every update, which is acceptable if they change frequently.
+  if (kvps && kvpsDl) {
+      kvpsDl.innerHTML = ''; // Clear existing KVP items
+      drawKvpsContent(kvpsDl, kvps, latex); // Draw new KVP items into the dl
+  }
+
+  // Render LaTeX math within the span
+  if (window.renderMathInElement && latex && spanElement) {
+    renderMathInElement(spanElement, {
+      delimiters: [{ left: "$", right: "$", display: true }],
+      throwOnError: false,
+    });
+  }
+
+  // Auto-scroll the *internal* message content to the bottom on update
+  // This applies to AI/Tool/Browser messages where content streams.
+  const shouldAutoScrollInternal = (
+    messageClasses.includes('message-ai') ||
+    messageClasses.includes('message-tool') ||
+    messageClasses.includes('message-browser')
+  );
+
+  if (shouldAutoScrollInternal && preElement) {
+    requestAnimationFrame(() => {
+      preElement.scrollTop = preElement.scrollHeight;
+    });
+  }
 
   if (followUp) {
     messageContainer.classList.add("message-followup");
+  } else {
+    messageContainer.classList.remove("message-followup");
   }
 
   return messageDiv;
 }
+
+// Extracted KVP drawing logic for reusability and to avoid full element recreation
+function drawKvpsContent(dlElement, kvps, latex) {
+    for (let [key, value] of Object.entries(kvps)) {
+      const divItem = document.createElement("div");
+      divItem.classList.add("detail-item");
+      if (key === "thoughts" || key === "reflection")
+        divItem.classList.add("msg-thoughts");
+
+      const dt = document.createElement("dt");
+      dt.textContent = convertToTitleCase(key);
+      dt.classList.add("detail-key");
+      divItem.appendChild(dt);
+
+      const dd = document.createElement("dd");
+      dd.classList.add("detail-value");
+
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          addValue(item);
+        }
+      } else {
+        addValue(value);
+      }
+
+      function addValue(value) {
+        if (typeof value === "object") value = JSON.stringify(value, null, 2);
+
+        if (typeof value === "string" && value.startsWith("img://")) {
+          const imgElement = document.createElement("img");
+          imgElement.classList.add("kvps-img");
+          imgElement.classList.add("responsive-screenshot-img");
+          imgElement.src = value.replace("img://", "/image_get?path=");
+          imgElement.alt = "Image Attachment";
+          dd.appendChild(imgElement);
+
+          imgElement.style.cursor = "pointer";
+          imgElement.addEventListener("click", () => {
+            openImageModal(imgElement.src, 1000);
+          });
+        } else {
+          const pre = document.createElement("pre");
+          pre.classList.add("detail-content");
+
+          const span = document.createElement("span");
+          span.innerHTML = convertHTML(value);
+          pre.appendChild(span);
+          dd.appendChild(pre);
+          addCopyButtonToElement(dd);
+
+          span.addEventListener("click", () => {
+            copyText(span.textContent, span);
+          });
+
+          if (window.renderMathInElement && latex) {
+            renderMathInElement(span, {
+              delimiters: [{ left: "$", right: "$", display: true }],
+              throwOnError: false,
+            });
+          }
+        }
+      }
+      divItem.appendChild(dd);
+      dlElement.appendChild(divItem);
+    }
+}
+
 
 export function drawMessageDefault(
   messageContainer,
@@ -222,7 +346,7 @@ export function drawMessageDelegation(
   _drawMessage(
     messageContainer,
     heading,
-    messageContent,
+    content,
     temp,
     true,
     kvps,
@@ -242,91 +366,106 @@ export function drawMessageUser(
   kvps = null,
   latex = false
 ) {
-  const messageDiv = document.createElement("div");
-  messageDiv.classList.add("message", "message-user");
+  let messageDiv = messageContainer.querySelector('.message-user');
+  let headingElement = messageDiv ? messageDiv.querySelector('h4') : null;
+  let textDiv = messageDiv ? messageDiv.querySelector('.message-text') : null;
+  let spanElement = textDiv ? textDiv.querySelector('span') : null;
+  let attachmentsContainer = messageDiv ? messageDiv.querySelector('.attachments-container') : null;
 
-  const headingElement = document.createElement("h4");
-  headingElement.textContent = "User message";
-  messageDiv.appendChild(headingElement);
+  if (!messageDiv) {
+    messageContainer.innerHTML = '';
+    messageDiv = document.createElement("div");
+    messageDiv.classList.add("message", "message-user");
+    messageContainer.appendChild(messageDiv);
 
-  if (content && content.trim().length > 0) {
-    const textDiv = document.createElement("div");
+    headingElement = document.createElement("h4");
+    headingElement.textContent = "User message";
+    messageDiv.appendChild(headingElement);
+
+    textDiv = document.createElement("div");
     textDiv.classList.add("message-text");
-
-    // Create a span for the content
-    const spanElement = document.createElement("span");
-    spanElement.innerHTML = convertHTML(content);
+    spanElement = document.createElement("span");
     textDiv.appendChild(spanElement);
 
-    // Add click handler
     textDiv.addEventListener("click", () => {
       copyText(content, textDiv);
     });
-
     addCopyButtonToElement(textDiv);
     messageDiv.appendChild(textDiv);
-  }
 
-  // Handle attachments
-  if (kvps && kvps.attachments && kvps.attachments.length > 0) {
-    const attachmentsContainer = document.createElement("div");
+    attachmentsContainer = document.createElement("div");
     attachmentsContainer.classList.add("attachments-container");
-
-    kvps.attachments.forEach((attachment) => {
-      const attachmentDiv = document.createElement("div");
-      attachmentDiv.classList.add("attachment-item");
-
-      if (typeof attachment === "string") {
-        // attachment is filename
-        const filename = attachment;
-        const extension = filename.split(".").pop().toUpperCase();
-
-        attachmentDiv.classList.add("file-type");
-        attachmentDiv.innerHTML = `
-                    <div class="file-preview">
-                        <span class="filename">${filename}</span>
-                        <span class="extension">${extension}</span>
-                    </div>
-                `;
-      } else if (attachment.type === "image") {
-        // Existing logic for images
-        const imgWrapper = document.createElement("div");
-        imgWrapper.classList.add("image-wrapper");
-
-        const img = document.createElement("img");
-        img.src = attachment.url;
-        img.alt = attachment.name;
-        img.classList.add("attachment-preview");
-        img.classList.add("responsive-screenshot-img"); // Add new class here
-
-        const fileInfo = document.createElement("div");
-        fileInfo.classList.add("file-info");
-        fileInfo.innerHTML = `
-                    <span class="filename">${attachment.name}</span>
-                    <span class="extension">${attachment.extension.toUpperCase()}</span>
-                `;
-
-        imgWrapper.appendChild(img);
-        attachmentDiv.appendChild(imgWrapper);
-        attachmentDiv.appendChild(fileInfo);
-      } else {
-        // Existing logic for non-image files
-        attachmentDiv.classList.add("file-type");
-        attachmentDiv.innerHTML = `
-                    <div class="file-preview">
-                        <span class="filename">${attachment.name}</span>
-                        <span class="extension">${attachment.extension.toUpperCase()}</span>
-                    </div>
-                `;
-      }
-
-      attachmentsContainer.appendChild(attachmentDiv);
-    });
-
     messageDiv.appendChild(attachmentsContainer);
   }
 
-  messageContainer.appendChild(messageDiv);
+  // Update content
+  if (spanElement && content) {
+    spanElement.innerHTML = convertHTML(content);
+  }
+
+  // Handle attachments: always re-render the attachments section if kvps.attachments exist
+  if (kvps && kvps.attachments && kvps.attachments.length > 0) {
+    if (!attachmentsContainer) {
+        // This case should ideally not be hit if !messageDiv block creates it
+        attachmentsContainer = document.createElement("div");
+        attachmentsContainer.classList.add("attachments-container");
+        messageDiv.appendChild(attachmentsContainer);
+    }
+    attachmentsContainer.innerHTML = ''; // Clear existing attachments to re-render
+    renderAttachments(attachmentsContainer, kvps.attachments);
+  } else if (attachmentsContainer) {
+      attachmentsContainer.innerHTML = ''; // Clear attachments if none are provided anymore
+  }
+}
+
+// Helper function to render attachments (extracted for reusability)
+function renderAttachments(container, attachments) {
+    attachments.forEach((attachment) => {
+        const attachmentDiv = document.createElement("div");
+        attachmentDiv.classList.add("attachment-item");
+
+        if (typeof attachment === "string") {
+            const filename = attachment;
+            const extension = filename.split(".").pop().toUpperCase();
+
+            attachmentDiv.classList.add("file-type");
+            attachmentDiv.innerHTML = `
+                <div class="file-preview">
+                    <span class="filename">${filename}</span>
+                    <span class="extension">${extension}</span>
+                </div>
+            `;
+        } else if (attachment.type === "image") {
+            const imgWrapper = document.createElement("div");
+            imgWrapper.classList.add("image-wrapper");
+
+            const img = document.createElement("img");
+            img.src = attachment.url;
+            img.alt = attachment.name;
+            img.classList.add("attachment-preview");
+            img.classList.add("responsive-screenshot-img");
+
+            const fileInfo = document.createElement("div");
+            fileInfo.classList.add("file-info");
+            fileInfo.innerHTML = `
+                <span class="filename">${attachment.name}</span>
+                <span class="extension">${attachment.extension.toUpperCase()}</span>
+            `;
+
+            imgWrapper.appendChild(img);
+            attachmentDiv.appendChild(imgWrapper);
+            attachmentDiv.appendChild(fileInfo);
+        } else {
+            attachmentDiv.classList.add("file-type");
+            attachmentDiv.innerHTML = `
+                <div class="file-preview">
+                    <span class="filename">${attachment.name}</span>
+                    <span class="extension">${attachment.extension.toUpperCase()}</span>
+                </div>
+            `;
+        }
+        container.appendChild(attachmentDiv);
+    });
 }
 
 export function drawMessageTool(
@@ -506,73 +645,8 @@ export function drawMessageError(
 }
 
 function drawKvps(container, kvps, latex) {
-  if (kvps) {
-    const dl = document.createElement("dl");
-    dl.classList.add("message-details");
-    for (let [key, value] of Object.entries(kvps)) {
-      const divItem = document.createElement("div");
-      divItem.classList.add("detail-item");
-      if (key === "thoughts" || key === "reflection")
-        divItem.classList.add("msg-thoughts");
-
-      const dt = document.createElement("dt");
-      dt.textContent = convertToTitleCase(key);
-      dt.classList.add("detail-key");
-      divItem.appendChild(dt);
-
-      const dd = document.createElement("dd");
-      dd.classList.add("detail-value");
-
-      if (Array.isArray(value)) {
-        for (const item of value) {
-          addValue(item);
-        }
-      } else {
-        addValue(value);
-      }
-
-      function addValue(value) {
-        if (typeof value === "object") value = JSON.stringify(value, null, 2);
-
-        if (typeof value === "string" && value.startsWith("img://")) {
-          const imgElement = document.createElement("img");
-          imgElement.classList.add("kvps-img");
-          imgElement.classList.add("responsive-screenshot-img");
-          imgElement.src = value.replace("img://", "/image_get?path=");
-          imgElement.alt = "Image Attachment";
-          dd.appendChild(imgElement);
-
-          imgElement.style.cursor = "pointer";
-          imgElement.addEventListener("click", () => {
-            openImageModal(imgElement.src, 1000);
-          });
-        } else {
-          const pre = document.createElement("pre");
-          pre.classList.add("detail-content");
-
-          const span = document.createElement("span");
-          span.innerHTML = convertHTML(value);
-          pre.appendChild(span);
-          dd.appendChild(pre);
-          addCopyButtonToElement(dd);
-
-          span.addEventListener("click", () => {
-            copyText(span.textContent, span);
-          });
-
-          if (window.renderMathInElement && latex) {
-            renderMathInElement(span, {
-              delimiters: [{ left: "$", right: "$", display: true }],
-              throwOnError: false,
-            });
-          }
-        }
-      }
-      divItem.appendChild(dd);
-      dl.appendChild(divItem);
-    }
-    container.appendChild(dl);
-  }
+  // This function is now simplified, it expects to be called when kvpsDl is newly created or cleared.
+  // The actual element is passed in drawKvpsContent.
 }
 
 function convertToTitleCase(str) {

@@ -240,31 +240,25 @@ setInterval(updateUserTime, 1000);
 function setMessage(id, type, heading, content, temp, kvps = null) {
     // Search for the existing message container by id
     let messageContainer = document.getElementById(`message-${id}`);
+    const isNewMessage = !messageContainer;
 
-    if (messageContainer) {
-        // Don't re-render user messages
-        if (type === 'user') {
-            return; // Skip re-rendering
-        }
-        // For other types, update the message
-        messageContainer.innerHTML = '';
-    } else {
+    if (isNewMessage) {
         // Create a new container if not found
         const sender = type === 'user' ? 'user' : 'ai';
         messageContainer = document.createElement('div');
         messageContainer.id = `message-${id}`;
         messageContainer.classList.add('message-container', `${sender}-container`);
         if (temp) messageContainer.classList.add("message-temp");
+        chatHistory.appendChild(messageContainer); // Append new container immediately
     }
 
+    // Get the appropriate handler from messages.js
     const handler = msgs.getHandler(type);
+    // Call the handler without the isNewMessage flag, as _drawMessage now determines this internally
     handler(messageContainer, id, type, heading, content, temp, kvps);
 
-    // If the container was found, it was already in the DOM, no need to append again
-    if (!document.getElementById(`message-${id}`)) {
-        chatHistory.appendChild(messageContainer);
-    }
-
+    // Only auto-scroll the main chat history if new messages are added or autoScroll is enabled
+    // The individual message's internal scroll will be handled by messages.js
     if (autoScroll) chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
@@ -1075,7 +1069,7 @@ function hideToast() {
     setTimeout(() => {
         toast.style.display = 'none';
         toast.classList.remove('hide');
-    }, 400); // Match this with CSS transition duration
+    }, 400);
 }
 
 function scrollChanged(isAtBottom) {
