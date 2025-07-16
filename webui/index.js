@@ -285,7 +285,8 @@ window.loadKnowledge = async function () {
 
         if (!response.ok) {
             toast(await response.text(), "error");
-        } else {
+        }
+        else {
             const data = await response.json();
             toast("Knowledge files imported: " + data.filenames.join(", "), "success");
         }
