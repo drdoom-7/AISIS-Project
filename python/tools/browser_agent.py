@@ -16,6 +16,7 @@ from python.extensions.message_loop_start._10_iteration_no import get_iter_no
 from pydantic import BaseModel
 import uuid
 from python.helpers.dirty_json import DirtyJson
+from urllib.parse import urlparse
 
 
 class State:
@@ -312,7 +313,18 @@ class BrowserAgent(Tool):
         if self.state.use_agent:
             full_log = get_use_agent_log(self.state.use_agent)
             if full_log:
-                answer_text += "\n\n--- Browser Agent Activity Log ---\n" + "\n".join(full_log)
+                log_content = "\n".join(full_log)
+                answer_text += "\n\n--- Browser Agent Activity Log ---\n" + log_content
+                
+                # Save the full log to a file for debugging
+                log_file_path = files.get_abs_path(
+                    persist_chat.get_chat_folder_path(self.agent.context.id),
+                    "browser",
+                    "logs",
+                    f"browser_agent_{self.guid}.log",
+                )
+                files.make_dirs(log_file_path)
+                files.write_file(log_file_path, log_content)
 
         # respond (with screenshot path and log)
         return Response(message=answer_text, break_loop=False)
@@ -372,11 +384,21 @@ class BrowserAgent(Tool):
                     #     short_log.append(first_line)
                     result["log"] = get_use_agent_log(ua)
 
+                    screenshot_dir_name = "general_screenshots"
+                    if page.url:
+                        try:
+                            parsed_url = urlparse(page.url)
+                            if parsed_url.netloc:
+                                screenshot_dir_name = parsed_url.netloc.replace('.', '_') # Sanitize for directory name
+                        except Exception:
+                            pass
+
                     path = files.get_abs_path(
                         persist_chat.get_chat_folder_path(agent.context.id),
                         "browser",
                         "screenshots",
-                        f"{self.guid}.png",
+                        screenshot_dir_name,
+                        f"{self.guid}_{str(uuid.uuid4())}.png",
                     )
                     files.make_dirs(path)
                     await page.screenshot(path=path, full_page=False, timeout=3000)
