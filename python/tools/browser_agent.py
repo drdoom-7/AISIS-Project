@@ -326,6 +326,14 @@ class BrowserAgent(Tool):
                 files.make_dirs(log_file_path)
                 files.write_file(log_file_path, log_content)
 
+        # Add information about screenshot location
+        screenshots_base_path = files.get_abs_path(
+            persist_chat.get_chat_folder_path(self.agent.context.id),
+            "browser",
+            "screenshots"
+        )
+        answer_text += f"\n\n--- Debugging Information ---\nAll screenshots for this browser agent instance are saved in: {screenshots_base_path}. They are further organized into subdirectories by domain name (e.g., 'www_google_com')."
+
         # respond (with screenshot path and log)
         return Response(message=answer_text, break_loop=False)
 
