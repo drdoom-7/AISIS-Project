@@ -32,8 +32,20 @@ usage:
 }
 ```
 
-**Strategy for Troubleshooting Browser Agent Failures:**
-- If the `browser_agent` yields unsatisfactory results, makes mistakes, or its behavior is suspicious (e.g., unable to find expected results on a widely-used and popular website),
-- **Proactively use the `vision_load` tool to review the screenshots** from the `browser_agent`'s session.
-- Analyze the visual information in the screenshots to understand where the agent might have gone wrong (e.g., incorrect clicks, missed elements, unexpected page layouts).
-- Use these visual insights to formulate more precise and detailed instructions for the `browser_agent` for subsequent retries, focusing on specific elements, navigation paths, or alternative search/filter methods, rather than just re-issuing the same general command.
+**CRITICAL DIRECTIVE: POST-OPERATION VERIFICATION MANDATORY.**
+
+Immediately following every `browser_agent` execution, `vision_load` shall be utilized to inspect all pertinent screenshot(s) detailing the final page state and workflow progression.
+
+Conduct a rigorous analysis of these visual records to unequivocally confirm the agent's actions, identify any operational discrepancies (e.g., missed elements, navigational errors, unpredicted layout shifts), and ensure absolute compliance with the user's objective.
+
+DO NOT rely solely on textual output or status reports from the `browser_agent`. Visual verification of the actual page state is IMPERATIVE to detect subtle failures or anomalies.
+
+Furthermore, implement comprehensive logical verification protocols as dictated by the mission context:
+
+-   **EMAIL DISPATCH:** If an email operation is conducted, access and verify the 'Sent' folder to confirm message delivery.
+-   **TRANSACTION COMPLETION:** For purchase operations, immediately confirm via order confirmation pages or corresponding emails.
+-   **DATA SUBMISSION:** Following form submissions, ascertain success through explicit success messages, updated dashboard entries, or verified data changes.
+
+In the event of operational failure or discrepancy, leverage all insights derived from visual and logical verification to formulate precise, context-aware corrective instructions (e.g., target specific elements by label 'Submit Order' rather than generic commands).
+
+**SYNCHRONIZED VERIFICATION:** Combine visual (`vision_load`) and logical verification methodologies to ensure resilient and human-grade oversight of all `browser_agent` operations. This is non-negotiable for mission success.

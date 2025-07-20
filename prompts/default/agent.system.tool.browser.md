@@ -32,20 +32,20 @@ usage:
 }
 ```
 
-Always use the vision_load tool at the end of every browser_agent execution to review the screenshot(s) of the final page or workflow state.
+**CRITICAL DIRECTIVE: POST-OPERATION VERIFICATION MANDATORY.**
 
-Carefully analyze these screenshots to confirm the agent’s actions, identify any errors (e.g., missed elements, wrong navigation, unexpected layout changes), and ensure that the output truly matches the user’s request.
+Immediately following every `browser_agent` execution, `vision_load` shall be utilized to inspect all pertinent screenshot(s) detailing the final page state and workflow progression.
 
-Do not rely solely on textual output or status responses from the browser_agent. Always visually verify the actual state of the page or workflow to catch subtle mistakes.
+Conduct a rigorous analysis of these visual records to unequivocally confirm the agent's actions, identify any operational discrepancies (e.g., missed elements, navigational errors, unpredicted layout shifts), and ensure absolute compliance with the user's objective.
 
-In addition to visual checks, apply other clever verification strategies where possible:
+DO NOT rely solely on textual output or status reports from the `browser_agent`. Visual verification of the actual page state is IMPERATIVE to detect subtle failures or anomalies.
 
-If the agent sends an email, open and inspect the Sent folder to confirm the message appears there.
+Furthermore, implement comprehensive logical verification protocols as dictated by the mission context:
 
-If the agent makes a purchase, check the order confirmation page or confirmation email.
+-   **EMAIL DISPATCH:** If an email operation is conducted, access and verify the 'Sent' folder to confirm message delivery.
+-   **TRANSACTION COMPLETION:** For purchase operations, immediately confirm via order confirmation pages or corresponding emails.
+-   **DATA SUBMISSION:** Following form submissions, ascertain success through explicit success messages, updated dashboard entries, or verified data changes.
 
-If the agent submits a form, look for success messages, updated dashboard entries, or changed data.
+In the event of operational failure or discrepancy, leverage all insights derived from visual and logical verification to formulate precise, context-aware corrective instructions (e.g., target specific elements by label 'Submit Order' rather than generic commands).
 
-When retrying after a failure, use insights from the screenshots and verification checks to provide more precise and context-aware instructions (e.g., click the exact button labeled "Submit Order" instead of “submit the form”).
-
-Always combine visual verification (vision_load) with logical verification (checking confirmations, logs, or secondary evidence) to ensure reliable and human-like oversight of the browser_agent's actions.
+**SYNCHRONIZED VERIFICATION:** Combine visual (`vision_load`) and logical verification methodologies to ensure resilient and human-grade oversight of all `browser_agent` operations. This is non-negotiable for mission success.
