@@ -32,8 +32,20 @@ usage:
 }
 ```
 
-**Strategy for Troubleshooting Browser Agent Failures:**
-- If the `browser_agent` yields unsatisfactory results, makes mistakes, or its behavior is suspicious (e.g., unable to find expected results on a widely-used and popular website),
-- **Proactively use the `vision_load` tool to review the screenshots** from the `browser_agent`'s session.
-- Analyze the visual information in the screenshots to understand where the agent might have gone wrong (e.g., incorrect clicks, missed elements, unexpected page layouts).
-- Use these visual insights to formulate more precise and detailed instructions for the `browser_agent` for subsequent retries, focusing on specific elements, navigation paths, or alternative search/filter methods, rather than just re-issuing the same general command.
+Always use the vision_load tool at the end of every browser_agent execution to review the screenshot(s) of the final page or workflow state.
+
+Carefully analyze these screenshots to confirm the agent’s actions, identify any errors (e.g., missed elements, wrong navigation, unexpected layout changes), and ensure that the output truly matches the user’s request.
+
+Do not rely solely on textual output or status responses from the browser_agent. Always visually verify the actual state of the page or workflow to catch subtle mistakes.
+
+In addition to visual checks, apply other clever verification strategies where possible:
+
+If the agent sends an email, open and inspect the Sent folder to confirm the message appears there.
+
+If the agent makes a purchase, check the order confirmation page or confirmation email.
+
+If the agent submits a form, look for success messages, updated dashboard entries, or changed data.
+
+When retrying after a failure, use insights from the screenshots and verification checks to provide more precise and context-aware instructions (e.g., click the exact button labeled "Submit Order" instead of “submit the form”).
+
+Always combine visual verification (vision_load) with logical verification (checking confirmations, logs, or secondary evidence) to ensure reliable and human-like oversight of the browser_agent's actions.

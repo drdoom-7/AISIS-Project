@@ -1,6 +1,8 @@
 import asyncio
 import json
 import time
+import os
+import subprocess
 from typing import Optional
 from agent import Agent, InterventionException
 from pathlib import Path
@@ -41,6 +43,15 @@ class State:
 
         # for some reason we need to provide exact path to headless shell, otherwise it looks for headed browser
         pw_binary = ensure_playwright_binary()
+
+        # Remove SingletonLock file if it exists to prevent browser launch issues
+        lock_file_path = '/root/.config/browseruse/profiles/default/SingletonLock'
+        if os.path.exists(lock_file_path):
+            try:
+                os.remove(lock_file_path)
+                PrintStyle().info(f"Removed existing SingletonLock file: {lock_file_path}")
+            except Exception as e:
+                PrintStyle().error(f"Error removing SingletonLock file {lock_file_path}: {e}")
 
         self.browser_session = browser_use.BrowserSession(
             browser_profile=browser_use.BrowserProfile(
@@ -102,6 +113,19 @@ class State:
                 PrintStyle().error(f"Error closing browser session: {e}")
             finally:
                 self.browser_session = None
+                # Forcefully kill any lingering chrome processes associated with the profile
+                # This ensures the SingletonLock is released if browser.close() fails or hangs
+                try:
+                    profile_dir = "/root/.config/browseruse/profiles/default"
+                    # Find PIDs of chrome processes using the specific profile directory
+                    cmd = f"ps aux | grep chrome | grep '{profile_dir}' | grep -v grep | awk '{{print $2}}'"
+                    pids = subprocess.check_output(cmd, shell=True, text=True).strip().split('\n')
+                    for pid in pids:
+                        if pid:
+                            PrintStyle().warning(f"Forcefully killing lingering chrome process: {pid}")
+                            subprocess.run(['kill', '-9', pid], check=True)
+                except Exception as e:
+                    PrintStyle().error(f"Error killing lingering chrome processes: {e}")
         self.use_agent = None
         self.iter_no = 0
 
